@@ -1,0 +1,8 @@
+{
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length=100"],
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Args": ["--ignore=E203,E741", "--max-line-length=100"],
+  "python.jediEnabled": false
+}

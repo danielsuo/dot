@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+#
+# NOTE: This is for Debian-like OS.
+
+# Print all commands being run
+set -x
+
+# Fail on first error
+set -e
+
+# Script directory
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Prerequisites
+echo "INSTALLING ALL THE APTS..."
+sudo apt update && sudo apt install -y \
+  git \
+  curl \
+  libevent \
+  ncurses \
+  libevent-dev \
+  ncurses-dev \
+  build-essential \
+  bison \
+  pkg-config \
+  autoconf \
+  automake
+
+
+echo "INSTALLING PYTHON..."
+MINICONDA=Miniconda3-latest-Linux-x86_64.sh
+curl https://repo.anaconda.com/miniconda/$MINICONDA --output $MINICONDA
+bash $MINICONDA -b -u
+rm -f $MINICONDA
+export PATH=$HOME/miniconda3/bin:$PATH
+
+# TODO(dsuo): Install python packages.
+
+echo "INSTALLING NODJS..."
+curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
+
+echo "LINKING CONFIGS..."
+ln -s $SCRIPT_DIR/../home/.config $HOME/.config
+ln -s $SCRIPT_DIR/../home/.tmux.conf $HOME/.tmux.conf
+
+# Applications
+echo "INSTALLING NEOVIM..."
+NVIM=nvim.appimage
+curl -LO https://github.com/neovim/neovim/releases/latest/download/$NVIM
+chmod u+x $NVIM
+./$NVIM --appimage-extract
+./squashfs-root/AppRun --version
+sudo mv squashfs-root /
+sudo ln -s /squashfs-root/AppRun /usr/bin/nvim
+rm -rf $NVIM
+curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+nvim +PlugInstall +UpdateRemotePlugins +qall
+git clone https://github.com/powerline/fonts
+pushd fonts
+./install.sh
+popd
+rm -rf fonts
+
+echo "INSTALLING TMUX..."
+git clone https://github.com/tmux/tmux.git
+pushd tmux
+sh autogen.sh
+./configure && make -j && sudo make install
+popd tmux
+rm -rf tmux
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+tmux source-file ~/.tmux.conf
+~/.tmux/plugins/tpm/bin/install_plugins
+
+echo "INSTALLING FZF..."
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install
+
+echo "UPDATING PATHS..."
+echo "export PATH=$PATH"
