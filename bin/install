@@ -21,7 +21,8 @@ sudo apt update && sudo apt install -y \
   bison \
   pkg-config \
   autoconf \
-  automake
+  automake \
+  htop
 
 
 echo "CONFIGURING APT..."
