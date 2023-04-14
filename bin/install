@@ -72,7 +72,6 @@ sh autogen.sh
 popd
 rm -rf tmux
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-tmux source-file ~/.tmux.conf
 ~/.tmux/plugins/tpm/bin/install_plugins
 
 echo "INSTALLING FZF..."
