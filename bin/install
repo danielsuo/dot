@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#
 # NOTE: This is for Debian-like OS.
 
 # Print all commands being run
@@ -16,16 +15,18 @@ echo "INSTALLING ALL THE APTS..."
 sudo apt update && sudo apt install -y \
   git \
   curl \
-  libevent \
-  ncurses \
   libevent-dev \
-  ncurses-dev \
+  libncurses-dev \
   build-essential \
   bison \
   pkg-config \
   autoconf \
   automake
 
+
+echo "CONFIGURING APT..."
+git config --global user.email "danielsuo@gmail.com"
+git config --global user.name "Daniel Suo"
 
 echo "INSTALLING PYTHON..."
 MINICONDA=Miniconda3-latest-Linux-x86_64.sh
@@ -68,7 +69,7 @@ git clone https://github.com/tmux/tmux.git
 pushd tmux
 sh autogen.sh
 ./configure && make -j && sudo make install
-popd tmux
+popd
 rm -rf tmux
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 tmux source-file ~/.tmux.conf
@@ -79,4 +80,4 @@ git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 ~/.fzf/install
 
 echo "UPDATING PATHS..."
-echo "export PATH=$PATH"
+echo "export PATH=$PATH" >> ~/.bashrc
