@@ -7,4 +7,3 @@ Public subset of dotfiles
 - unzip
 - gcc
 - ripgrep
-- miniconda
