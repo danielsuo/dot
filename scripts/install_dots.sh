@@ -7,4 +7,5 @@ ln -s "$DIR"/../.bashrc "$HOME"/.bashrc
 ln -s "$DIR"/../.tmux.conf "$HOME"/.tmux.conf
 
 mkdir -p "$HOME/.config"
-ln -s "$DIR"/../starship.toml "$HOME/.config/starship.toml"
+ln -s "$DIR"/../.confg/starship.toml "$HOME/.config/starship.toml"
+ln -s "$DIR"/../.confg/nvim "$HOME/.config/nvim"

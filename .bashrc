@@ -1,5 +1,8 @@
 # Aliases
 
+## Bash
+alias ls="ls -la"
+
 ## Neovim
 alias v=nvim
 alias vim=nvim
