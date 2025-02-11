@@ -27,4 +27,9 @@ fi
 # Terminal
 eval "$(starship init bash)"
 
+# User-defined functions
+weather() {
+   curl wttr.in/$1
+}
+
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
