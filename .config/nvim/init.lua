@@ -993,6 +993,22 @@ require('lazy').setup({
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
   -- you can continue same window with `<space>sr` which resumes last telescope search
   {
+    "smartpde/neoscopes",
+    config = function()
+      local scopes = require("neoscopes")
+      scopes.add_dirs_to_all_scopes({
+        "~/dot",
+      })
+      scopes.add_startup_scope()
+    end,
+  },
+  {
+    "lcheylus/overlength.nvim",
+    config = function()
+      require("overlength").setup()
+    end,
+  },
+  {
     url = "sso://user/dsuo/nvim",
     import = "nvim.default",
     enabled = function() return os.execute("command -v gcert") == 0 end,
