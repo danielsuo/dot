@@ -164,10 +164,13 @@ vim.opt.scrolloff = 10
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Write
-vim.keymap.set('n', '<leader>fs', ':w<Enter>', { desc = '[File] save' })
+vim.keymap.set('n', '<leader>fs', ':w<Enter>', { desc = '[F]ile save' })
 
 -- Quit
-vim.keymap.set('n', '<leader>fq', ':q<Enter>', { desc = '[File] quit' })
+vim.keymap.set('n', '<leader>fq', ':q<Enter>', { desc = '[F]ile quit' })
+
+-- Lazy
+vim.keymap.set('n', '<leader>l', ':Lazy', { desc = '[L]azy' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
