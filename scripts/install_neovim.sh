@@ -10,4 +10,3 @@ curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-"$OS".t
 tar xzf nvim-"$OS".tar.gz
 sudo ln -s "($pwd)"/nvim-"$OS"/bin/nvim /usr/local/bin/nvim
 
-git clone git@github.com:danielsuo/dot.nvim.git "$HOME"/.config/nvim
