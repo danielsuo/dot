@@ -2,12 +2,14 @@
 
 ## Bash
 alias ls="ls -la"
+alias sb="source ~/.bashrc"
 
 ## Neovim
 alias v=nvim
 alias vim=nvim
 alias vc="nvim ~/.config/nvim/init.lua"
 alias vb="nvim ~/.bashrc"
+alias vs="nvim ~/.config/starship.toml"
 
 ## Git
 alias gcam="git commit -am"
