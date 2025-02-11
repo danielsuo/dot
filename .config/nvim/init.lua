@@ -163,6 +163,9 @@ vim.opt.scrolloff = 10
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- File ops
+vim.keymap.set('n', '<leader>f', '[F]ile')
+
 -- Write
 vim.keymap.set('n', '<leader>fs', ':w<Enter>', { desc = '[F]ile save' })
 
