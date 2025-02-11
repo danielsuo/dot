@@ -3,6 +3,7 @@
 ## Neovim
 alias v=nvim
 alias vim=nvim
+alias vc="nvim ~/.config/nvim/init.lua"
 
 ## Git
 alias gcam="git commit -am"
