@@ -20,6 +20,10 @@ alias gs="git status"
 # PATH
 export PATH="$HOME/.local/bin:$PATH"
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export PATH=/opt/homebrew/bin:"$PATH"
+fi
+
 # Terminal
 eval "$(starship init bash)"
 
