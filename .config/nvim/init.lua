@@ -170,7 +170,7 @@ vim.keymap.set('n', '<leader>fs', ':w<Enter>', { desc = '[F]ile save' })
 vim.keymap.set('n', '<leader>fq', ':q<Enter>', { desc = '[F]ile quit' })
 
 -- Lazy
-vim.keymap.set('n', '<leader>l', ':Lazy', { desc = '[L]azy' })
+vim.keymap.set('n', '<leader>l', ':Lazy<Enter>', { desc = '[L]azy' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
