@@ -17,6 +17,10 @@ alias gp="git push"
 alias ga="git add ."
 alias gs="git status"
 
+## Editor
+export EDITOR=nvim
+export VISUAL=nvim
+
 # PATH
 export PATH="$HOME/.local/bin:$PATH"
 
