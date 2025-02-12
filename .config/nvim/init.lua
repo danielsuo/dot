@@ -1028,8 +1028,8 @@ require('lazy').setup({
     end,
   },
   {
-    url = 'sso://user/fentanes/nvgoog',
-    import = 'nvgoog.default',
+    url = 'sso://user/dsuo/nvim',
+    import = 'nvim.default',
     enabled = function()
       return os.execute 'command -v gcert' == 0
     end,
