@@ -181,6 +181,9 @@ vim.keymap.set('n', '<leader>l', ':Lazy<Enter>', { desc = '[L]azy' })
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+-- Open URLs
+vim.keymap.set("n", "gx", "<esc>:URLOpenUnderCursor<cr>")
+
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -1009,6 +1012,19 @@ require('lazy').setup({
     "lcheylus/overlength.nvim",
     config = function()
       require("overlength").setup()
+    end,
+  },
+  {
+    "sontungexpt/url-open",
+    branch = "mini",
+    event = "VeryLazy",
+    cmd = "URLOpenUnderCursor",
+    config = function()
+        local status_ok, url_open = pcall(require, "url-open")
+        if not status_ok then
+            return
+        end
+        url_open.setup ({})
     end,
   },
   {
