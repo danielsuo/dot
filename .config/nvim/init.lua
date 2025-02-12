@@ -172,6 +172,9 @@ vim.keymap.set('n', '<leader>fs', ':w<Enter>', { desc = '[F]ile save' })
 -- Quit
 vim.keymap.set('n', '<leader>fq', ':q<Enter>', { desc = '[F]ile quit' })
 
+-- Format selection
+vim.keymap.set('n', '<leader>fl', ':FormatLines<Enter>', { desc = '[F]ormat selection' })
+
 -- Lazy
 vim.keymap.set('n', '<leader>l', ':Lazy<Enter>', { desc = '[L]azy' })
 
