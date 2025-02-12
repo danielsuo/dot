@@ -182,7 +182,7 @@ vim.keymap.set('n', '<leader>l', ':Lazy<Enter>', { desc = '[L]azy' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Open URLs
-vim.keymap.set("n", "gl", "<esc>:URLOpenUnderCursor<cr>", { desc = 'Open URL' })
+vim.keymap.set('n', 'gl', '<esc>:URLOpenUnderCursor<cr>', { desc = 'Open URL' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -999,38 +999,40 @@ require('lazy').setup({
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
   -- you can continue same window with `<space>sr` which resumes last telescope search
   {
-    "smartpde/neoscopes",
+    'smartpde/neoscopes',
     config = function()
-      local scopes = require("neoscopes")
-      scopes.add_dirs_to_all_scopes({
-        "~/dot",
-      })
+      local scopes = require 'neoscopes'
+      scopes.add_dirs_to_all_scopes {
+        '~/dot',
+      }
       scopes.add_startup_scope()
     end,
   },
   {
-    "lcheylus/overlength.nvim",
+    'lcheylus/overlength.nvim',
     config = function()
-      require("overlength").setup()
+      require('overlength').setup()
     end,
   },
   {
-    "sontungexpt/url-open",
-    branch = "mini",
-    event = "VeryLazy",
-    cmd = "URLOpenUnderCursor",
+    'sontungexpt/url-open',
+    branch = 'mini',
+    event = 'VeryLazy',
+    cmd = 'URLOpenUnderCursor',
     config = function()
-        local status_ok, url_open = pcall(require, "url-open")
-        if not status_ok then
-            return
-        end
-        url_open.setup ({})
+      local status_ok, url_open = pcall(require, 'url-open')
+      if not status_ok then
+        return
+      end
+      url_open.setup {}
     end,
   },
   {
-    url = "sso://user/dsuo/nvim",
-    import = "nvim.default",
-    enabled = function() return os.execute("command -v gcert") == 0 end,
+    url = 'sso://user/fentanes/nvgoog',
+    import = 'nvgoog.default',
+    enabled = function()
+      return os.execute 'command -v gcert' == 0
+    end,
   },
 }, {
   ui = {
