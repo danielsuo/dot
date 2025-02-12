@@ -53,6 +53,7 @@
   "todo-comments.nvim": { "branch": "main", "commit": "304a8d204ee787d2544d8bc23cd38d2f929e7cc5" },
   "toggleterm.nvim": { "branch": "main", "commit": "fee58a0473fd92b28c34f8f724e4918b15ba30a3" },
   "trouble.nvim": { "branch": "main", "commit": "4d0f0454ae2a246ec3e0ff541a347164dac23b7b" },
+  "url-open": { "branch": "mini", "commit": "7727e6146afea2254de08d0e65fd2cf904be338d" },
   "vcscommand.vim": { "branch": "master", "commit": "2fb32681361f37533455d20aaa7fc6eb11b0fa4b" },
   "vim-imp": { "branch": "main", "commit": "fe9be485854ba602059f0d8af4fa4ab0a74d61ac" },
   "vim-signify": { "branch": "master", "commit": "8670143f9e12ed1cd3c9b2c54f345cdd9a4baac3" },
