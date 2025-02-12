@@ -159,13 +159,6 @@ vim.opt.scrolloff = 10
 -- Set column line
 vim.cmd("set colorcolumn=80")
 
--- Some tab stuff
-vim.cmd("set expandtab")
-vim.cmd("set smartindent")
-vim.cmd("set tabstop=2")
-vim.cmd("set softtabstop=2")
-vim.cmd("set shiftwidth=2")
-
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -1068,3 +1061,8 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+vim.cmd("set tabstop=2")
+vim.cmd("set softtabstop=2")
+vim.cmd("set shiftwidth=2")
+vim.cmd("set expandtab")
