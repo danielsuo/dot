@@ -8,7 +8,7 @@ alias sb="source ~/.bashrc"
 alias v=nvim
 alias vim=nvim
 alias vc="nvim ~/.config/nvim/init.lua"
-alias vb="nvim ~/.bashrc"
+alias vb="nvim ~/dot/.bashrc"
 alias vs="nvim ~/.config/starship.toml"
 
 ## Git
