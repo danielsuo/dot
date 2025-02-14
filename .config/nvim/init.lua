@@ -178,6 +178,9 @@ vim.keymap.set('n', '<leader>fq', ':q<Enter>', { desc = '[F]ile quit' })
 -- Format selection
 vim.keymap.set('n', '<leader>fl', ':FormatLines<Enter>', { desc = '[F]ormat selection' })
 
+-- Scopes
+vim.keymap.set('n', '<leader>sp', ':lua require("neoscopes").select()<cr>', { desc = 'Find [S]co[p]e'})
+
 -- Lazy
 vim.keymap.set('n', '<leader>l', ':Lazy<Enter>', { desc = '[L]azy' })
 
@@ -230,6 +233,10 @@ vim.api.nvim_create_autocmd('VimEnter', {
     vim.cmd 'TSUpdate'
   end,
 })
+
+function in_ct ()
+  return os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert' == 0
+end
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
@@ -1004,11 +1011,16 @@ require('lazy').setup({
   {
     'smartpde/neoscopes',
     config = function()
-      local scopes = require 'neoscopes'
-      scopes.add_dirs_to_all_scopes {
-        '~/dot',
-      }
-      scopes.add_startup_scope()
+      if in_ct() then
+        local scopes = require('neoscopes')
+        scopes.add_startup_scope()
+        scopes.add({
+          name = "gui",
+          dirs = {
+            "~/dot/"
+          }
+        })
+      end
     end,
   },
   {
@@ -1033,9 +1045,7 @@ require('lazy').setup({
   {
     url = 'sso://user/dsuo/nvim',
     import = 'nvim.default',
-    enabled = function()
-      return os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert' == 0
-    end,
+    enabled = in_ct,
   },
 }, {
   ui = {

@@ -1,1 +1,3 @@
-if [ -f ~/.bashrc ]; then . ~/.bashrc; fi 
+if [ -f ~/.bashrc ]; then . ~/.bashrc; fi
+
+$(/opt/homebrew/bin/brew shellenv)
