@@ -19,7 +19,7 @@
   "goog-terms.nvim": { "branch": "main", "commit": "9abea3f29539ddd3e2c4cab2b41b4410c12d78c4" },
   "googlepaths.nvim": { "branch": "main", "commit": "53439c17178049096809b4fb963e75440b86ad78" },
   "hg.nvim": { "branch": "main", "commit": "12ee0a788309734f1f312060b9f984a97157acf3" },
-  "lazy.nvim": { "branch": "main", "commit": "f15a93907ddad3d9139aea465ae18336d87f5ce6" },
+  "lazy.nvim": { "branch": "main", "commit": "7e6c863bc7563efbdd757a310d17ebc95166cef3" },
   "lazydev.nvim": { "branch": "main", "commit": "a1b78b2ac6f978c72e76ea90ae92a94edf380cfc" },
   "libp.nvim": { "branch": "main", "commit": "636b1748e92f66022c1763f32b2ded6b8606eda5" },
   "lspkind.nvim": { "branch": "master", "commit": "1735dd5a5054c1fb7feaf8e8658dbab925f4f0cf" },

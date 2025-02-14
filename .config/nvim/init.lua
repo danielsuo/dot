@@ -1034,7 +1034,7 @@ require('lazy').setup({
     url = 'sso://user/dsuo/nvim',
     import = 'nvim.default',
     enabled = function()
-      return os.execute 'command -v gcert' == 0
+      return os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert' == 0
     end,
   },
 }, {
