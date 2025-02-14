@@ -33,7 +33,7 @@
   "neocitc": { "branch": "main", "commit": "3cf22fa7cda398aee6d0c44ef96b56dade7204af" },
   "neoscopes": { "branch": "main", "commit": "d9655aa272f22378c1cfccce2a4e9d53f986e414" },
   "neovim-throttle-debounce": { "branch": "main", "commit": "f6bf97fa0dc704affc8149aeaef5ef0cafa4d10c" },
-  "nvim": { "branch": "main", "commit": "8aaa903644585691f155bb3be6454648db290846" },
+  "nvim": { "branch": "main", "commit": "86223fbeb53919401734131dafd99673b8ee3661" },
   "nvim-cmp": { "branch": "main", "commit": "a110e12d0b58eefcf5b771f533fc2cf3050680ac" },
   "nvim-figtree": { "branch": "main", "commit": "19ea0ecf15319b6c5c27c4c316d37f1ce3d9bd53" },
   "nvim-lspconfig": { "branch": "master", "commit": "4d38bece98300e3e5cd24a9aa0d0ebfea4951c16" },
