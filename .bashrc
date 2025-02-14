@@ -16,6 +16,7 @@ alias gcam="git commit -am"
 alias gp="git push"
 alias ga="git add ."
 alias gs="git status"
+alias gf="git commit -am 'Update' && gp"
 
 ## Editor
 export EDITOR=nvim
