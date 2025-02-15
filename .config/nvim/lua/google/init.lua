@@ -1,5 +1,5 @@
 return {
-  In_ct = function()
-    return os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert' == 0
-  end,
+  { url = 'sso://user/vintharas/telescope-codesearch.nvim' },
+  { url = 'sso://user/aktau/telescope-citc.nvim' },
+  { url = 'sso://team/neovim-dev/neocitc' },
 }

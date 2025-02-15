@@ -13,6 +13,7 @@ alias vs="nvim ~/.config/starship.toml"
 
 ## Git
 alias gcam="git commit -am"
+alias gd="git diff"
 alias gp="git push"
 alias ga="git add ."
 alias gs="git status"
