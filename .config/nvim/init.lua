@@ -1,6 +1,8 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+local google = require('google')
+
 -- [[ Autocommands ]]
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
@@ -16,10 +18,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
     vim.cmd 'TSUpdate'
   end,
 })
-
-local in_ct = function ()
-  return os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert' == 0
-end
 
 -- [[ Plugins ]]
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -313,7 +311,7 @@ require('lazy').setup({
   {
     'smartpde/neoscopes',
     config = function()
-      if in_ct() then
+      if not google.In_ct() then
         local scopes = require('neoscopes')
         scopes.add_startup_scope()
       end
@@ -337,11 +335,6 @@ require('lazy').setup({
       end
       url_open.setup {}
     end,
-  },
-  {
-    url = 'sso://user/dsuo/nvim',
-    import = 'nvim.default',
-    enabled = in_ct,
   },
 })
 
