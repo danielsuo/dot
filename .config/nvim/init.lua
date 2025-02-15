@@ -5,6 +5,37 @@ local google = function()
   return os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert' == 0
 end
 
+function workspace_name()
+  local file_path = vim.api.nvim_buf_get_name(0)
+  local ws = require("neocitc").workspace_from_path(file_path)
+  if not ws then return "" end
+  return "[" .. ws .. "]"
+end
+
+local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
+function statusline_default()
+  local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
+  local citc          = workspace_name()
+  local git           = MiniStatusline.section_git({ trunc_width = 40 })
+  local diff          = MiniStatusline.section_diff({ trunc_width = 75 })
+  local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75, signs = signs })
+  local lsp           = MiniStatusline.section_lsp({ trunc_width = 75 })
+  local filename      = MiniStatusline.section_filename({ trunc_width = 140 })
+  local fileinfo      = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+  local location      = MiniStatusline.section_location({ trunc_width = 75 })
+  local search        = MiniStatusline.section_searchcount({ trunc_width = 75 })
+
+  return MiniStatusline.combine_groups({
+    { hl = mode_hl,                  strings = { mode } },
+    { hl = 'MiniStatuslineDevinfo',  strings = { git, diff, diagnostics, lsp } },
+    '%<', -- Mark general truncate point
+    { hl = 'MiniStatuslineFilename', strings = { citc, filename } },
+    '%=', -- End left alignment
+    { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+    { hl = mode_hl,                  strings = { search, location } },
+  })
+end
+
 -- [[ Autocommands ]]
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
@@ -116,7 +147,6 @@ require('lazy').setup({
       })
 
       if vim.g.have_nerd_font then
-        local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
         local diagnostic_signs = {}
         for type, icon in pairs(signs) do
           diagnostic_signs[vim.diagnostic.severity[type]] = icon
@@ -268,7 +298,14 @@ require('lazy').setup({
       require('mini.pairs').setup()
       require('mini.bracketed').setup()
       require('mini.comment').setup()
-      require('mini.statusline').setup( {use_icons = vim.g.have_nerd_font })
+
+      if google() then
+        require('mini.statusline').setup({
+          content = {
+            active = statusline_default,
+          }
+        })
+      end
     end,
   },
   { -- Highlight, edit, and navigate code
