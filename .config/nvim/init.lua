@@ -329,10 +329,9 @@ require('lazy').setup({
       url_open.setup {}
     end,
   },
-  {
-    import = 'google',
-    enabled = google(),
-  },
+  { url = 'sso://user/vintharas/telescope-codesearch.nvim', enabled = google()},
+  { url = 'sso://user/aktau/telescope-citc.nvim', enabled = google() },
+  { url = 'sso://team/neovim-dev/neocitc', enabled = google() },
 })
 
 vim.g.have_nerd_font = true
@@ -369,6 +368,11 @@ local map = function(keys, func, desc, mode)
     vim.keymap.set(mode, keys, func, { desc = desc })
   else
     vim.keymap.set(mode, keys, func)
+  end
+end
+local gmap = function(keys, func, desc, mode)
+  if google() then
+    map(keys, func, desc, mode)
   end
 end
 
