@@ -369,6 +369,7 @@ require('lazy').setup({
   { url = 'sso://user/vintharas/telescope-codesearch.nvim', enabled = google()},
   { url = 'sso://user/aktau/telescope-citc.nvim', enabled = google() },
   { url = 'sso://team/neovim-dev/neocitc', enabled = google() },
+  { url = "sso://user/vintharas/goog-terms.nvim", enabled = google() }
 })
 
 vim.g.have_nerd_font = true
@@ -440,6 +441,8 @@ map('gl', '<esc>:URLOpenUnderCursor<cr>', 'Open URL')
 map('gr', telescope.lsp_references, '[G]oto [R]eferences')
 map('gt', telescope.lsp_type_definitions, '[G]oto [T]ype definition')
 -- map('g[', )
+      -- tooltip_key = "<leader>gt",
+      -- action_key = "<leader>ga",
 
 -- Rename the variable under your cursor.
 --  Most Language Servers support renaming across files, etc.
