@@ -8,3 +8,8 @@ brew install --cask \
   karabiner-elements \
   keyboard-maestro \
   iterm2
+
+brew install \
+  lua \
+  luarocks \
+  ripgrep
