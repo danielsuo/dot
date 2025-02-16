@@ -676,14 +676,6 @@ map('gI', telescope.lsp_implementations, '[G]oto [I]mplementation')
 map('gl', '<esc>:URLOpenUnderCursor<cr>', 'Open URL')
 map('gr', telescope.lsp_references, '[G]oto [R]eferences')
 map('gt', telescope.lsp_type_definitions, '[G]oto [T]ype definition')
--- map('g[', )
--- Rename the variable under your cursor.
---  Most Language Servers support renaming across files, etc.
-map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-
--- Execute a code action, usually your cursor needs to be on top of an error
--- or a suggestion from your LSP for this to activate.
-map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
 
 map('<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights after search')
 map('<C-h>', '<C-w><C-h>', 'Move focus to the left window')
@@ -693,14 +685,18 @@ map('<C-k>', '<C-w><C-k>', 'Move focus to the upper window')
 
 map('<leader>b', '[B]ugs')
 gmap('<leader>bs', ':FindBugs<CR>', '[B]uganizer [S]earch')
+
 map('<leader>c', '[C]ode')
+
 map('<leader>d', '[D]ocument')
 map('<leader>ds', telescope.lsp_document_symbols, '[D]ocument [S]ymbols')
+
 map('<leader>e', '[E]dit')
 map('<leader>ew', ':e <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [W]indow')
 map('<leader>es', ':sp <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [S]plit')
 map('<leader>ev', ':vsp <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [V]ertical')
 map('<leader>et', ':tabe <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [T]ab')
+
 map('<leader>f', '[F]ile')
 map('<leader>fe', ':lua MiniFiles.open()<CR>', '[F]ile [M]inifile')
 map('<leader>fl', ':FormatLines<Enter>', '[F]ile [L]ine format')
@@ -708,11 +704,15 @@ map('<leader>fq', ':q<CR>', '[F]ile [Q]uit')
 map('<leader>fs', ':w<CR>', '[F]ile [S]ave')
 map('<leader>ft', format_file, '[F]ile forma[T]')
 map('<leader>fx', ':Ex<CR>', '[F]ile E[X]')
-map('<leader>h', '[H]g / VCS')
+
+map('<leader>h', '[H]git')
 gmap('<leader>ht', ':Figtree<CR>', '[H]g fig[T]ree')
-map('<leader>l', ':Lazy<Enter>', '[L]azy')
+
+map('<leader>l', '[L]SP')
+map('<leader>la', vim.lsp.buf.code_action, '[L]SP code [A]ction', { 'n', 'x' })
+map('<leader>lr', vim.lsp.buf.rename, '[L]SP [R]ename')
 map('<leader>q', vim.diagnostic.setloclist, '[Q]uickfix list')
-map('<leader>r', '[R]ename')
+
 map('<leader>s', '[S]earch')
 map('<leader>sb', telescope.buffers, '[S]earch [B]uffers')
 gmap('<leader>sc', ':lua require("neocitc").pick_workspace()<CR>', '[S]earch [C]itc')
@@ -730,11 +730,13 @@ gmap('<leader>sx', ':RelatedFilesWindow<CR>', '[S]earch related files [X]')
 map('<leader>sz', find_fuzzy_in_current, '[S]earch fu[Z]zy in current')
 map('<leader>s.', telescope.oldfiles, '[S]earch recent files')
 map('<leader>s/', live_grep_in_open, '[S]earch in open files')
-map('<leader>t', '[T]oggle')
+
 map('<leader>w', '[W]orkspace')
 gmap('<leader>wc', ':CitcCreateFigWorkspace ', 'Create new Fig workspace')
 gmap('<leader>wp', ':CitcCreateWorkspace ', 'Create a new Piper workspace')
 map('<leader>ws', telescope.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+
+map('<leader>z', ':Lazy<Enter>', 'La[Z]y')
 
 -- [[ Terminal mode ]]
 map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
