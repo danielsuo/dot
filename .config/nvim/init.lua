@@ -5,7 +5,7 @@ local google = function()
   return os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert' == 0
 end
 
-function workspace_name()
+local workspace_name = function()
   local file_path = vim.api.nvim_buf_get_name(0)
   local ws = require("neocitc").workspace_from_path(file_path)
   if not ws then return "" end
@@ -34,6 +34,17 @@ function statusline_default()
     { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
     { hl = mode_hl,                  strings = { search, location } },
   })
+end
+
+local gplug = function(spec)
+  spec.enabled = google()
+  return spec
+end
+local gdir = function(spec)
+  spec.enabled = google()
+  spec.dir = '/usr/share/vim/google/' .. spec.dir
+  spec.dependencies = { 'maktaba' }
+  return spec
 end
 
 -- [[ Autocommands ]]
@@ -366,10 +377,42 @@ require('lazy').setup({
       url_open.setup {}
     end,
   },
-  { url = 'sso://user/vintharas/telescope-codesearch.nvim', enabled = google()},
-  { url = 'sso://user/aktau/telescope-citc.nvim', enabled = google() },
-  { url = 'sso://team/neovim-dev/neocitc', enabled = google() },
-  { url = "sso://user/vintharas/goog-terms.nvim", enabled = google() }
+
+  -- [[ Google plugins ]]
+  gplug({ url = 'sso://user/vintharas/telescope-codesearch.nvim' }),
+  gplug({ url = 'sso://user/aktau/telescope-citc.nvim' }),
+  gplug({ url = 'sso://team/neovim-dev/neocitc' }),
+  gplug({ url = 'sso://user/vintharas/goog-terms.nvim' }),
+  gplug({ dir = '/usr/share/vim/google/maktaba', config = function() vim.cmd('source /usr/share/vim/google/glug/bootstrap.vim') end }),
+  gdir({ dir = 'codefmt' }),
+  gdir({ dir = 'codefmt-google' }),
+  gdir({ dir = 'logmsgs' }),
+  gdir({ dir = 'googler' }),
+  -- Add support for google filetypes, these are glugins with `ftdetect` files
+  -- This needs to happen on `BufReadPre` for `filetype` to be set properly
+  gdir({dir = "google-filetypes", event = { "BufReadPre", "BufNewFile" } }),
+  gdir({dir = "ft-cel", event = { "BufReadPre *.cel,*jvp", "BufNewFile *.cel,*jvp" } }),
+  gdir({dir = "ft-clif", event = { "BufReadPre *.clif", "BufNewFile *.clif" } }),
+  gdir({dir = "ft-gin", event = { "BufReadPre *.gin", "BufNewFile *.gin" } }),
+  gdir({dir = "ft-gss", event = { "BufReadPre *.gss", "BufNewFile *.gss" } }),
+  gdir({dir = "ft-proto", event = { "BufReadPre", "BufNewFile" } }),
+  gdir({dir = "ft-soy", event = { "BufReadPre *.soy", "BufNewFile *.soy" } }),
+
+  -- Set up syntax, indent, and core settings for various filetypes
+  -- superlazy(glug("ft-cpp", { event = "BufRead,BufNewFile *.[ch],*.cc,*.cpp" })),
+  -- superlazy(glug("ft-go", { event = "BufRead,BufNewFile *.go" })),
+  -- superlazy(glug("ft-java", { event = "BufRead,BufNewFile *.java" })),
+  -- superlazy(glug("ft-javascript", { event = "BufRead,BufNewFile *.js,*.jsx" })),
+  -- superlazy(glug("ft-kotlin", { event = "BufRead,BufNewFile *.kt,*.kts" })),
+  -- superlazy(glug("ft-python", { event = "BufRead,BufNewFile *.py" })),
+  --
+  -- -- Configures nvim to respect Google's coding style
+  -- superlazy(glug("googlestyle", { event = { "BufRead", "BufNewFile" } })),
+  --
+  -- -- Autogens boilerplate when creating new files
+  -- glug("autogen", {
+  --   event = "BufNewFile",
+  -- }),
 })
 
 vim.g.have_nerd_font = true
