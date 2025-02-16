@@ -1,3 +1,5 @@
+-- TODO: citc
+-- TODO: lspsaga hot keys
 -- TODO: CiderLSP
 -- TODO: blaze (default/blaze, google/blaze)
 -- - 'sso://@user/chmnchiang/google-blaze',
@@ -6,10 +8,8 @@
 -- TODO: imp-google
 -- TODO: corpweb
 -- TODO: buganizer
--- TODO: citc
 -- - https://yaqs.corp.google.com/eng/q/6568720083320832
 -- TODO: G4
--- TODO: lspsaga hot keys
 -- TODO: folke/trouble.nvim
 
 vim.g.mapleader = ' '
