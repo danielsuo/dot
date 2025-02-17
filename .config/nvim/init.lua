@@ -16,6 +16,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 local google = os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert > /dev/null' == 0
+print(google)
 
 local workspace_name = function()
   local file_path = vim.api.nvim_buf_get_name(0)
@@ -682,6 +683,7 @@ map('<C-h>', '<C-w><C-h>', 'Move focus to the left window')
 map('<C-l>', '<C-w><C-l>', 'Move focus to the right window')
 map('<C-j>', '<C-w><C-j>', 'Move focus to the lower window')
 map('<C-k>', '<C-w><C-k>', 'Move focus to the upper window')
+map(';', '<C-w><C-v>', 'Split vertically')
 
 map('<leader>b', '[B]ugs')
 gmap('<leader>bs', ':FindBugs<CR>', '[B]uganizer [S]earch')
@@ -711,6 +713,7 @@ gmap('<leader>ht', ':Figtree<CR>', '[H]g fig[T]ree')
 map('<leader>l', '[L]SP')
 map('<leader>la', vim.lsp.buf.code_action, '[L]SP code [A]ction', { 'n', 'x' })
 map('<leader>lr', vim.lsp.buf.rename, '[L]SP [R]ename')
+
 map('<leader>q', vim.diagnostic.setloclist, '[Q]uickfix list')
 
 map('<leader>s', '[S]earch')
