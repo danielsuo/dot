@@ -144,7 +144,18 @@ require('lazy').setup({
           vimgrep_arguments = {
             'rg',
             '--hidden',
-          }
+          },
+          path_display = function(_, path)
+            path = path:gsub("^/google/src/cloud/[^/]+/[^/]+/google3/", "google3/", 1)
+            path = path:gsub("^google3/java/com/google/", "g3/j/c/g/", 1)
+            path = path:gsub("^google3/javatests/com/google/", "g3/jt/c/g/", 1)
+            path = path:gsub("^google3/third_party/", "g3/3rdp/", 1)
+            path = path:gsub("^google3/", "g3/", 1)
+            return path
+          end,
+          file_ignore_patterns = {
+            "%.orig$"
+          },
         },
         -- pickers = {}
         extensions = {
@@ -621,6 +632,7 @@ vim.opt.breakindent = true
 vim.opt.tabstop = 2
 vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
+vim.opt.smartindent = true
 vim.opt.expandtab = true
 vim.opt.undofile = true
 vim.opt.ignorecase = true
@@ -668,6 +680,13 @@ local live_grep_in_open = function()
 end
 local format_file = function()
   require('conform').format { async = true, lsp_format = 'fallback' }
+end
+local find_modified_files = function()
+  if string.find(vim.fn.getcwd(-1, -1), "/google/src/cloud") == 1 then
+    require("telescope").extensions.citc.modified()
+  else
+    require("telescope.builtin").git_status()
+  end
 end
 
 -- [[ Normal Mode ]]
@@ -723,6 +742,7 @@ map('<leader>sf', ':lua require("telescope.builtin").find_files{ search_dirs = r
 map('<leader>sg', telescope.live_grep, '[S]earch live [G]rep')
 map('<leader>sh', telescope.help_tags, '[S]earch [H]elp')
 map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
+map('<leader>sm', find_modified_files, '[S]earch [M]odified files')
 map('<leader>sn', find_neovim_files, '[S]earch [N]eovim files')
 map('<leader>sp', ':lua require("neoscopes").select()<CR>', '[S]earch neosco[P]s')
 map('<leader>sr', telescope.resume, '[S]earch [R]esume')
@@ -743,6 +763,10 @@ map('<leader>z', ':Lazy<Enter>', 'La[Z]y')
 -- [[ Terminal mode ]]
 map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 
+--     {
+--       "<leader>sm",
+--       desc = "Search modified files",
+--     },
 -- local function runInTerm(cmd)
 --   return function()
 --     vim.g._term_calling_cmd = 1
@@ -939,17 +963,6 @@ map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 --     },
 --     -- Show modified files in citc workspace.
 --     -- If not in a citc, try to show modified files for git.
---     {
---       "<leader>sm",
---       function()
---         if string.find(vim.fn.getcwd(-1, -1), "/google/src/cloud") == 1 then
---           require("telescope").extensions.citc.modified()
---         else
---           require("telescope.builtin").git_status()
---         end
---       end,
---       desc = "Search modified files",
---     },
 --     {
 --       "<leader>sc",
 --       "<cmd>lua require('telescope').extensions.citc.workspaces()<cr>",
