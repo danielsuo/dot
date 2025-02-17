@@ -15,3 +15,7 @@ ln -s "$DIR"/../.tmux.conf "$HOME"/.tmux.conf
 mkdir -p "$HOME"/.config
 ln -s "$DIR"/../.config/starship.toml "$HOME"/.config/starship.toml
 ln -s "$DIR"/../.config/nvim "$HOME"/.config/nvim
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  ln -s "$DIR"/../.config/karabiner "$HOME"/.config/karabiner
+fi
