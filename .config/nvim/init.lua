@@ -406,7 +406,6 @@ require('lazy').setup({
       require('mini.ai').setup({
         custom_textobjects = {
           [','] = gen_spec.argument(),
-          o = gen_spec.pair('<', '<', { type = 'greedy' }),
         }
       })
     end,
