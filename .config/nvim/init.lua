@@ -485,6 +485,7 @@ require('lazy').setup({
       'VCSReview', 'VCSStatus', 'VCSUpdate', 'VCSUnlock', 'VCSVimDiff',
     },
   },
+  { 'mhinz/vim-signify' },
 
   -- [[ Google plugins ]]
   gplug({
