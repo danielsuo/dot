@@ -41,11 +41,9 @@ weather() {
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 export FZF_CTRL_R_OPTS="
-  --prompt 'History >'
+  --prompt 'History > '
   --preview 'echo {}' --preview-window up:3:hidden:wrap
   --bind 'ctrl-/:toggle-preview'
   --bind 'ctrl-t:track+clear-query'
   --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-  --color header:italic
-  --header 'Press CTRL-Y to copy command into clipboard'
-  --with-nth 2.."
+  --color header:italic"
