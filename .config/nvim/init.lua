@@ -383,7 +383,6 @@ require('lazy').setup({
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
-      require('mini.ai').setup { n_lines = 500 }
       require('mini.surround').setup()
       require('mini.files').setup()
       require('mini.pairs').setup()
@@ -398,6 +397,18 @@ require('lazy').setup({
           }
         })
       end
+    end,
+  },
+  {
+    'echasnovski/mini.ai',
+    config = function()
+      local gen_spec = require('mini.ai').gen_spec
+      require('mini.ai').setup({
+        custom_textobjects = {
+          [','] = gen_spec.argument(),
+          o = gen_spec.pair('<', '<', { type = 'greedy' }),
+        }
+      })
     end,
   },
   { -- Highlight, edit, and navigate code
