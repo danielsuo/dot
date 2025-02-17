@@ -381,7 +381,7 @@ require('lazy').setup({
         enable = true,
         additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      indent = { enable = false },
     },
   },
   {
@@ -522,7 +522,6 @@ require('lazy').setup({
     dir = 'codefmt',
     dependences = { 'codefmt-google' },
     cmd = { "FormatLines", "FormatCode", "AutoFormatBuffer" },
-    event = "BufWritePre",
     opts = {
       clang_format_executable = "/usr/bin/clang-format",
       clang_format_style = "function('codefmtgoogle#GetClangFormatStyle')",
@@ -633,6 +632,7 @@ vim.opt.tabstop = 2
 vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.smartindent = true
+vim.opt.autoindent = true
 vim.opt.expandtab = true
 vim.opt.undofile = true
 vim.opt.ignorecase = true
