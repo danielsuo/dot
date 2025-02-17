@@ -16,7 +16,6 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 local google = os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert > /dev/null' == 0
-print(google)
 
 local workspace_name = function()
   local file_path = vim.api.nvim_buf_get_name(0)
@@ -278,13 +277,6 @@ require('lazy').setup({
     'stevearc/conform.nvim',
     -- event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
-    keys = {
-      {
-        '<leader>ft',
-        mode = '',
-        desc = '[F]ile format',
-      },
-    },
     opts = {
       notify_on_error = false,
       formatters_by_ft = {
@@ -318,8 +310,19 @@ require('lazy').setup({
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
       'hrsh7th/cmp-cmdline',
+      'onsails/lspkind.nvim',
     },
     config = function() -- :help cmp
+      local sources = {
+          { name = "nvim_lsp",      priority = 20 },
+          { name = "luasnip",       priority = 10 },
+          { name = "buffer",        priority = 1 },
+          { name = "path",          priority = 1 },
+          { name = 'lazydev',       group_index = 0 },
+        }
+      if google then
+        table.insert(sources, { name = "nvim_ciderlsp", priority = 30 })
+      end
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
       luasnip.config.setup {}
@@ -350,14 +353,20 @@ require('lazy').setup({
           -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
           --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
         },
-        sources = {
-          {
-            name = 'lazydev',
-            group_index = 0,
-          },
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' },
-          { name = 'path' },
+        sources = sources,
+        formatting = {
+          format = require('lspkind').cmp_format({
+            mode = 'symbol',
+            ellipsis_char = '...',
+            menu = {
+              nvim_ciderlsp = '(CiderLSP)',
+              nvim_lsp = '(LSP)',
+              nvim_lsp_signature_help = '󰊕',
+              luasnip = '(LuaSnip)',
+              buffer = '(Buffer)',
+              path = '(Path)',
+            },
+          }),
         },
       }
     end,
