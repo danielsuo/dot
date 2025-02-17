@@ -720,7 +720,7 @@ map('<leader>s', '[S]earch')
 map('<leader>sb', telescope.buffers, '[S]earch [B]uffers')
 gmap('<leader>sc', ':lua require("neocitc").pick_workspace()<CR>', '[S]earch [C]itc')
 map('<leader>sd', telescope.diagnostics, '[S]earch [D]iagnostics')
-map('<leader>sf', telescope.find_files, '[S]earch [F]iles')
+map('<leader>sf', ':lua require("telescope.builtin").find_files{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [F]iles')
 map('<leader>sg', telescope.live_grep, '[S]earch live [G]rep')
 map('<leader>sh', telescope.help_tags, '[S]earch [H]elp')
 map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
@@ -931,7 +931,6 @@ map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 --     },
 --     {
 --       "<leader>sf",
---       "<cmd>lua require('telescope.builtin').find_files{search_dirs=require('neoscopes').get_current_paths()}<cr>",
 --       desc = "Search scoped files",
 --     },
 --     {
