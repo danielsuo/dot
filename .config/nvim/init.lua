@@ -26,7 +26,7 @@ local workspace_name = function()
 end
 
 local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
-function statusline_default()
+local statusline_default = function()
   local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
   local citc          = workspace_name()
   local git           = MiniStatusline.section_git({ trunc_width = 40 })
@@ -141,10 +141,10 @@ require('lazy').setup({
     config = function()
       require('telescope').setup {
         defaults = {
-          vimgrep_arguments = {
-            'rg',
-            '--hidden',
-          },
+          -- vimgrep_arguments = {
+          --   'rg',
+          --   '--hidden',
+          -- },
           path_display = function(_, path)
             path = path:gsub("^/google/src/cloud/[^/]+/[^/]+/google3/", "google3/", 1)
             path = path:gsub("^google3/java/com/google/", "g3/j/c/g/", 1)
@@ -187,56 +187,93 @@ require('lazy').setup({
       { 'j-hui/fidget.nvim', opts = {} },
       'hrsh7th/cmp-nvim-lsp',
     },
-    config = function()
-      vim.api.nvim_create_autocmd('LspAttach', {
-        group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
-        callback = function() end
-      })
+    opts = function(_, opts)
+      local ciderlsp_config = {
+        cmd = {
+          "/google/bin/releases/cider/ciderlsp/ciderlsp",
+          "--tooltag=neovim-lsp",
+          "--noforward_sync_responses",
+        },
+        filetypes = {
+          "c",
+          "cpp",
+          "objc",
+          "objcpp",
+          "java",
+          "kotlin",
+          "go",
+          "python",
+          "typescript",
+          "typescriptreact",
+          "proto",
+          "textproto",
+          "dart",
+          "bzl",
+          "cs",
+          "googlesql",
+          "eml",
+          "mlir",
+          "dataz",
+          "soy",
+          "graphql",
+          "javascript",
+          "javascriptreact",
+          "css",
+          "scss",
+          "html",
+          "json",
+          "jslayout",
+          "gcl",
+          "borg",
+          "markdown",
+          "piccolo",
+          "ncl",
+          "conf",
+        },
+        root_dir = require("lspconfig").util.root_pattern(".citc"),
+        settings = {},
+      }
+      require("lspconfig.configs").ciderlsp = {
+        default_config = ciderlsp_config,
+      }
 
-      if vim.g.have_nerd_font then
-        local diagnostic_signs = {}
-        for type, icon in pairs(signs) do
-          diagnostic_signs[vim.diagnostic.severity[type]] = icon
-        end
-        vim.diagnostic.config { signs = { text = diagnostic_signs } }
+      local capabilities = require("cmp_nvim_lsp").default_capabilities()
+      local cmp_nvim_ciderlsp_enabled = require("lazy.core.config").plugins["cmp_nvim_ciderlsp"]
+      if cmp_nvim_ciderlsp_enabled then
+        capabilities = require("cmp_nvim_ciderlsp").update_capabilities(capabilities)
       end
-
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
-
-      local servers = { -- :help lspconfig-all
-        lua_ls = {
-          settings = {
-            Lua = {
-              completion = {
-                callSnippet = 'Replace',
-              },
-            },
+      return vim.tbl_deep_extend("force", opts, {
+        servers = {
+          ciderlsp = {
+            capabilities = capabilities,
           },
         },
-      }
-      local ensure_installed = vim.tbl_keys(servers or {})
-      require('mason-lspconfig').setup {
-        ensure_installed = nil,
-        automatic_installation = true,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
-      }
-      vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
       })
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+    end,
+    config = function(_, opts)
+      -- Remove current directory from backupdir, otherwise CiderLSP can get confused
+      -- and have outdated diagnostics and completions.
+      vim.cmd("set backupdir -=.")
+
+      local lspconfig = require("lspconfig")
+      if not opts.servers or not opts.servers.ciderlsp then
+        vim.notify("Unable to setup CiderLSP", vim.log.levels.WARN)
+      else
+        opts.servers.ciderlsp.on_attach = function(client, bufnr)
+          -- TODO(b/324369022): Diagnostics don't show up when first opening a file.
+          -- The below is done to remedy this, a `textDocument/didChange` call is made
+          -- that gets updated diagnostics. Remove when this bug is fixed.
+          client.request("textDocument/didChange", {
+            textDocument = { uri = vim.uri_from_bufnr(bufnr), version = 2 },
+          }, function()
+          end)
+        end
+      end
+      for server_name, server_opts in pairs(opts.servers or {}) do
+        lspconfig[server_name].setup(server_opts)
+      end
     end,
   },
-
   { -- Autoformat
     'stevearc/conform.nvim',
     -- event = { 'BufWritePre' },
@@ -561,6 +598,7 @@ require('lazy').setup({
   gplug({ url = 'sso://user/aktau/telescope-citc.nvim' }),
   gplug({ url = 'sso://team/neovim-dev/neocitc' }),
   gplug({ url = 'sso://user/vintharas/goog-terms.nvim' }),
+  gplug({ url = 'sso://user/piloto/cmp-nvim-ciderlsp', opts = { override_character_triggers = true } }),
   -- gplug({ url = 'sso://user/vicentecaycedo/buganizer-utils.nvim' }),
   gplug({ url = 'sso://user/jackcogdill/nvim-figtree', cmd = 'Figtree' }),
   -- gplug({
@@ -690,7 +728,7 @@ local find_modified_files = function()
 end
 
 -- [[ Normal Mode ]]
-map('gd', telescope.lsp_definitions, '[G]oto [D]efinition')
+map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
 map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 map('gI', telescope.lsp_implementations, '[G]oto [I]mplementation')
 map('gl', '<esc>:URLOpenUnderCursor<cr>', 'Open URL')
@@ -739,7 +777,7 @@ map('<leader>sb', telescope.buffers, '[S]earch [B]uffers')
 gmap('<leader>sc', ':lua require("neocitc").pick_workspace()<CR>', '[S]earch [C]itc')
 map('<leader>sd', telescope.diagnostics, '[S]earch [D]iagnostics')
 map('<leader>sf', ':lua require("telescope.builtin").find_files{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [F]iles')
-map('<leader>sg', telescope.live_grep, '[S]earch live [G]rep')
+map('<leader>sg', ':lua require("telescope.builtin").live_grep{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [G]rep')
 map('<leader>sh', telescope.help_tags, '[S]earch [H]elp')
 map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
 map('<leader>sm', find_modified_files, '[S]earch [M]odified files')
@@ -747,7 +785,7 @@ map('<leader>sn', find_neovim_files, '[S]earch [N]eovim files')
 map('<leader>sp', ':lua require("neoscopes").select()<CR>', '[S]earch neosco[P]s')
 map('<leader>sr', telescope.resume, '[S]earch [R]esume')
 map('<leader>st', telescope.builtin, '[S]earch [T]elescope pickers')
-map('<leader>sw', telescope.grep_string, '[S]earch [W]ord')
+map('<leader>sw', ':lua require("telescope.builtin").grep_string{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [W]ord')
 gmap('<leader>sx', ':RelatedFilesWindow<CR>', '[S]earch related files [X]')
 map('<leader>sz', find_fuzzy_in_current, '[S]earch fu[Z]zy in current')
 map('<leader>s.', telescope.oldfiles, '[S]earch recent files')
