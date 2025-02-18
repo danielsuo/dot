@@ -450,6 +450,7 @@ require('lazy').setup({
           dirs = {
             'third_party/py/jax',
             'third_party/tensorflow',
+            'experimental/users/dsuo',
           },
         })
         scopes.set_current('jax')
