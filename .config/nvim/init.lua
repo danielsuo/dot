@@ -1,10 +1,10 @@
--- TODO: citc
+-- TODO: Critique
 -- TODO: lspsaga hot keys
--- TODO: CiderLSP
 -- TODO: blaze (default/blaze, google/blaze)
 -- - 'sso://@user/chmnchiang/google-blaze',
 -- - fentanes/blaze
 -- - maktaba overrides
+-- TODO: LuaLS
 -- TODO: imp-google
 -- TODO: corpweb
 -- TODO: buganizer
@@ -676,6 +676,36 @@ require('lazy').setup({
     enabled = vim.fn.has('nvim-0.10.1') == 1,
     event = { "BufRead", "BufNewFile" },
   }),
+  -- gplug({
+  --     url = "sso://googler@user/cnieves/critique-nvim",
+  --     dependencies = {
+  --         "rktjmp/time-ago.vim",
+  --         "nvim-lua/plenary.nvim",
+  --         "nvim-telescope/telescope.nvim",
+  --         "runiq/neovim-throttle-debounce",
+  --     },
+  --     config = function()
+  --         -- Here are all the options and their default values:
+  --         require("critique.comments").setup({
+  --         -- Automatically fetch comments after setup and on BufEnter events.
+  --         auto_fetch = true,
+  --         -- If true, unresolved comments are automatically rendered when a buffer is opened.
+  --         auto_render = true,
+  --         -- Debounce time for throttling stubby requests to Critique, in milliseconds. Default is 10 seconds.
+  --         debounce = 10000,
+  --         display = {
+  --             -- Max width in character to render a comment's text before wrapping to a newline.
+  --             max_comment_width = 110,
+  --             -- Render comment threads marked as resolved?
+  --             render_resolved_threads = true,
+  --         },
+  --         -- Debug message level
+  --         debug = 0,
+  --         -- Whether or not the new comments notification includes file names.
+  --         verbose_notifications = true,
+  --         })
+  --     end,
+  -- }),
 })
 
 vim.g.have_nerd_font = true
@@ -775,8 +805,7 @@ gmap('<leader>bs', ':FindBugs<CR>', '[B]uganizer [S]earch')
 
 map('<leader>c', '[C]ode')
 
-map('<leader>d', '[D]ocument')
-map('<leader>ds', telescope.lsp_document_symbols, '[D]ocument [S]ymbols')
+map('<leader>d', '[D]iagnostics')
 
 map('<leader>e', '[E]dit')
 map('<leader>ew', ':e <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [W]indow')
@@ -813,7 +842,10 @@ map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
 map('<leader>sm', find_modified_files, '[S]earch [M]odified files')
 map('<leader>sn', find_neovim_files, '[S]earch [N]eovim files')
 map('<leader>sp', ':lua require("neoscopes").select()<CR>', '[S]earch neosco[P]s')
+gmap('<leader>sq', ':CritiqueCommentsTelescope<CR>', '[S]earch criti[Q]ue comments')
 map('<leader>sr', telescope.resume, '[S]earch [R]esume')
+map('<leader>ss', telescope.lsp_document_symbols, '[S]earch document [s]ymbols')
+map('<leader>sS', telescope.lsp_dynamic_workspace_symbols, '[S]earch workspace [S]ymbols')
 map('<leader>st', telescope.builtin, '[S]earch [T]elescope pickers')
 map('<leader>sw', ':lua require("telescope.builtin").grep_string{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [W]ord')
 gmap('<leader>sx', ':RelatedFilesWindow<CR>', '[S]earch related files [X]')
@@ -824,17 +856,23 @@ map('<leader>s/', live_grep_in_open, '[S]earch in open files')
 map('<leader>w', '[W]orkspace')
 gmap('<leader>wc', ':CitcCreateFigWorkspace ', 'Create new Fig workspace')
 gmap('<leader>wp', ':CitcCreateWorkspace ', 'Create a new Piper workspace')
-map('<leader>ws', telescope.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
 map('<leader>z', ':Lazy<Enter>', 'La[Z]y')
 
 -- [[ Terminal mode ]]
 map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 
---     {
---       "<leader>sm",
---       desc = "Search modified files",
---     },
+      -- -- here are some mappings you might want:
+      -- keys = {
+      --     { "<leader>e", desc = "Critiqu[E]" },
+      --     { "]e", "<cmd>CritiqueGotoNextComment<CR>", desc = "Goto n[E]xt comment" },
+      --     { "[e", "<cmd>CritiqueGotoPrevComment<CR>", desc = "Goto pr[E]vious comment"},
+      --     { "<Leader>el", "<cmd>CritiqueToggleLineComment<CR>", desc = "Toggle [L]ine comments"},
+      --     { "<Leader>eu", "<cmd>CritiqueToggleUnresolvedComments<CR>", desc = "Toggle [U]nresolved comments" },
+      --     { "<Leader>ea", "<cmd>CritiqueToggleAllComments<CR>", desc = "Toggle [A]ll comments" },
+      --     { "<Leader>ef", "<cmd>CritiqueFetchComments<CR>", desc = "[F]etch comments" },
+      --     { "<Leader>et", "<cmd>CritiqueCommentsTelescope<CR>", desc = "[S]earch" },
+      -- },
 -- local function runInTerm(cmd)
 --   return function()
 --     vim.g._term_calling_cmd = 1
@@ -906,50 +944,6 @@ map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
     --     desc = "View [H]g Re[B]ase",
     --   },
   --
-  -- {
-  --     name = "critique-nvim",
-  --     url = "sso://googler@user/cnieves/critique-nvim",
-  --     dependencies = {
-  --         "rktjmp/time-ago.vim",
-  --         "nvim-lua/plenary.nvim",
-  --         "nvim-telescope/telescope.nvim",
-  --         "runiq/neovim-throttle-debounce",
-  --     },
-  --     -- this is recommended so comment fetching can occur in the background immediately
-  --     lazy = true,
-  --     -- here are some mappings you might want:
-  --     keys = {
-  --         { "<leader>e", desc = "Critiqu[E]" },
-  --         { "]e", "<cmd>CritiqueGotoNextComment<CR>", desc = "Goto n[E]xt comment" },
-  --         { "[e", "<cmd>CritiqueGotoPrevComment<CR>", desc = "Goto pr[E]vious comment"},
-  --         { "<Leader>el", "<cmd>CritiqueToggleLineComment<CR>", desc = "Toggle [L]ine comments"},
-  --         { "<Leader>eu", "<cmd>CritiqueToggleUnresolvedComments<CR>", desc = "Toggle [U]nresolved comments" },
-  --         { "<Leader>ea", "<cmd>CritiqueToggleAllComments<CR>", desc = "Toggle [A]ll comments" },
-  --         { "<Leader>ef", "<cmd>CritiqueFetchComments<CR>", desc = "[F]etch comments" },
-  --         { "<Leader>et", "<cmd>CritiqueCommentsTelescope<CR>", desc = "[S]earch" },
-  --     },
-  --     config = function()
-  --         -- Here are all the options and their default values:
-  --         require("critique.comments").setup({
-  --         -- Automatically fetch comments after setup and on BufEnter events.
-  --         auto_fetch = true,
-  --         -- If true, unresolved comments are automatically rendered when a buffer is opened.
-  --         auto_render = true,
-  --         -- Debounce time for throttling stubby requests to Critique, in milliseconds. Default is 10 seconds.
-  --         debounce = 10000,
-  --         display = {
-  --             -- Max width in character to render a comment's text before wrapping to a newline.
-  --             max_comment_width = 110,
-  --             -- Render comment threads marked as resolved?
-  --             render_resolved_threads = true,
-  --         },
-  --         -- Debug message level
-  --         debug = 0,
-  --         -- Whether or not the new comments notification includes file names.
-  --         verbose_notifications = true,
-  --         })
-  --     end,
-  -- },
   -- {
   --   "mhinz/vim-signify",
   --   opts = {
