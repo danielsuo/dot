@@ -18,6 +18,7 @@ alias gp="git push"
 alias ga="git add ."
 alias gs="git status"
 alias gf="git commit -am 'Update' && gp"
+alias dgf="pushd ~/dot && gf && popd"
 
 ## Editor
 export EDITOR=nvim
