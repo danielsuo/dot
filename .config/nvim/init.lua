@@ -824,6 +824,11 @@ map('<leader>fx', ':Ex<CR>', '[F]ile E[X]')
 
 map('<leader>h', '[H]git')
 gmap('<leader>ht', ':Figtree<CR>', '[H]g fig[T]ree')
+gmap('<leader>hu', ':Hg uploadchain<CR>', '[H]g [U]pload chain')
+gmap('<leader>ha', ':Hg amend<CR>', '[H]g [A]mend')
+gmap('<leader>he', ':Hg evolve<CR>', '[H]g [E]volve')
+gmap('<leader>hc', ':Hg commit<CR>', '[H]g [C]ommit')
+gmap('<leader>hs', ':Hg sync<CR>', '[H]g [S]ync')
 
 map('<leader>l', '[L]SP')
 map('<leader>la', vim.lsp.buf.code_action, '[L]SP code [A]ction', { 'n', 'x' })
