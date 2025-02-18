@@ -593,7 +593,7 @@ require('lazy').setup({
   gdir({ dir = 'ft-clif', event = { 'BufReadPre *.clif', 'BufNewFile *.clif' } }),
   gdir({ dir = 'ft-gin', event = { 'BufReadPre *.gin', 'BufNewFile *.gin' } }),
   gdir({ dir = 'ft-gss', event = { 'BufReadPre *.gss', 'BufNewFile *.gss' } }),
-  gdir({ dir = 'ft-proto', event = { 'BufReadPre', 'BufNewFile' } }),
+  gdir({ dir = 'ft-proto', event = { 'BufReadPre', 'BufNewFile *.proto,*.text_proto' } }),
   gdir({ dir = 'ft-soy', event = { 'BufReadPre *.soy', 'BufNewFile *.soy' } }),
   gdir({ dir = 'ft-cpp', event = 'BufRead', 'BufNewFile *.[ch],*.cc,*.cpp' }),
   gdir({ dir = 'ft-go', event = 'BufRead', 'BufNewFile *.go' }),
