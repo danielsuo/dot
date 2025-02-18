@@ -747,6 +747,14 @@ local find_modified_files = function()
     require("telescope.builtin").git_status()
   end
 end
+local toggle_mini_files = function()
+  local MiniFiles = require("mini.files")
+  local _ = MiniFiles.close()
+    or MiniFiles.open(vim.api.nvim_buf_get_name(0), false)
+  vim.defer_fn(function()
+    MiniFiles.reveal_cwd()
+  end, 30)
+end
 
 -- [[ Normal Mode ]]
 map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
@@ -778,7 +786,7 @@ map('<leader>ev', ':vsp <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [V]ertical
 map('<leader>et', ':tabe <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [T]ab')
 
 map('<leader>f', '[F]ile')
-map('<leader>fe', ':lua MiniFiles.open()<CR>', '[F]ile [M]inifile')
+map('<leader>fe', toggle_mini_files, '[F]ile [M]inifile')
 map('<leader>fl', ':FormatLines<Enter>', '[F]ile [L]ine format')
 map('<leader>fq', ':q<CR>', '[F]ile [Q]uit')
 map('<leader>fs', ':w<CR>', '[F]ile [S]ave')
