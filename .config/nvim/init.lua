@@ -19,33 +19,35 @@ local google = os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert > /de
 
 local workspace_name = function()
   local file_path = vim.api.nvim_buf_get_name(0)
-  local ws = require("neocitc").workspace_from_path(file_path)
-  if not ws then return "" end
-  return "[" .. ws .. "]"
+  local ws = require('neocitc').workspace_from_path(file_path)
+  if not ws then
+    return ''
+  end
+  return '[' .. ws .. ']'
 end
 
 local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
 local statusline_default = function()
-  local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
-  local citc          = workspace_name()
-  local git           = MiniStatusline.section_git({ trunc_width = 40 })
-  local diff          = MiniStatusline.section_diff({ trunc_width = 75 })
-  local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75, signs = signs })
-  local lsp           = MiniStatusline.section_lsp({ trunc_width = 75 })
-  local filename      = MiniStatusline.section_filename({ trunc_width = 140 })
-  local fileinfo      = MiniStatusline.section_fileinfo({ trunc_width = 120 })
-  local location      = MiniStatusline.section_location({ trunc_width = 75 })
-  local search        = MiniStatusline.section_searchcount({ trunc_width = 75 })
+  local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
+  local citc = workspace_name()
+  local git = MiniStatusline.section_git { trunc_width = 40 }
+  local diff = MiniStatusline.section_diff { trunc_width = 75 }
+  local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75, signs = signs }
+  local lsp = MiniStatusline.section_lsp { trunc_width = 75 }
+  local filename = MiniStatusline.section_filename { trunc_width = 140 }
+  local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
+  local location = MiniStatusline.section_location { trunc_width = 75 }
+  local search = MiniStatusline.section_searchcount { trunc_width = 75 }
 
-  return MiniStatusline.combine_groups({
-    { hl = mode_hl,                  strings = { mode } },
-    { hl = 'MiniStatuslineDevinfo',  strings = { git, diff, diagnostics, lsp } },
+  return MiniStatusline.combine_groups {
+    { hl = mode_hl, strings = { mode } },
+    { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
     '%<', -- Mark general truncate point
     { hl = 'MiniStatuslineFilename', strings = { citc, filename } },
     '%=', -- End left alignment
     { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
-    { hl = mode_hl,                  strings = { search, location } },
-  })
+    { hl = mode_hl, strings = { search, location } },
+  }
 end
 
 local gplug = function(spec)
@@ -90,15 +92,13 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
-require('lazy').setup({
+require('lazy').setup {
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   'rcarriga/nvim-notify',
   {
     'nvimdev/lspsaga.nvim',
     config = function()
-      require('lspsaga').setup({
-
-      })
+      require('lspsaga').setup {}
     end,
   },
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
@@ -119,7 +119,7 @@ require('lazy').setup({
     opts = {
       delay = 0,
       icons = { mappings = vim.g.have_nerd_font },
-    }
+    },
   },
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
@@ -145,15 +145,15 @@ require('lazy').setup({
           --   '--hidden',
           -- },
           path_display = function(_, path)
-            path = path:gsub("^/google/src/cloud/[^/]+/[^/]+/google3/", "google3/", 1)
-            path = path:gsub("^google3/java/com/google/", "g3/j/c/g/", 1)
-            path = path:gsub("^google3/javatests/com/google/", "g3/jt/c/g/", 1)
-            path = path:gsub("^google3/third_party/", "g3/3rdp/", 1)
-            path = path:gsub("^google3/", "g3/", 1)
+            path = path:gsub('^/google/src/cloud/[^/]+/[^/]+/google3/', 'google3/', 1)
+            path = path:gsub('^google3/java/com/google/', 'g3/j/c/g/', 1)
+            path = path:gsub('^google3/javatests/com/google/', 'g3/jt/c/g/', 1)
+            path = path:gsub('^google3/third_party/', 'g3/3rdp/', 1)
+            path = path:gsub('^google3/', 'g3/', 1)
             return path
           end,
           file_ignore_patterns = {
-            "%.orig$"
+            '%.orig$',
           },
         },
         -- pickers = {}
@@ -189,59 +189,59 @@ require('lazy').setup({
     opts = function(_, opts)
       local ciderlsp_config = {
         cmd = {
-          "/google/bin/releases/cider/ciderlsp/ciderlsp",
-          "--tooltag=neovim-lsp",
-          "--noforward_sync_responses",
+          '/google/bin/releases/cider/ciderlsp/ciderlsp',
+          '--tooltag=neovim-lsp',
+          '--noforward_sync_responses',
         },
         filetypes = {
-          "c",
-          "cpp",
-          "objc",
-          "objcpp",
-          "java",
-          "kotlin",
-          "go",
-          "python",
-          "typescript",
-          "typescriptreact",
-          "proto",
-          "textproto",
-          "dart",
-          "bzl",
-          "cs",
-          "googlesql",
-          "eml",
-          "mlir",
-          "dataz",
-          "soy",
-          "graphql",
-          "javascript",
-          "javascriptreact",
-          "css",
-          "scss",
-          "html",
-          "json",
-          "jslayout",
-          "gcl",
-          "borg",
-          "markdown",
-          "piccolo",
-          "ncl",
-          "conf",
+          'c',
+          'cpp',
+          'objc',
+          'objcpp',
+          'java',
+          'kotlin',
+          'go',
+          'python',
+          'typescript',
+          'typescriptreact',
+          'proto',
+          'textproto',
+          'dart',
+          'bzl',
+          'cs',
+          'googlesql',
+          'eml',
+          'mlir',
+          'dataz',
+          'soy',
+          'graphql',
+          'javascript',
+          'javascriptreact',
+          'css',
+          'scss',
+          'html',
+          'json',
+          'jslayout',
+          'gcl',
+          'borg',
+          'markdown',
+          'piccolo',
+          'ncl',
+          'conf',
         },
-        root_dir = require("lspconfig").util.root_pattern(".citc"),
+        root_dir = require('lspconfig').util.root_pattern '.citc',
         settings = {},
       }
-      require("lspconfig.configs").ciderlsp = {
+      require('lspconfig.configs').ciderlsp = {
         default_config = ciderlsp_config,
       }
 
-      local capabilities = require("cmp_nvim_lsp").default_capabilities()
-      local cmp_nvim_ciderlsp_enabled = require("lazy.core.config").plugins["cmp_nvim_ciderlsp"]
+      local capabilities = require('cmp_nvim_lsp').default_capabilities()
+      local cmp_nvim_ciderlsp_enabled = require('lazy.core.config').plugins['cmp_nvim_ciderlsp']
       if cmp_nvim_ciderlsp_enabled then
-        capabilities = require("cmp_nvim_ciderlsp").update_capabilities(capabilities)
+        capabilities = require('cmp_nvim_ciderlsp').update_capabilities(capabilities)
       end
-      return vim.tbl_deep_extend("force", opts, {
+      return vim.tbl_deep_extend('force', opts, {
         servers = {
           ciderlsp = {
             capabilities = capabilities,
@@ -252,20 +252,19 @@ require('lazy').setup({
     config = function(_, opts)
       -- Remove current directory from backupdir, otherwise CiderLSP can get confused
       -- and have outdated diagnostics and completions.
-      vim.cmd("set backupdir -=.")
+      vim.cmd 'set backupdir -=.'
 
-      local lspconfig = require("lspconfig")
+      local lspconfig = require 'lspconfig'
       if not opts.servers or not opts.servers.ciderlsp then
-        vim.notify("Unable to setup CiderLSP", vim.log.levels.WARN)
+        vim.notify('Unable to setup CiderLSP', vim.log.levels.WARN)
       else
         opts.servers.ciderlsp.on_attach = function(client, bufnr)
           -- TODO(b/324369022): Diagnostics don't show up when first opening a file.
           -- The below is done to remedy this, a `textDocument/didChange` call is made
           -- that gets updated diagnostics. Remove when this bug is fixed.
-          client.request("textDocument/didChange", {
+          client.request('textDocument/didChange', {
             textDocument = { uri = vim.uri_from_bufnr(bufnr), version = 2 },
-          }, function()
-          end)
+          }, function() end)
         end
       end
       for server_name, server_opts in pairs(opts.servers or {}) do
@@ -314,14 +313,14 @@ require('lazy').setup({
     },
     config = function() -- :help cmp
       local sources = {
-          { name = "nvim_lsp",      priority = 20 },
-          { name = "luasnip",       priority = 10 },
-          { name = "buffer",        priority = 1 },
-          { name = "path",          priority = 1 },
-          { name = 'lazydev',       group_index = 0 },
-        }
+        { name = 'nvim_lsp', priority = 20 },
+        { name = 'luasnip', priority = 10 },
+        { name = 'buffer', priority = 1 },
+        { name = 'path', priority = 1 },
+        { name = 'lazydev', group_index = 0 },
+      }
       if google then
-        table.insert(sources, { name = "nvim_ciderlsp", priority = 30 })
+        table.insert(sources, { name = 'nvim_ciderlsp', priority = 30 })
       end
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
@@ -355,7 +354,7 @@ require('lazy').setup({
         },
         sources = sources,
         formatting = {
-          format = require('lspkind').cmp_format({
+          format = require('lspkind').cmp_format {
             mode = 'symbol',
             ellipsis_char = '...',
             menu = {
@@ -366,7 +365,7 @@ require('lazy').setup({
               buffer = '(Buffer)',
               path = '(Path)',
             },
-          }),
+          },
         },
       }
     end,
@@ -388,14 +387,14 @@ require('lazy').setup({
       require('mini.pairs').setup()
       require('mini.bracketed').setup()
       require('mini.comment').setup()
-      require('mini.trailspace').setup({ event = { 'BufRead', 'BufNewFile' }, config = true })
+      require('mini.trailspace').setup { event = { 'BufRead', 'BufNewFile' }, config = true }
 
       if google then
-        require('mini.statusline').setup({
+        require('mini.statusline').setup {
           content = {
             active = statusline_default,
-          }
-        })
+          },
+        }
       end
     end,
   },
@@ -403,11 +402,11 @@ require('lazy').setup({
     'echasnovski/mini.ai',
     config = function()
       local gen_spec = require('mini.ai').gen_spec
-      require('mini.ai').setup({
+      require('mini.ai').setup {
         custom_textobjects = {
           [','] = gen_spec.argument(),
-        }
-      })
+        },
+      }
     end,
   },
   { -- Highlight, edit, and navigate code
@@ -443,17 +442,17 @@ require('lazy').setup({
   {
     'smartpde/neoscopes',
     config = function()
-      local scopes = require('neoscopes')
+      local scopes = require 'neoscopes'
       if google then
-        scopes.add({
+        scopes.add {
           name = 'jax',
           dirs = {
             'third_party/py/jax',
             'third_party/tensorflow',
             'experimental/users/dsuo',
           },
-        })
-        scopes.set_current('jax')
+        }
+        scopes.set_current 'jax'
       else
         scopes.add_startup_scope()
       end
@@ -481,54 +480,68 @@ require('lazy').setup({
   {
     'vim-scripts/vcscommand.vim',
     cmd = {
-      'VCSAdd', 'VCSAnnotate', 'VCSBlame', 'VCSCommit', 'VCSDelete', 'VCSDiff',
-      'VCSGotoOriginal', 'VCSInfo', 'VCSLog', 'VCSLock', 'VCSRemove', 'VCSRevert',
-      'VCSReview', 'VCSStatus', 'VCSUpdate', 'VCSUnlock', 'VCSVimDiff',
+      'VCSAdd',
+      'VCSAnnotate',
+      'VCSBlame',
+      'VCSCommit',
+      'VCSDelete',
+      'VCSDiff',
+      'VCSGotoOriginal',
+      'VCSInfo',
+      'VCSLog',
+      'VCSLock',
+      'VCSRemove',
+      'VCSRevert',
+      'VCSReview',
+      'VCSStatus',
+      'VCSUpdate',
+      'VCSUnlock',
+      'VCSVimDiff',
     },
   },
   { 'mhinz/vim-signify' },
 
   -- [[ Google plugins ]]
-  gplug({
+  gplug {
     dir = '/usr/share/vim/google/maktaba',
     config = function()
-      vim.cmd('source /usr/share/vim/google/glug/bootstrap.vim')
-    end
-  }),
-  gdir({ dir = 'logmsgs' }),
-  gdir({ dir = 'googler' }),
-  gdir({
+      vim.cmd 'source /usr/share/vim/google/glug/bootstrap.vim'
+    end,
+  },
+  gdir { dir = 'logmsgs' },
+  gdir { dir = 'googler' },
+  gdir {
     dir = 'codefmt-google',
     config = function(opts)
       local formatters_by_ft = {
-        borg            = 'gclfmt',
-        gcl             = 'gclfmt',
-        patchpanel      = 'gclfmt',
-        bzl             = 'buildifier',
-        c               = 'clang-format',
-        cpp             = 'clang-format',
-        javascript      = 'google-prettier',
-        typescript      = 'google-prettier',
+        borg = 'gclfmt',
+        gcl = 'gclfmt',
+        patchpanel = 'gclfmt',
+        bzl = 'buildifier',
+        c = 'clang-format',
+        cpp = 'clang-format',
+        javascript = 'google-prettier',
+        typescript = 'google-prettier',
         javascriptreact = 'google-prettier',
         typescriptreact = 'google-prettier',
-        css             = 'google-prettier',
-        scss            = 'google-prettier',
-        html            = 'google-prettier',
-        json            = 'google-prettier',
-        dart            = 'dartfmt',
-        go              = 'gofmt',
-        java            = 'google-java-format',
-        jslayout        = 'jslfmt',
-        markdown        = 'mdformat',
-        ncl             = 'nclfmt',
-        python          = 'pyformat',
-        piccolo         = 'pyformat',
-        soy             = 'soyfmt',
-        textpb          = 'text-proto-format',
-        proto           = 'protofmt',
-        sql             = 'format_sql',
-        googlesql       = 'format_sql',
-        terraform       = 'terraform',
+        css = 'google-prettier',
+        scss = 'google-prettier',
+        html = 'google-prettier',
+        json = 'google-prettier',
+        dart = 'dartfmt',
+        go = 'gofmt',
+        java = 'google-java-format',
+        jslayout = 'jslfmt',
+        markdown = 'mdformat',
+        ncl = 'nclfmt',
+        python = 'pyformat',
+        piccolo = 'pyformat',
+        soy = 'soyfmt',
+        textpb = 'text-proto-format',
+        proto = 'protofmt',
+        sql = 'format_sql',
+        googlesql = 'format_sql',
+        terraform = 'terraform',
       }
       local auto_format = {}
       for filetype in pairs(formatters_by_ft) do
@@ -549,17 +562,17 @@ require('lazy').setup({
     init = function(plugin)
       local group = vim.api.nvim_create_augroup('autoformat_settings', {})
       local function autocmd(filetype, formatter)
-        vim.api.nvim_create_autocmd("FileType", {
+        vim.api.nvim_create_autocmd('FileType', {
           pattern = filetype,
           group = group,
           callback = function(event)
-            vim.api.nvim_create_autocmd("BufWritePre", {
+            vim.api.nvim_create_autocmd('BufWritePre', {
               buffer = event.buf,
               group = group,
               once = true,
               callback = function()
                 if not vim.g._use_conform_auto_format then
-                  vim.cmd("call codefmt#FormatBuffer() | AutoFormatBuffer " .. formatter)
+                  vim.cmd('call codefmt#FormatBuffer() | AutoFormatBuffer ' .. formatter)
                 end
               end,
             })
@@ -568,60 +581,68 @@ require('lazy').setup({
       end
 
       -- Build opts from possible parent specs since lazy.nvim doesn't provide it in `init`
-      local plugin_opts = require("lazy.core.plugin").values(plugin, "opts", false)
+      local plugin_opts = require('lazy.core.plugin').values(plugin, 'opts', false)
       for filetype, formatter in pairs(plugin_opts.auto_format or {}) do
         if plugin_opts.formatters_by_ft[filetype] then
           autocmd(filetype, plugin_opts.formatters_by_ft[filetype])
         end
       end
     end,
-  }),
-  gdir({
+  },
+  gdir {
     dir = 'codefmt',
     dependences = { 'codefmt-google' },
-    cmd = { "FormatLines", "FormatCode", "AutoFormatBuffer" },
+    cmd = { 'FormatLines', 'FormatCode', 'AutoFormatBuffer' },
     opts = {
-      clang_format_executable = "/usr/bin/clang-format",
+      clang_format_executable = '/usr/bin/clang-format',
       clang_format_style = "function('codefmtgoogle#GetClangFormatStyle')",
-      gofmt_executable = "/usr/lib/google-golang/bin/gofmt",
-      dartfmt_executable = { "/usr/lib/google-dartlang/bin/dart", "format" },
-      ktfmt_executable = "/google/bin/releases/kotlin-google-eng/ktfmt/ktfmt",
-    }
-  }),
-  gdir({ dir = 'google-filetypes', event = { 'BufReadPre', 'BufNewFile' } }),
-  gdir({ dir = 'ft-cel', event = { 'BufReadPre *.cel,*jvp', 'BufNewFile *.cel,*jvp' } }),
-  gdir({ dir = 'ft-clif', event = { 'BufReadPre *.clif', 'BufNewFile *.clif' } }),
-  gdir({ dir = 'ft-gin', event = { 'BufReadPre *.gin', 'BufNewFile *.gin' } }),
-  gdir({ dir = 'ft-gss', event = { 'BufReadPre *.gss', 'BufNewFile *.gss' } }),
-  gdir({ dir = 'ft-proto', event = { 'BufReadPre', 'BufNewFile *.proto,*.text_proto' } }),
-  gdir({ dir = 'ft-soy', event = { 'BufReadPre *.soy', 'BufNewFile *.soy' } }),
-  gdir({ dir = 'ft-cpp', event = 'BufRead', 'BufNewFile *.[ch],*.cc,*.cpp' }),
-  gdir({ dir = 'ft-go', event = 'BufRead', 'BufNewFile *.go' }),
-  gdir({ dir = 'ft-java', event = 'BufRead', 'BufNewFile *.java' }),
-  gdir({ dir = 'ft-javascript', event = 'BufRead', 'BufNewFile *.js,*.jsx' }),
-  gdir({ dir = 'ft-kotlin', event = 'BufRead', 'BufNewFile *.kt,*.kts' }),
-  gdir({ dir = 'ft-python', event = 'BufRead', 'BufNewFile *.py' }),
-  gdir({ dir = 'googlestyle', event = { 'BufRead', 'BufNewFile' } }),
-  gdir({ dir = 'autogen', event = 'BufNewFile' }),
-  gdir({
+      gofmt_executable = '/usr/lib/google-golang/bin/gofmt',
+      dartfmt_executable = { '/usr/lib/google-dartlang/bin/dart', 'format' },
+      ktfmt_executable = '/google/bin/releases/kotlin-google-eng/ktfmt/ktfmt',
+    },
+  },
+  gdir { dir = 'google-filetypes', event = { 'BufReadPre', 'BufNewFile' } },
+  gdir { dir = 'ft-cel', event = { 'BufReadPre *.cel,*jvp', 'BufNewFile *.cel,*jvp' } },
+  gdir { dir = 'ft-clif', event = { 'BufReadPre *.clif', 'BufNewFile *.clif' } },
+  gdir { dir = 'ft-gin', event = { 'BufReadPre *.gin', 'BufNewFile *.gin' } },
+  gdir { dir = 'ft-gss', event = { 'BufReadPre *.gss', 'BufNewFile *.gss' } },
+  gdir { dir = 'ft-proto', event = { 'BufReadPre', 'BufNewFile *.proto,*.text_proto' } },
+  gdir { dir = 'ft-soy', event = { 'BufReadPre *.soy', 'BufNewFile *.soy' } },
+  gdir { dir = 'ft-cpp', event = 'BufRead', 'BufNewFile *.[ch],*.cc,*.cpp' },
+  gdir { dir = 'ft-go', event = 'BufRead', 'BufNewFile *.go' },
+  gdir { dir = 'ft-java', event = 'BufRead', 'BufNewFile *.java' },
+  gdir { dir = 'ft-javascript', event = 'BufRead', 'BufNewFile *.js,*.jsx' },
+  gdir { dir = 'ft-kotlin', event = 'BufRead', 'BufNewFile *.kt,*.kts' },
+  gdir { dir = 'ft-python', event = 'BufRead', 'BufNewFile *.py' },
+  gdir { dir = 'googlestyle', event = { 'BufRead', 'BufNewFile' } },
+  gdir { dir = 'autogen', event = 'BufNewFile' },
+  gdir {
     dir = 'blaze',
     opts = {
       execution_mode = 'async',
     },
-    cmd = { 'Blaze', 'BlazeGoToSponge', 'BlazeViewCommandLog', 'BlazeLoadErrors', 'BlazeDebugCurrentFileTest',
-      'BlazeDebugCurrentTestMethod', 'BlazeDebugAddBreakpoint', 'BlazeDebugClearBreakpoint', 'BlazeDebugFinish',
+    cmd = {
+      'Blaze',
+      'BlazeGoToSponge',
+      'BlazeViewCommandLog',
+      'BlazeLoadErrors',
+      'BlazeDebugCurrentFileTest',
+      'BlazeDebugCurrentTestMethod',
+      'BlazeDebugAddBreakpoint',
+      'BlazeDebugClearBreakpoint',
+      'BlazeDebugFinish',
     },
-  }),
-  gdir({ dir = 'blazedeps', event = 'BufWritePost', cmd = 'BlazeDepsUpdate' }),
-  gdir({ dir = 'relatedfiles', cmd = 'RelatedFilesWindow' }),
+  },
+  gdir { dir = 'blazedeps', event = 'BufWritePost', cmd = 'BlazeDepsUpdate' },
+  gdir { dir = 'relatedfiles', cmd = 'RelatedFilesWindow' },
 
-  gplug({ url = 'sso://user/vintharas/telescope-codesearch.nvim' }),
-  gplug({ url = 'sso://user/aktau/telescope-citc.nvim' }),
-  gplug({ url = 'sso://team/neovim-dev/neocitc' }),
-  gplug({ url = 'sso://user/vintharas/goog-terms.nvim' }),
-  gplug({ url = 'sso://user/piloto/cmp-nvim-ciderlsp', opts = { override_character_triggers = true } }),
+  gplug { url = 'sso://user/vintharas/telescope-codesearch.nvim' },
+  gplug { url = 'sso://user/aktau/telescope-citc.nvim' },
+  gplug { url = 'sso://team/neovim-dev/neocitc' },
+  gplug { url = 'sso://user/vintharas/goog-terms.nvim' },
+  gplug { url = 'sso://user/piloto/cmp-nvim-ciderlsp', opts = { override_character_triggers = true } },
   -- gplug({ url = 'sso://user/vicentecaycedo/buganizer-utils.nvim' }),
-  gplug({ url = 'sso://user/jackcogdill/nvim-figtree', cmd = 'Figtree' }),
+  gplug { url = 'sso://user/jackcogdill/nvim-figtree', cmd = 'Figtree' },
   -- gplug({
   --   url = 'sso://user/rprs/buganizer.nvim',
   --   dependencies = {
@@ -630,16 +651,16 @@ require('lazy').setup({
   --   },
   --   cmd = { 'FindBugs', 'ShowBugsUnderCursor' },
   -- }),
-  gplug({
-    url = "sso://team/neovim-dev/neocitc",
+  gplug {
+    url = 'sso://team/neovim-dev/neocitc',
     opts = {},
-    cmd = { "CitcCreateWorkspace", "CitcCreateFigWorkspace" },
-  }),
-  gplug({
+    cmd = { 'CitcCreateWorkspace', 'CitcCreateFigWorkspace' },
+  },
+  gplug {
     url = 'sso://user/fentanes/googlepaths.nvim',
-    event = { #vim.fn.argv() > 0 and 'VeryLazy' or 'UIEnter', 'BufReadCmd //*', 'BufReadCmd google3/*'}
-  }),
-  gplug({
+    event = { #vim.fn.argv() > 0 and 'VeryLazy' or 'UIEnter', 'BufReadCmd //*', 'BufReadCmd google3/*' },
+  },
+  gplug {
     url = 'sso://user/fentanes/gcert.nvim',
     dependencies = 'rcarriga/nvim-notify',
     event = #vim.fn.argv() > 0 and 'VeryLazy' or 'UIEnter',
@@ -650,32 +671,32 @@ require('lazy').setup({
       show_notifications = true,
       use_nvim_notify = true,
     },
-  }),
-  gplug({
-    url = "sso://user/smwang/hg.nvim",
+  },
+  gplug {
+    url = 'sso://user/smwang/hg.nvim',
     dependencies = {
-      "nvim-lua/plenary.nvim",
-      "ipod825/libp.nvim",
+      'nvim-lua/plenary.nvim',
+      'ipod825/libp.nvim',
     },
-    cmd = "Hg",
+    cmd = 'Hg',
     opts = {},
     config = function()
-      require("libp").setup()
-      require("hg").setup()
+      require('libp').setup()
+      require('hg').setup()
     end,
-  }),
-  gplug({
-    url = "sso://user/vvvv/ai.nvim",
+  },
+  gplug {
+    url = 'sso://user/vvvv/ai.nvim',
     dependencies = {
-      "nvim-lua/plenary.nvim",
+      'nvim-lua/plenary.nvim',
     },
-    cmd = "TransformCode",
-  }),
-  gplug({
-    url = "sso://user/vintharas/goog-terms.nvim",
-    enabled = vim.fn.has('nvim-0.10.1') == 1,
-    event = { "BufRead", "BufNewFile" },
-  }),
+    cmd = 'TransformCode',
+  },
+  gplug {
+    url = 'sso://user/vintharas/goog-terms.nvim',
+    enabled = vim.fn.has 'nvim-0.10.1' == 1,
+    event = { 'BufRead', 'BufNewFile' },
+  },
   -- gplug({
   --     url = "sso://googler@user/cnieves/critique-nvim",
   --     dependencies = {
@@ -706,7 +727,7 @@ require('lazy').setup({
   --         })
   --     end,
   -- }),
-})
+}
 
 vim.g.have_nerd_font = true
 vim.opt.number = true
@@ -714,7 +735,7 @@ vim.opt.relativenumber = true
 vim.opt.statuscolumn = '%C %s %l %r '
 vim.opt.signcolumn = 'yes'
 vim.opt.cursorline = true
-vim.opt.colorcolumn = "80"
+vim.opt.colorcolumn = '80'
 vim.opt.mouse = 'a'
 vim.opt.breakindent = true
 vim.opt.tabstop = 2
@@ -734,7 +755,9 @@ vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.opt.inccommand = 'split'
 vim.opt.scrolloff = 10
-vim.schedule(function() vim.opt.clipboard = 'unnamedplus' end)
+vim.schedule(function()
+  vim.opt.clipboard = 'unnamedplus'
+end)
 
 local telescope = require 'telescope.builtin'
 
@@ -771,16 +794,15 @@ local format_file = function()
   require('conform').format { async = true, lsp_format = 'fallback' }
 end
 local find_modified_files = function()
-  if string.find(vim.fn.getcwd(-1, -1), "/google/src/cloud") == 1 then
-    require("telescope").extensions.citc.modified()
+  if string.find(vim.fn.getcwd(-1, -1), '/google/src/cloud') == 1 then
+    require('telescope').extensions.citc.modified()
   else
-    require("telescope.builtin").git_status()
+    require('telescope.builtin').git_status()
   end
 end
 local toggle_mini_files = function()
-  local MiniFiles = require("mini.files")
-  local _ = MiniFiles.close()
-    or MiniFiles.open(vim.api.nvim_buf_get_name(0), false)
+  local MiniFiles = require 'mini.files'
+  local _ = MiniFiles.close() or MiniFiles.open(vim.api.nvim_buf_get_name(0), false)
   vim.defer_fn(function()
     MiniFiles.reveal_cwd()
   end, 30)
@@ -817,6 +839,7 @@ map('<leader>et', ':tabe <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [T]ab')
 map('<leader>f', '[F]ile')
 map('<leader>fe', toggle_mini_files, '[F]ile [M]inifile')
 map('<leader>fl', ':FormatLines<Enter>', '[F]ile [L]ine format')
+map('<leader>fw', ':bp<bar>sp<bar>bn<bar>bd<CR>', '[File] buffer [C]lose')
 map('<leader>fq', ':q<CR>', '[F]ile [Q]uit')
 map('<leader>fs', ':w<CR>', '[F]ile [S]ave')
 map('<leader>ft', format_file, '[F]ile forma[T]')
@@ -867,17 +890,17 @@ map('<leader>z', ':Lazy<Enter>', 'La[Z]y')
 -- [[ Terminal mode ]]
 map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 
-      -- -- here are some mappings you might want:
-      -- keys = {
-      --     { "<leader>e", desc = "Critiqu[E]" },
-      --     { "]e", "<cmd>CritiqueGotoNextComment<CR>", desc = "Goto n[E]xt comment" },
-      --     { "[e", "<cmd>CritiqueGotoPrevComment<CR>", desc = "Goto pr[E]vious comment"},
-      --     { "<Leader>el", "<cmd>CritiqueToggleLineComment<CR>", desc = "Toggle [L]ine comments"},
-      --     { "<Leader>eu", "<cmd>CritiqueToggleUnresolvedComments<CR>", desc = "Toggle [U]nresolved comments" },
-      --     { "<Leader>ea", "<cmd>CritiqueToggleAllComments<CR>", desc = "Toggle [A]ll comments" },
-      --     { "<Leader>ef", "<cmd>CritiqueFetchComments<CR>", desc = "[F]etch comments" },
-      --     { "<Leader>et", "<cmd>CritiqueCommentsTelescope<CR>", desc = "[S]earch" },
-      -- },
+-- -- here are some mappings you might want:
+-- keys = {
+--     { "<leader>e", desc = "Critiqu[E]" },
+--     { "]e", "<cmd>CritiqueGotoNextComment<CR>", desc = "Goto n[E]xt comment" },
+--     { "[e", "<cmd>CritiqueGotoPrevComment<CR>", desc = "Goto pr[E]vious comment"},
+--     { "<Leader>el", "<cmd>CritiqueToggleLineComment<CR>", desc = "Toggle [L]ine comments"},
+--     { "<Leader>eu", "<cmd>CritiqueToggleUnresolvedComments<CR>", desc = "Toggle [U]nresolved comments" },
+--     { "<Leader>ea", "<cmd>CritiqueToggleAllComments<CR>", desc = "Toggle [A]ll comments" },
+--     { "<Leader>ef", "<cmd>CritiqueFetchComments<CR>", desc = "[F]etch comments" },
+--     { "<Leader>et", "<cmd>CritiqueCommentsTelescope<CR>", desc = "[S]earch" },
+-- },
 -- local function runInTerm(cmd)
 --   return function()
 --     vim.g._term_calling_cmd = 1
@@ -885,108 +908,108 @@ map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 --     vim.g._term_calling_cmd = 0
 --   end
 -- end
-      -- tooltip_key = "<leader>gt",
-      -- action_key = "<leader>ga",
-      -- { "<leader>b",   desc = "Blaze" },
-      -- { "<leader>be",  runInTerm("call blaze#LoadErrors()"),        desc = "Blaze load errors" },
-      -- { "<leader>bl",  runInTerm("call blaze#ViewCommandLog()"),    desc = "Blaze view build log" },
-      -- { "<leader>bs",  runInTerm("BlazeGoToSponge"),                desc = "Blaze go to sponge" },
-      -- { "<leader>bc",  runInTerm("Blaze"),                          desc = "Blaze build on targets" },
-      -- { "<leader>bb",  runInTerm("Blaze build"),                    desc = "Blaze build" },
-      -- { "<leader>bt",  runInTerm("Blaze test"),                     desc = "Blaze test" },
-      -- { "<leader>bf",  runInTerm("call blaze#TestCurrentFile()"),   desc = "Blaze test current file" },
-      -- { "<leader>bm",  runInTerm("call blaze#TestCurrentMethod()"), desc = "Blaze test current method" },
-      -- { "<leader>bd",  desc = "Blaze debug" },
-      -- { "<leader>bdf", runInTerm("BlazeDebugCurrentFileTest"),      desc = "Blaze debug current file" },
-      -- { "<leader>bdm", runInTerm("BlazeDebugCurrentTestMethod"),    desc = "Blaze debug current method" },
-      -- { "<leader>bda", runInTerm("BlazeDebugAddBreakpoint"),        desc = "Blaze debug add breakpoint" },
-      -- { "<leader>bdc", runInTerm("BlazeDebugClearBreakpoint"),      desc = "Blaze debug clear breakpoint" },
-      -- { "<leader>bdf", runInTerm("BlazeDebugFinish"),               desc = "Blaze debug finish" },
-      -- { "<leader>bu", runInTerm("BlazeDepsUpdate"), desc = "Blaze update dependencies" },
+-- tooltip_key = "<leader>gt",
+-- action_key = "<leader>ga",
+-- { "<leader>b",   desc = "Blaze" },
+-- { "<leader>be",  runInTerm("call blaze#LoadErrors()"),        desc = "Blaze load errors" },
+-- { "<leader>bl",  runInTerm("call blaze#ViewCommandLog()"),    desc = "Blaze view build log" },
+-- { "<leader>bs",  runInTerm("BlazeGoToSponge"),                desc = "Blaze go to sponge" },
+-- { "<leader>bc",  runInTerm("Blaze"),                          desc = "Blaze build on targets" },
+-- { "<leader>bb",  runInTerm("Blaze build"),                    desc = "Blaze build" },
+-- { "<leader>bt",  runInTerm("Blaze test"),                     desc = "Blaze test" },
+-- { "<leader>bf",  runInTerm("call blaze#TestCurrentFile()"),   desc = "Blaze test current file" },
+-- { "<leader>bm",  runInTerm("call blaze#TestCurrentMethod()"), desc = "Blaze test current method" },
+-- { "<leader>bd",  desc = "Blaze debug" },
+-- { "<leader>bdf", runInTerm("BlazeDebugCurrentFileTest"),      desc = "Blaze debug current file" },
+-- { "<leader>bdm", runInTerm("BlazeDebugCurrentTestMethod"),    desc = "Blaze debug current method" },
+-- { "<leader>bda", runInTerm("BlazeDebugAddBreakpoint"),        desc = "Blaze debug add breakpoint" },
+-- { "<leader>bdc", runInTerm("BlazeDebugClearBreakpoint"),      desc = "Blaze debug clear breakpoint" },
+-- { "<leader>bdf", runInTerm("BlazeDebugFinish"),               desc = "Blaze debug finish" },
+-- { "<leader>bu", runInTerm("BlazeDepsUpdate"), desc = "Blaze update dependencies" },
 
-      -- { "[q",              "<cmd>cprev<cr>",      desc = "Goto previous quicklist item" },
-      -- { "]q",              "<cmd>cnext<cr>",      desc = "Goto next quicklist item" },
-      -- { "[Q",              "<cmd>cfirst<cr>",     desc = "Goto first quicklist item" },
-      -- { "]Q",              "<cmd>clast<cr>",      desc = "Goto last quicklist item" },
-      -- { "[l",              "<cmd>lprev<cr>",      desc = "Goto previous location list item" },
-      -- { "]l",              "<cmd>lnext<cr>",      desc = "Goto next location list item" },
-      -- { "[L",              "<cmd>lfirst<cr>",     desc = "Goto first location list item" },
-      -- { "]L",              "<cmd>llast<cr>",      desc = "Goto next last list item" },
-    -- keys = {
-    --   {
-    --     "<leader>ha",
-    --     ":Hg amend<Enter>",
-    --     desc = "View [H]g [A]mend",
-    --   },
-    --   {
-    --     "<leader>he",
-    --     ":Hg evolve<Enter>",
-    --     desc = "View [H]g [E]volve",
-    --   },
-    --   {
-    --     "<leader>hc",
-    --     ":Hg commit<Enter>",
-    --     desc = "View [H]g [C]ommit",
-    --   },
-    --   {
-    --     "<leader>hu",
-    --     ":Hg uploadchain<Enter>",
-    --     desc = "View [H]g [U]pload",
-    --   },
-    --   {
-    --     "<leader>hs",
-    --     ":Hg sync<Enter>",
-    --     desc = "View [H]g [S]ync",
-    --   },
-    --   {
-    --     "<leader>hv",
-    --     ":Hg revert<Enter>",
-    --     desc = "View [H]g Re[V]ert",
-    --   },
-    --   {
-    --     "<leader>hr",
-    --     ":Hg rebase<Enter>",
-    --     desc = "View [H]g Re[B]ase",
-    --   },
-  --
-  -- {
-  --   "mhinz/vim-signify",
-  --   opts = {
-  --     updatetime = 500,
-  --     use_prev_commit_rev = false,
-  --   },
-  --   config = function(_, opts)
-  --     -- A small `updatetime` is preferred to update signs as files are updated
-  --     -- The default `updatetime` is 4000
-  --     vim.opt.updatetime = opts.updatetime
-  --     vim.api.nvim_set_hl(0, "SignifySignAdd", { ctermfg = "green", fg = "#79b7a5" })
-  --     vim.api.nvim_set_hl(0, "SignifySignChange", { ctermfg = "yellow", fg = "#ffffcc" })
-  --     vim.api.nvim_set_hl(0, "SignifySignChangeDelete", { ctermfg = "red", fg = "#ff7b72" })
-  --     vim.api.nvim_set_hl(0, "SignifySignDelete", { ctermfg = "red", fg = "#ff7b72" })
-  --     vim.api.nvim_set_hl(0, "SignifySignDeleteDeleteFirstLine", { ctermfg = "red", fg = "#ff7b72" })
-  --     if opts.use_prev_commit_rev then
-  --       vim.g.signify_vcs_cmds = { hg = "hg --config alias.diff=diff diff --color=never --nodates -U0 --rev .^ -- %f" }
-  --       vim.g.signify_vcs_cmds_diffmode = { hg = "hg cat --rev .^ %f" }
-  --     end
-  --     vim.api.nvim_create_autocmd("User", {
-  --       pattern = "GcertGained",
-  --       group = vim.api.nvim_create_augroup("vim-signify", {}),
-  --       callback = function()
-  --         vim.cmd("SignifyEnableAll")
-  --       end,
-  --     })
-  --   end,
-  --   keys = {
-  --     { "[c", "<Plug>(signify-prev-hunk)",            desc = "Goto previous hunk" },
-  --     { "]c", "<Plug>(signify-next-hunk)",            desc = "Goto next hunk" },
-  --     { "[C", "<cmd>normal 9999[c<cr>",               desc = "Goto first hunk" },
-  --     { "]C", "<cmd>normal 9999]c<cr>",               desc = "Goto last hunk" },
-  --     { "ic", "<Plug>(signify-motion-inner-pending)", desc = "Hunk text object",  mode = "o" },
-  --     { "ic", "<Plug>(signify-motion-inner-visual)",  desc = "Hunk text object",  mode = "x" },
-  --     { "ac", "<Plug>(signify-motion-outer-pending)", desc = "Hunk text object",  mode = "o" },
-  --     { "ac", "<Plug>(signify-motion-outer-pending)", desc = "Hunk text object",  mode = "x" },
-  --   },
-  -- },
+-- { "[q",              "<cmd>cprev<cr>",      desc = "Goto previous quicklist item" },
+-- { "]q",              "<cmd>cnext<cr>",      desc = "Goto next quicklist item" },
+-- { "[Q",              "<cmd>cfirst<cr>",     desc = "Goto first quicklist item" },
+-- { "]Q",              "<cmd>clast<cr>",      desc = "Goto last quicklist item" },
+-- { "[l",              "<cmd>lprev<cr>",      desc = "Goto previous location list item" },
+-- { "]l",              "<cmd>lnext<cr>",      desc = "Goto next location list item" },
+-- { "[L",              "<cmd>lfirst<cr>",     desc = "Goto first location list item" },
+-- { "]L",              "<cmd>llast<cr>",      desc = "Goto next last list item" },
+-- keys = {
+--   {
+--     "<leader>ha",
+--     ":Hg amend<Enter>",
+--     desc = "View [H]g [A]mend",
+--   },
+--   {
+--     "<leader>he",
+--     ":Hg evolve<Enter>",
+--     desc = "View [H]g [E]volve",
+--   },
+--   {
+--     "<leader>hc",
+--     ":Hg commit<Enter>",
+--     desc = "View [H]g [C]ommit",
+--   },
+--   {
+--     "<leader>hu",
+--     ":Hg uploadchain<Enter>",
+--     desc = "View [H]g [U]pload",
+--   },
+--   {
+--     "<leader>hs",
+--     ":Hg sync<Enter>",
+--     desc = "View [H]g [S]ync",
+--   },
+--   {
+--     "<leader>hv",
+--     ":Hg revert<Enter>",
+--     desc = "View [H]g Re[V]ert",
+--   },
+--   {
+--     "<leader>hr",
+--     ":Hg rebase<Enter>",
+--     desc = "View [H]g Re[B]ase",
+--   },
+--
+-- {
+--   "mhinz/vim-signify",
+--   opts = {
+--     updatetime = 500,
+--     use_prev_commit_rev = false,
+--   },
+--   config = function(_, opts)
+--     -- A small `updatetime` is preferred to update signs as files are updated
+--     -- The default `updatetime` is 4000
+--     vim.opt.updatetime = opts.updatetime
+--     vim.api.nvim_set_hl(0, "SignifySignAdd", { ctermfg = "green", fg = "#79b7a5" })
+--     vim.api.nvim_set_hl(0, "SignifySignChange", { ctermfg = "yellow", fg = "#ffffcc" })
+--     vim.api.nvim_set_hl(0, "SignifySignChangeDelete", { ctermfg = "red", fg = "#ff7b72" })
+--     vim.api.nvim_set_hl(0, "SignifySignDelete", { ctermfg = "red", fg = "#ff7b72" })
+--     vim.api.nvim_set_hl(0, "SignifySignDeleteDeleteFirstLine", { ctermfg = "red", fg = "#ff7b72" })
+--     if opts.use_prev_commit_rev then
+--       vim.g.signify_vcs_cmds = { hg = "hg --config alias.diff=diff diff --color=never --nodates -U0 --rev .^ -- %f" }
+--       vim.g.signify_vcs_cmds_diffmode = { hg = "hg cat --rev .^ %f" }
+--     end
+--     vim.api.nvim_create_autocmd("User", {
+--       pattern = "GcertGained",
+--       group = vim.api.nvim_create_augroup("vim-signify", {}),
+--       callback = function()
+--         vim.cmd("SignifyEnableAll")
+--       end,
+--     })
+--   end,
+--   keys = {
+--     { "[c", "<Plug>(signify-prev-hunk)",            desc = "Goto previous hunk" },
+--     { "]c", "<Plug>(signify-next-hunk)",            desc = "Goto next hunk" },
+--     { "[C", "<cmd>normal 9999[c<cr>",               desc = "Goto first hunk" },
+--     { "]C", "<cmd>normal 9999]c<cr>",               desc = "Goto last hunk" },
+--     { "ic", "<Plug>(signify-motion-inner-pending)", desc = "Hunk text object",  mode = "o" },
+--     { "ic", "<Plug>(signify-motion-inner-visual)",  desc = "Hunk text object",  mode = "x" },
+--     { "ac", "<Plug>(signify-motion-outer-pending)", desc = "Hunk text object",  mode = "o" },
+--     { "ac", "<Plug>(signify-motion-outer-pending)", desc = "Hunk text object",  mode = "x" },
+--   },
+-- },
 --   keys = {
 --     {
 --       "<leader>ss",
