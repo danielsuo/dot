@@ -771,6 +771,7 @@ map('<leader>ds', telescope.lsp_document_symbols, '[D]ocument [S]ymbols')
 
 map('<leader>e', '[E]dit')
 map('<leader>ew', ':e <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [W]indow')
+map('<leader>eh', ':e ~/', '[E]dit from [H]ome dir')
 map('<leader>es', ':sp <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [S]plit')
 map('<leader>ev', ':vsp <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [V]ertical')
 map('<leader>et', ':tabe <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [T]ab')
