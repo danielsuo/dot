@@ -2,13 +2,9 @@
 
 DIR="$(dirname "$(readlink -f "$0")")"
 
-pushd "$DIR"
-
 git clone --filter=blob:none --sparse git@github.com:ryanoasis/nerd-fonts
 pushd nerd-fonts
-FONT="FiraCode"
-git sparse-checkout add patched-fonts/"$FONT"
-./install.sh "$FONT"
+git sparse-checkout add patched-fonts/FiraCode && ./install.sh FiraCode
 popd
 rm -rf nerd-fonts
 
@@ -27,9 +23,7 @@ brew install \
 
 stow -d "$DIR"/.. -t "$HOME" --stow "$DIR/.." -R
 
-git clone git@github.com:tmux-plugins/tpm.git ~/.config/tmux/plugins/tpm
-tmux source-file ~/.config/tmux/tmux.conf
-~/.config/tmux/plugins/tpm/bin/install_plugins
+tmux source-file $HOME/.config/tmux/tmux.conf
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   brew install \
@@ -38,7 +32,5 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     wezterm \
     coreutils
 
-  defaults write org.hammerspoon.Hammerspoon MJConfigFile "~/.config/hammerspoon/init.lua"
+  defaults write org.hammerspoon.Hammerspoon MJConfigFile "$HOME/.config/hammerspoon/init.lua"
 fi
-
-popd
