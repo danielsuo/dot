@@ -11,6 +11,7 @@ alias vc="nvim ~/.config/nvim/init.lua"
 alias vb="nvim ~/dot/.bashrc"
 alias vs="nvim ~/.config/starship.toml"
 alias vd="nvim ~/dot"
+alias vi="nvim ~/dot/scripts/init.sh"
 
 ## Git
 alias gcam="git commit -am"
@@ -32,6 +33,8 @@ export PATH="$HOME/.local/bin:$PATH"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  export PATH=/home/linux/.linuxbrew/bin:"$PATH"
 fi
 
 # Terminal
