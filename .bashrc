@@ -10,6 +10,7 @@ alias vim=nvim
 alias vc="nvim ~/.config/nvim/init.lua"
 alias vb="nvim ~/dot/.bashrc"
 alias vs="nvim ~/.config/starship.toml"
+alias vd="nvim ~/dot"
 
 ## Git
 alias gcam="git commit -am"
@@ -18,7 +19,9 @@ alias gp="git push"
 alias ga="git add ."
 alias gs="git status"
 alias gf="git commit -am 'Update' && gp"
+alias gu="git pull"
 alias dgf="pushd ~/dot && gf && popd"
+alias dgu="pushd ~/dot && gu && popd"
 
 ## Editor
 export EDITOR=nvim
