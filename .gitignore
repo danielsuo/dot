@@ -1,5 +1,5 @@
-nvim-*
-nerd-fonts
+.config/tmux/plugins
+.config/karabiner/automatic_backups
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

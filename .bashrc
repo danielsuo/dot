@@ -12,6 +12,7 @@ alias vb="nvim ~/dot/.bashrc"
 alias vs="nvim ~/.config/starship.toml"
 alias vd="nvim ~/dot"
 alias vi="nvim ~/dot/scripts/init.sh"
+alias vk="nvim ~/.config/kanata/kanata.kbd"
 
 ## Git
 alias gcam="git commit -am"
