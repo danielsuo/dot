@@ -463,9 +463,8 @@ require('lazy').setup {
           },
         }
         scopes.set_current 'jax'
-      else
-        scopes.add_startup_scope()
       end
+      scopes.add_startup_scope()
     end,
   },
   {

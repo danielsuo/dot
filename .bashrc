@@ -10,6 +10,7 @@ alias sb="source ~/.bashrc"
 alias t="tmux"
 alias ta="t new -A -s"
 alias tl="t ls"
+alias tk="t kill-session -t"
 
 ## Neovim
 alias v=nvim
@@ -64,3 +65,53 @@ export FZF_CTRL_R_OPTS="
   --bind 'ctrl-t:track+clear-query'
   --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
   --color header:italic"
+
+
+if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
+  alias copybara="/google/data/ro/teams/copybara/copybara"
+  alias aclcheck="/google/data/ro/projects/ganpati/aclcheck"
+  alias perfgate="/google/bin/releases/perfgate/cli/perfgate"
+  alias pastebin="/google/src/head/depot/eng/tools/pastebin"
+  alias bisect="/google/data/ro/teams/tetralight/bin/bisect"
+  alias t=tmx2
+  alias vgb="nvim $HOME/google/.bashrc"
+  alias gfg="pushd ~/google && gf && popd"
+
+  bisect_cl() {
+    bisect -low $1 -high $2 \
+      'hg sync "cl($X,exact=False)" && rabbit test --tool_tag=rabbit_cli_scripted --symlink_prefix=/tmp/output/blaze- \ "$3"'
+  }
+
+  # TGP
+  tgp() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --skip_flaky_targets --skip_already_failing $@
+  }
+  tgp_exotic() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --skip_flaky_targets --skip_already_failing --skip_exotic_targets=false $@
+  }
+  tgp_sample() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --skip_flaky_targets --skip_already_failing --sample --sample_size=40000 $@
+  }
+  tgp_train() {
+    CL=$1
+    shift
+     tap_presubmit --email --detach --train -c $CL $@
+  }
+  # blake says this will run even in the day - a TGP against tpu targets!
+  tgp_tpus_only() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --test_tag_filters=requires-jellyfish,requires-dragonfish,requires-viperfish,requires-viperfish:4,requires-viperlite,requires-viperlite:8,requires-pufferfish:4,requires-pufferfish,requires-puffylite --skip_exotic_targets=false $@
+  }
+  tgp_exotic_only() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --test_tag_filters=requires-jellyfish,requires-dragonfish,requires-viperfish,requires-viperfish:4,requires-viperlite,requires-viperlite:8,requires-pufferfish:4,requires-pufferfish,requires-puffylite,requires-gpu-nvidia --skip_exotic_targets=false $@
+  }
+fi
