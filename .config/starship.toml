@@ -12,7 +12,7 @@ ${custom.git_branch}\
 $character"""
 
 [custom.directory]
-command = """ echo ../"$( echo "$(pwd)" | rev | cut -d "/" -f 4- --complement | rev )" """
+command = """ echo $(pwd) | rev | cut -d "/" -f 4- --complement | rev """
 when = """ true """
 style = "fg:#e3e5e5 bg:#769ff0"
 format = "[ $output ]($style)"

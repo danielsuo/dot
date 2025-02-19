@@ -52,6 +52,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     karabiner-elements \
     hammerspoon \
     wezterm \
+    coreutils
 
   defaults write org.hammerspoon.Hammerspoon MJConfigFile "~/.config/hammerspoon/init.lua"
 fi

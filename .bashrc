@@ -37,6 +37,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
+  export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   export PATH=/home/linux/.linuxbrew/bin:"$PATH"
 fi
