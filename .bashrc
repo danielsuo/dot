@@ -7,7 +7,7 @@ alias sb="source ~/.bashrc"
 ## Neovim
 alias v=nvim
 alias vim=nvim
-alias vc="nvim ~/.config/nvim/init.lua"
+alias vv="nvim ~/.config/nvim/init.lua"
 alias vb="nvim ~/dot/.bashrc"
 alias vs="nvim ~/.config/starship.toml"
 alias vd="nvim ~/dot"
