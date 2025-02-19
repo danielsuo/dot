@@ -154,6 +154,7 @@ require('lazy').setup {
           end,
           file_ignore_patterns = {
             '%.orig$',
+            '.git/*',
           },
         },
         -- pickers = {}
@@ -878,8 +879,8 @@ map('<leader>s', '[S]earch')
 map('<leader>sb', telescope.buffers, '[S]earch [B]uffers')
 gmap('<leader>sc', ':lua require("neocitc").pick_workspace()<CR>', '[S]earch [C]itc')
 map('<leader>sd', telescope.diagnostics, '[S]earch [D]iagnostics')
-map('<leader>sf', ':lua require("telescope.builtin").find_files{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [F]iles')
-map('<leader>sg', ':lua require("telescope.builtin").live_grep{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [G]rep')
+map('<leader>sf', ':lua require("telescope.builtin").find_files{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [F]iles')
+map('<leader>sg', ':lua require("telescope.builtin").live_grep{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [G]rep')
 map('<leader>sh', telescope.help_tags, '[S]earch [H]elp')
 map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
 map('<leader>sm', find_modified_files, '[S]earch [M]odified files')
@@ -890,7 +891,7 @@ map('<leader>sr', telescope.resume, '[S]earch [R]esume')
 map('<leader>ss', telescope.lsp_document_symbols, '[S]earch document [s]ymbols')
 map('<leader>sS', telescope.lsp_dynamic_workspace_symbols, '[S]earch workspace [S]ymbols')
 map('<leader>st', telescope.builtin, '[S]earch [T]elescope pickers')
-map('<leader>sw', ':lua require("telescope.builtin").grep_string{ search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [W]ord')
+map('<leader>sw', ':lua require("telescope.builtin").grep_string{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [W]ord')
 gmap('<leader>sx', ':RelatedFilesWindow<CR>', '[S]earch related files [X]')
 map('<leader>sz', find_fuzzy_in_current, '[S]earch fu[Z]zy in current')
 map('<leader>s.', telescope.oldfiles, '[S]earch recent files')

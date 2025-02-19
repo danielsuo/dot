@@ -1,10 +1,15 @@
-# Aliases
-
 export XDG_CONFIG_HOME="$HOME/.config"
+
+# Aliases
 
 ## Bash
 alias ls="ls -la"
 alias sb="source ~/.bashrc"
+
+## Tmux
+alias t="tmux"
+alias ta="t new -A -s"
+alias tl="t ls"
 
 ## Neovim
 alias v=nvim
