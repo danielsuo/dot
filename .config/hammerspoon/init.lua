@@ -3,6 +3,8 @@ require("hs.ipc")
 hs.loadSpoon("URLDispatcher")
 hs.loadSpoon("ShiftIt")
 
+hyper = { "cmd", "alt", "ctrl", "shift" }
+
 spoon.URLDispatcher:start()
 spoon.ShiftIt:bindHotkeys({
 	left = { hyper, "[" },
@@ -10,8 +12,6 @@ spoon.ShiftIt:bindHotkeys({
 	maximum = { hyper, "=" },
 })
 hs.window.animationDuration = 0
-
-hyper = { "cmd", "alt", "ctrl", "shift" }
 
 local launch_app = function(app)
 	return function()
@@ -60,7 +60,7 @@ hs.hotkey.bind(hyper, "M", dispatch_url("mail.google.com"))
 hs.hotkey.bind(hyper, "Q", dispatch_url("critique.corp.google.com"))
 hs.hotkey.bind(hyper, "R", hs.reload)
 hs.hotkey.bind(hyper, "S", launch_app("Settings"))
-hs.hotkey.bind(hyper, "T", launch_app("iTerm"))
+hs.hotkey.bind(hyper, "T", launch_app("WezTerm"))
 hs.hotkey.bind(hyper, "V", launch_app("Cider"))
 hs.hotkey.bind(hyper, "Y", hs.toggleConsole)
 hs.hotkey.bind(hyper, "UP", change_volume(5))

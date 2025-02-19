@@ -1,5 +1,7 @@
 # Aliases
 
+export XDG_CONFIG_HOME="$HOME/.config"
+
 ## Bash
 alias ls="ls -la"
 alias sb="source ~/.bashrc"
@@ -13,6 +15,7 @@ alias vs="nvim ~/.config/starship.toml"
 alias vd="nvim ~/dot"
 alias vi="nvim ~/dot/scripts/init.sh"
 alias vh="nvim ~/.config/hammerspoon/init.lua"
+alias vt="nvim ~/.config/wezterm/wezterm.lua"
 
 ## Git
 alias gcam="git commit -am"

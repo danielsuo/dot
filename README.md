@@ -6,4 +6,3 @@ Public subset of dotfiles
 - make
 - unzip
 - gcc
-- ripgrep
