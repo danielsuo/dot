@@ -389,14 +389,15 @@ require('lazy').setup {
       require('mini.files').setup()
       require('mini.pairs').setup()
       require('mini.bracketed').setup()
-      require('mini.comment').setup({
+      require('mini.ai').setup()
+      require('mini.comment').setup {
         mappings = {
           comment = '<leader>cc',
           comment_line = '<leader>cc',
           comment_visual = '<leader>cc',
           textobject = '<leader>cc',
         },
-      })
+      }
       require('mini.trailspace').setup { event = { 'BufRead', 'BufNewFile' }, config = true }
 
       if google then
@@ -406,17 +407,6 @@ require('lazy').setup {
           },
         }
       end
-    end,
-  },
-  {
-    'echasnovski/mini.ai',
-    config = function()
-      local gen_spec = require('mini.ai').gen_spec
-      require('mini.ai').setup {
-        custom_textobjects = {
-          [','] = gen_spec.argument(),
-        },
-      }
     end,
   },
   { -- Highlight, edit, and navigate code
@@ -874,13 +864,20 @@ map('<leader>l', '[L]SP')
 map('<leader>la', vim.lsp.buf.code_action, '[L]SP code [A]ction', { 'n', 'x' })
 map('<leader>lr', vim.lsp.buf.rename, '[L]SP [R]ename')
 
+map('<leader>n', 'Sessio[N]s')
+map('<leader>nw', ':lua require("mini.sessions").write()<CR>', 'Sessio[N]s [W]rite')
+
 map('<leader>q', vim.diagnostic.setloclist, '[Q]uickfix list')
 
 map('<leader>s', '[S]earch')
 map('<leader>sb', telescope.buffers, '[S]earch [B]uffers')
 gmap('<leader>sc', ':lua require("neocitc").pick_workspace()<CR>', '[S]earch [C]itc')
 map('<leader>sd', telescope.diagnostics, '[S]earch [D]iagnostics')
-map('<leader>sf', ':lua require("telescope.builtin").find_files{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [F]iles')
+map(
+  '<leader>sf',
+  ':lua require("telescope.builtin").find_files{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>',
+  '[S]earch [F]iles'
+)
 map('<leader>sg', ':lua require("telescope.builtin").live_grep{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [G]rep')
 map('<leader>sh', telescope.help_tags, '[S]earch [H]elp')
 map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
@@ -892,7 +889,12 @@ map('<leader>sr', telescope.resume, '[S]earch [R]esume')
 map('<leader>ss', telescope.lsp_document_symbols, '[S]earch document [s]ymbols')
 map('<leader>sS', telescope.lsp_dynamic_workspace_symbols, '[S]earch workspace [S]ymbols')
 map('<leader>st', telescope.builtin, '[S]earch [T]elescope pickers')
-map('<leader>sw', ':lua require("telescope.builtin").grep_string{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [W]ord')
+map('<leader>sv', ':Telescope commands<CR>', '[S]earch [V]im commands')
+map(
+  '<leader>sw',
+  ':lua require("telescope.builtin").grep_string{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>',
+  '[S]earch [W]ord'
+)
 gmap('<leader>sx', ':RelatedFilesWindow<CR>', '[S]earch related files [X]')
 map('<leader>sz', find_fuzzy_in_current, '[S]earch fu[Z]zy in current')
 map('<leader>s.', telescope.oldfiles, '[S]earch recent files')
