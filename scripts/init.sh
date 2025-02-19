@@ -11,6 +11,7 @@ CONFIGS=(
   .bashrc
   .config/hammerspoon
   .config/nvim
+  .config/karabiner
   .config/starship.toml
   .config/tmux
   .config/wezterm
@@ -56,6 +57,5 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
   defaults write org.hammerspoon.Hammerspoon MJConfigFile "~/.config/hammerspoon/init.lua"
 fi
-
 
 popd
