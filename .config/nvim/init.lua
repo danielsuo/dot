@@ -386,7 +386,14 @@ require('lazy').setup {
       require('mini.files').setup()
       require('mini.pairs').setup()
       require('mini.bracketed').setup()
-      require('mini.comment').setup()
+      require('mini.comment').setup({
+        mappings = {
+          comment = '<leader>cc',
+          comment_line = '<leader>cc',
+          comment_visual = '<leader>cc',
+          textobject = '<leader>cc',
+        },
+      })
       require('mini.trailspace').setup { event = { 'BufRead', 'BufNewFile' }, config = true }
 
       if google then
@@ -826,6 +833,7 @@ map('<leader>b', '[B]ugs')
 gmap('<leader>bs', ':FindBugs<CR>', '[B]uganizer [S]earch')
 
 map('<leader>c', '[C]ode')
+-- map('<leader>cc', 'See mini.comment', '[C]ode [C]omment')
 
 map('<leader>d', '[D]iagnostics')
 
