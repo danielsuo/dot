@@ -21,7 +21,8 @@ alias vs="nvim ~/.config/starship.toml"
 alias vd="nvim ~/dot"
 alias vi="nvim ~/dot/scripts/init.sh"
 alias vh="nvim ~/.config/hammerspoon/init.lua"
-alias vt="nvim ~/.config/wezterm/wezterm.lua"
+alias vt="nvim ~/.config/tmux/tmux.conf"
+alias vw="nvim ~/.config/wezterm/wezterm.lua"
 
 ## Git
 alias gcam="git commit -am"
