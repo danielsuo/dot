@@ -4,26 +4,6 @@ DIR="$(dirname "$(readlink -f "$0")")"
 
 pushd "$DIR"
 
-mkdir -p "$HOME/.config"
-
-CONFIGS=(
-  .bash_profile
-  .bashrc
-  .config/hammerspoon
-  .config/nvim
-  .config/karabiner
-  .config/starship.toml
-  .config/tmux
-  .config/wezterm
-  )
-
-for CONFIG in "${CONFIGS[@]}"; do
-  SRC="$DIR"/../"$CONFIG"
-  DST="$HOME"/"$CONFIG"
-  rm "$DST"
-  ln -s "$SRC" "$DST"
-done
-
 git clone --filter=blob:none --sparse git@github.com:ryanoasis/nerd-fonts
 pushd nerd-fonts
 FONT="FiraCode"
@@ -42,7 +22,10 @@ brew install \
   luarocks \
   miniforge \
   ripgrep \
-  fzf
+  fzf \
+  stow
+
+stow -d "$DIR"/.. -t "$HOME" --stow "$DIR/.." -R
 
 git clone git@github.com:tmux-plugins/tpm.git ~/.config/tmux/plugins/tpm
 tmux source-file ~/.config/tmux/tmux.conf
