@@ -517,8 +517,12 @@ require('lazy').setup {
         symbols = {
           win = {
             size = 0.3,
-          }
+          },
+          focus = true,
         },
+        diagnostics = {
+          focus = true,
+        }
       },
     },
     cmd = 'Trouble',
