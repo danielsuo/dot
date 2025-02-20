@@ -94,6 +94,9 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias perfgate="/google/bin/releases/perfgate/cli/perfgate"
   alias pastebin="/google/src/head/depot/eng/tools/pastebin"
   alias bisect="/google/data/ro/teams/tetralight/bin/bisect"
+
+  alias bt="blaze test --test_arg=--alsologtostderr --test_output=all"
+
   alias t=tmx2
 
   source /etc/bash_completion.d/hgd
