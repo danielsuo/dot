@@ -68,9 +68,9 @@ final_space = true
       fetch_upstream_icon = true
 
   [[blocks.segments]]
-    template = ' asdf '
+    template = ' 🍇 {{ .Env.CITC }} '
     background = 'p:green'
-    powerline_symbol = '🌱'
+    powerline_symbol = ''
     style = 'powerline'
     type = 'text'
     include_folders = ['/google/src/cloud/dsuo/.*']
