@@ -96,10 +96,6 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias bisect="/google/data/ro/teams/tetralight/bin/bisect"
   alias t=tmx2
 
-  if [[ "$(pwd)" =~ "/google/src/cloud/$USER" ]]; then
-    export CITC=$(echo "$(pwd)" | cut -d "/" -f 6)
-  fi
-
   source /etc/bash_completion.d/hgd
 
   bisect_cl() {

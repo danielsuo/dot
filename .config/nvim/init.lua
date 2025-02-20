@@ -453,7 +453,8 @@ require('lazy').setup {
     'smartpde/neoscopes',
     config = function()
       local scopes = require 'neoscopes'
-      if google then
+      local citc_root = '/google/src/cloud/dsuo'
+      if vim.loop.cwd():sub(1, #citc_root) == citc_root then
         scopes.add {
           name = 'jax',
           dirs = {
@@ -463,8 +464,9 @@ require('lazy').setup {
           },
         }
         scopes.set_current 'jax'
+      else
+        scopes.add_startup_scope()
       end
-      scopes.add_startup_scope()
     end,
   },
   {

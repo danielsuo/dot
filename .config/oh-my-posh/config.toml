@@ -68,12 +68,16 @@ final_space = true
       fetch_upstream_icon = true
 
   [[blocks.segments]]
-    template = ' 🍇 {{ .Env.CITC }} '
+    template = ' 🍇 {{ .Output }} '
     background = 'p:green'
     powerline_symbol = ''
     style = 'powerline'
-    type = 'text'
+    type = 'command'
     include_folders = ['/google/src/cloud/dsuo/.*']
+
+    [blocks.segments.properties]
+      shell = 'zsh'
+      command = 'echo "$(pwd)" | cut -d "/" -f 6'
 
   [[blocks.segments]]
     template = '  '
