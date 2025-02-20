@@ -819,6 +819,18 @@ local toggle_mini_files = function()
   end, 30)
 end
 
+local dark = true
+local toggle_light_dark = function()
+  dark = not dark
+  local colorscheme = 'tokyonight-'
+  if dark then
+    colorscheme = colorscheme .. 'night'
+  else
+    colorscheme = colorscheme .. 'day'
+  end
+    vim.cmd('colorscheme ' .. colorscheme)
+end
+
 -- [[ Normal Mode ]]
 map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
 map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -910,6 +922,9 @@ gmap('<leader>sx', ':RelatedFilesWindow<CR>', '[S]earch related files [X]')
 map('<leader>sz', find_fuzzy_in_current, '[S]earch fu[Z]zy in current')
 map('<leader>s.', telescope.oldfiles, '[S]earch recent files')
 map('<leader>s/', live_grep_in_open, '[S]earch in open files')
+
+map('<leader>u', '[U]I')
+map('<leader>ut', toggle_light_dark, '[U]I [T]oggle light/dark')
 
 map('<leader>w', '[W]orkspace')
 gmap('<leader>wc', ':CitcCreateFigWorkspace ', 'Create new Fig workspace')
