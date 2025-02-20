@@ -68,6 +68,14 @@ final_space = true
       fetch_upstream_icon = true
 
   [[blocks.segments]]
+    template = ' asdf '
+    background = 'p:green'
+    powerline_symbol = '🌱'
+    style = 'powerline'
+    type = 'text'
+    include_folders = ['/google/src/cloud/dsuo/.*']
+
+  [[blocks.segments]]
     template = '  '
     foreground = 'p:white'
     powerline_symbol = ''
@@ -90,6 +98,13 @@ final_space = true
 
 [[blocks]]
   type = 'rprompt'
+
+  [[blocks.segments]]
+    type = "executiontime"
+    style = "plain"
+    foreground = "p:yellow"
+    background = "transparent"
+    template = "{{ .FormattedMs }}"
 
   [[blocks.segments]]
     template = ' '

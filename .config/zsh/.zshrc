@@ -96,6 +96,8 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias bisect="/google/data/ro/teams/tetralight/bin/bisect"
   alias t=tmx2
 
+  source /etc/bash_completion.d/hgd
+
   bisect_cl() {
     bisect -low $1 -high $2 \
       'hg sync "cl($X,exact=False)" && rabbit test --tool_tag=rabbit_cli_scripted --symlink_prefix=/tmp/output/blaze- \ "$3"'
