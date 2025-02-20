@@ -2,6 +2,8 @@
 .config/karabiner/automatic_backups
 .DS_Store
 nvim-*
+.history
+.zcompdump*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
