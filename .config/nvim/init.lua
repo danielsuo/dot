@@ -746,7 +746,7 @@ vim.opt.relativenumber = true
 vim.opt.statuscolumn = '%C %s %l %r '
 vim.opt.signcolumn = 'yes'
 vim.opt.cursorline = true
-vim.opt.colorcolumn = '80'
+vim.opt.colorcolumn = ''
 vim.opt.mouse = 'a'
 vim.opt.breakindent = true
 vim.opt.tabstop = 2
@@ -822,14 +822,23 @@ end
 local dark = true
 local toggle_light_dark = function()
   dark = not dark
-  local colorscheme = 'tokyonight-'
   if dark then
-    colorscheme = colorscheme .. 'night'
+    vim.cmd('colorscheme tokyonight-night')
   else
-    colorscheme = colorscheme .. 'day'
+    vim.cmd('colorscheme tokyonight-day')
   end
-    vim.cmd('colorscheme ' .. colorscheme)
 end
+
+local colorcolumn = false
+local toggle_colorcolumn = function()
+  colorcolumn = not colorcolumn
+  if colorcolumn then
+    vim.opt.colorcolumn = '80'
+  else
+    vim.opt.colorcolumn = ''
+  end
+end
+
 
 -- [[ Normal Mode ]]
 map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
@@ -925,6 +934,7 @@ map('<leader>s/', live_grep_in_open, '[S]earch in open files')
 
 map('<leader>u', '[U]I')
 map('<leader>ut', toggle_light_dark, '[U]I [T]oggle light/dark')
+map('<leader>uc', toggle_colorcolumn, '[U]I toggle [C]olor column')
 
 map('<leader>w', '[W]orkspace')
 gmap('<leader>wc', ':CitcCreateFigWorkspace ', 'Create new Fig workspace')
