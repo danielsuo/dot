@@ -10,7 +10,6 @@
 -- TODO: buganizer
 -- - https://yaqs.corp.google.com/eng/q/6568720083320832
 -- TODO: G4
--- TODO: folke/trouble.nvim
 
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -511,6 +510,19 @@ require('lazy').setup {
     },
   },
   { 'mhinz/vim-signify' },
+  {
+    'folke/trouble.nvim',
+    opts = {
+      modes = {
+        symbols = {
+          win = {
+            size = 0.3,
+          }
+        },
+      },
+    },
+    cmd = 'Trouble',
+  },
 
   -- [[ Google plugins ]]
   gplug {
@@ -931,6 +943,10 @@ gmap('<leader>sx', ':RelatedFilesWindow<CR>', '[S]earch related files [X]')
 map('<leader>sz', find_fuzzy_in_current, '[S]earch fu[Z]zy in current')
 map('<leader>s.', telescope.oldfiles, '[S]earch recent files')
 map('<leader>s/', live_grep_in_open, '[S]earch in open files')
+
+map('<leader>t', '[T]rouble')
+map('<leader>ts', ':Trouble symbols toggle<CR>', '[T]rouble [S]ymbols')
+map('<leader>td', ':Trouble diagnostics toggle<CR>', '[T]rouble [D]iagnostics')
 
 map('<leader>u', '[U]I')
 map('<leader>ut', toggle_light_dark, '[U]I [T]oggle light/dark')
