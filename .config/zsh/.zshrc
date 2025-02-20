@@ -1,0 +1,136 @@
+################################################################################
+# EXPORTS
+################################################################################
+export XDG_CONFIG_HOME="$HOME/.config"
+export EDITOR=nvim
+export VISUAL=nvim
+
+## PATH
+export PATH="$HOME/.local/bin:$PATH"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export PATH=/opt/homebrew/bin:"$PATH"
+  export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  export PATH="$HOME"/.linuxbrew/bin:"$PATH"
+fi
+
+## ZSH
+export HISTFILE=~/.config/zsh/.histfile
+export HISTSIZE=1000
+export SAVEHIST=1000
+
+################################################################################
+# TERMINAL
+################################################################################
+eval "$(oh-my-posh init zsh --config $XDG_CONFIG_HOME/oh-my-posh/config.toml)"
+
+setopt autocd extendedglob nomatch notify
+unsetopt beep
+bindkey -e
+
+autoload -Uz compinit
+compinit
+
+################################################################################
+# ALIASES
+################################################################################
+
+## Zsh
+alias ls="ls -la"
+alias sz="source ~/.config/zsh/.zshrc"
+
+## Tmux
+alias t="tmux"
+alias ta="t new -A -s"
+alias tl="t ls"
+alias tk="t kill-session -t"
+
+## Neovim
+alias v=nvim
+alias vim=nvim
+alias vd="nvim ~/dot"
+alias vi="nvim ~/dot/scripts/init.sh"
+alias vh="nvim ~/.config/hammerspoon/init.lua"
+alias vo="nvim ~/.config/oh-my-posh/config.toml"
+alias vt="nvim ~/.config/tmux/tmux.conf"
+alias vv="nvim ~/.config/nvim/init.lua"
+alias vw="nvim ~/.config/wezterm/wezterm.lua"
+alias vz="nvim ~/.config/zsh/.zshrc"
+
+## Git
+alias gcam="git commit -am"
+alias gd="git diff"
+alias gp="git push"
+alias ga="git add ."
+alias gs="git status"
+alias gf="git commit -am 'Update' && gp"
+alias gu="git pull"
+alias dgf="pushd ~/dot && gf && popd"
+alias dgu="pushd ~/dot && gu && popd"
+
+################################################################################
+# USER-DEFINED FUNCTIONS
+################################################################################
+weather() {
+   curl wttr.in/$1
+}
+
+[ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh
+export FZF_CTRL_R_OPTS="
+  --prompt 'History > '
+  --preview 'echo {}' --preview-window up:3:hidden:wrap
+  --bind 'ctrl-/:toggle-preview'
+  --bind 'ctrl-t:track+clear-query'
+  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+  --color header:italic"
+
+################################################################################
+# GOOGLE
+################################################################################
+if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
+  alias copybara="/google/data/ro/teams/copybara/copybara"
+  alias aclcheck="/google/data/ro/projects/ganpati/aclcheck"
+  alias perfgate="/google/bin/releases/perfgate/cli/perfgate"
+  alias pastebin="/google/src/head/depot/eng/tools/pastebin"
+  alias bisect="/google/data/ro/teams/tetralight/bin/bisect"
+  alias t=tmx2
+
+  bisect_cl() {
+    bisect -low $1 -high $2 \
+      'hg sync "cl($X,exact=False)" && rabbit test --tool_tag=rabbit_cli_scripted --symlink_prefix=/tmp/output/blaze- \ "$3"'
+  }
+
+  # TGP
+  tgp() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --skip_flaky_targets --skip_already_failing $@
+  }
+  tgp_exotic() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --skip_flaky_targets --skip_already_failing --skip_exotic_targets=false $@
+  }
+  tgp_sample() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --skip_flaky_targets --skip_already_failing --sample --sample_size=40000 $@
+  }
+  tgp_train() {
+    CL=$1
+    shift
+     tap_presubmit --email --detach --train -c $CL $@
+  }
+  # blake says this will run even in the day - a TGP against tpu targets!
+  tgp_tpus_only() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --test_tag_filters=requires-jellyfish,requires-dragonfish,requires-viperfish,requires-viperfish:4,requires-viperlite,requires-viperlite:8,requires-pufferfish:4,requires-pufferfish,requires-puffylite --skip_exotic_targets=false $@
+  }
+  tgp_exotic_only() {
+    CL=$1
+    shift
+    tap_presubmit --email --detach -c $CL -p all --test_tag_filters=requires-jellyfish,requires-dragonfish,requires-viperfish,requires-viperfish:4,requires-viperlite,requires-viperlite:8,requires-pufferfish:4,requires-pufferfish,requires-puffylite,requires-gpu-nvidia --skip_exotic_targets=false $@
+  }
+fi
