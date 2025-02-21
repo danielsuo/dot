@@ -6,7 +6,7 @@ export EDITOR=nvim
 export VISUAL=nvim
 
 ## PATH
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/miniforge3/bin:$PATH"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
