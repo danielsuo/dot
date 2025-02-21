@@ -6,7 +6,7 @@ export EDITOR=nvim
 export VISUAL=nvim
 
 ## PATH
-export PATH="$HOME/.local/bin:$HOME/miniforge3/bin:$PATH"
+# export PATH="$HOME/.local/bin:$HOME/miniforge3/bin:$PATH"  # commented out by conda initialize
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
@@ -139,3 +139,19 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
     tap_presubmit --email --detach -c $CL -p all --test_tag_filters=requires-jellyfish,requires-dragonfish,requires-viperfish,requires-viperfish:4,requires-viperlite,requires-viperlite:8,requires-pufferfish:4,requires-pufferfish,requires-puffylite,requires-gpu-nvidia --skip_exotic_targets=false $@
   }
 fi
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/usr/local/google/home/dsuo/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/usr/local/google/home/dsuo/miniforge3/etc/profile.d/conda.sh" ]; then
+        . "/usr/local/google/home/dsuo/miniforge3/etc/profile.d/conda.sh"
+    else
+        export PATH="/usr/local/google/home/dsuo/miniforge3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
