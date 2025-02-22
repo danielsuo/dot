@@ -1,18 +1,6 @@
--- TODO: Critique
--- TODO: lspsaga hot keys
--- TODO: blaze (default/blaze, google/blaze)
--- - 'sso://@user/chmnchiang/google-blaze',
--- - fentanes/blaze
--- - maktaba overrides
--- TODO: LuaLS
--- TODO: imp-google
--- TODO: corpweb
--- TODO: buganizer
--- - https://yaqs.corp.google.com/eng/q/6568720083320832
--- TODO: G4
-
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
+vim.g.base46_cache = vim.fn.stdpath 'data' .. '/base46_cache/'
 
 local google = os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert > /dev/null' == 0
 
@@ -139,10 +127,6 @@ require('lazy').setup {
     config = function()
       require('telescope').setup {
         defaults = {
-          -- vimgrep_arguments = {
-          --   'rg',
-          --   '--hidden',
-          -- },
           path_display = function(_, path)
             path = path:gsub('^/google/src/cloud/[^/]+/[^/]+/google3/', 'google3/', 1)
             path = path:gsub('^google3/java/com/google/', 'g3/j/c/g/', 1)
@@ -156,7 +140,6 @@ require('lazy').setup {
             '.git/*',
           },
         },
-        -- pickers = {}
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -274,16 +257,8 @@ require('lazy').setup {
   },
   { -- Autoformat
     'stevearc/conform.nvim',
-    -- event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
-    opts = {
-      notify_on_error = false,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-      },
-    },
   },
-
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
@@ -370,16 +345,26 @@ require('lazy').setup {
       }
     end,
   },
-  { -- Theme
-    'folke/tokyonight.nvim',
-    priority = 1000,
-    lazy = false,
-    init = function()
-      vim.cmd.colorscheme 'tokyonight-night'
-      vim.cmd.hi 'Comment gui=none'
+  'nvim-lua/plenary.nvim',
+  { 'nvim-tree/nvim-web-devicons', lazy = true },
+  {
+    'nvchad/ui',
+    config = function()
+      require 'nvchad'
+      dofile(vim.g.base46_cache .. 'defaults')
+      dofile(vim.g.base46_cache .. 'syntax')
+      dofile(vim.g.base46_cache .. 'statusline')
+      dofile(vim.g.base46_cache .. 'telescope')
     end,
-    opts = {},
   },
+  {
+    'nvchad/base46',
+    lazy = true,
+    build = function()
+      require('base46').load_all_highlights()
+    end,
+  },
+  'nvchad/volt', -- optional, needed for theme switcher
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
   {
     'goolord/alpha-nvim',
@@ -522,7 +507,7 @@ require('lazy').setup {
         },
         diagnostics = {
           focus = true,
-        }
+        },
       },
     },
     cmd = 'Trouble',
@@ -578,42 +563,6 @@ require('lazy').setup {
         formatters_by_ft = formatters_by_ft,
         auto_format = auto_format,
       })
-    end,
-    -- Setting up autocmds in init allows deferring loading the plugin until
-    -- the `BufWritePre` event. One caveat is we must call `codefmt#FormatBuffer()`
-    -- manually the first time since the plugin relies on the `BufWritePre` command to call it,
-    -- but by the time it's first loaded it has already happened.
-    -- TODO: check if that is fixed when the following issue is fixed
-    -- https://github.com/folke/lazy.nvim/issues/858
-    -- if so, remove the call to `FormatBuffer`
-    init = function(plugin)
-      local group = vim.api.nvim_create_augroup('autoformat_settings', {})
-      local function autocmd(filetype, formatter)
-        vim.api.nvim_create_autocmd('FileType', {
-          pattern = filetype,
-          group = group,
-          callback = function(event)
-            vim.api.nvim_create_autocmd('BufWritePre', {
-              buffer = event.buf,
-              group = group,
-              once = true,
-              callback = function()
-                if not vim.g._use_conform_auto_format then
-                  vim.cmd('call codefmt#FormatBuffer() | AutoFormatBuffer ' .. formatter)
-                end
-              end,
-            })
-          end,
-        })
-      end
-
-      -- Build opts from possible parent specs since lazy.nvim doesn't provide it in `init`
-      local plugin_opts = require('lazy.core.plugin').values(plugin, 'opts', false)
-      for filetype, formatter in pairs(plugin_opts.auto_format or {}) do
-        if plugin_opts.formatters_by_ft[filetype] then
-          autocmd(filetype, plugin_opts.formatters_by_ft[filetype])
-        end
-      end
     end,
   },
   gdir {
@@ -839,9 +788,9 @@ local dark = true
 local toggle_light_dark = function()
   dark = not dark
   if dark then
-    vim.cmd('colorscheme tokyonight-night')
+    vim.cmd 'colorscheme tokyonight-night'
   else
-    vim.cmd('colorscheme tokyonight-day')
+    vim.cmd 'colorscheme tokyonight-day'
   end
 end
 
@@ -854,7 +803,6 @@ local toggle_colorcolumn = function()
     vim.opt.colorcolumn = ''
   end
 end
-
 
 -- [[ Normal Mode ]]
 map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
