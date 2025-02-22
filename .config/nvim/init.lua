@@ -189,11 +189,6 @@ require('lazy').setup {
       require('nvim-test').setup({
         term = 'toggleterm',
       })
-
-      require('nvim-test.runners.python').setup({
-        command = 'blaze test',
-        args = { '--test_output=all', '--test_arg=--alsologtostderr ' },
-      })
     end,
   },
   {
