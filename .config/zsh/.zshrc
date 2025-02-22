@@ -36,6 +36,10 @@ compinit
 # ALIASES
 ################################################################################
 
+if [[ $(command -v rw) ]]; then
+  alias s="rw dsuo.c.googlers.com"
+fi
+
 ## Zsh
 alias ls="ls -la"
 alias sz="source ~/.config/zsh/.zshrc"
