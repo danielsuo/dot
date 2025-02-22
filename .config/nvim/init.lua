@@ -1,6 +1,9 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.g.base46_cache = vim.fn.stdpath 'data' .. '/base46_cache/'
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+vim.opt.termguicolors = true
 
 local google = os.execute '[[ $OSTYPE == linux-gnu* ]] && command -v gcert > /dev/null' == 0
 
@@ -108,6 +111,12 @@ require('lazy').setup {
       icons = { mappings = vim.g.have_nerd_font },
     },
   },
+  {
+    'nvim-tree/nvim-tree.lua',
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -159,6 +168,20 @@ require('lazy').setup {
         { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
       },
     },
+  },
+  {
+    'mfussenegger/nvim-lint',
+  },
+  {
+    'williamboman/mason-lspconfig.nvim',
+    config = function()
+      require('mason-lspconfig').setup {
+        ensure_installed = {
+          'lua_ls',
+          'pylsp',
+        },
+      }
+    end,
   },
   {
     'neovim/nvim-lspconfig',
@@ -258,6 +281,14 @@ require('lazy').setup {
   { -- Autoformat
     'stevearc/conform.nvim',
     cmd = { 'ConformInfo' },
+    config = function()
+      require('conform').setup {
+        formatters_by_ft = {
+          lua = { 'stylua' },
+          python = { 'isort', 'black' },
+        },
+      }
+    end,
   },
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -386,10 +417,10 @@ require('lazy').setup {
       require('mini.ai').setup()
       require('mini.comment').setup {
         mappings = {
-          comment = '<leader>cc',
-          comment_line = '<leader>cc',
-          comment_visual = '<leader>cc',
-          textobject = '<leader>cc',
+          comment = 'g/',
+          comment_line = 'g/',
+          comment_visual = 'g/',
+          textobject = 'g/',
         },
       }
       require('mini.trailspace').setup { event = { 'BufRead', 'BufNewFile' }, config = true }
@@ -597,17 +628,6 @@ require('lazy').setup {
     opts = {
       execution_mode = 'async',
     },
-    cmd = {
-      'Blaze',
-      'BlazeGoToSponge',
-      'BlazeViewCommandLog',
-      'BlazeLoadErrors',
-      'BlazeDebugCurrentFileTest',
-      'BlazeDebugCurrentTestMethod',
-      'BlazeDebugAddBreakpoint',
-      'BlazeDebugClearBreakpoint',
-      'BlazeDebugFinish',
-    },
   },
   gdir { dir = 'blazedeps', event = 'BufWritePost', cmd = 'BlazeDepsUpdate' },
   gdir { dir = 'relatedfiles', cmd = 'RelatedFilesWindow' },
@@ -673,36 +693,42 @@ require('lazy').setup {
     enabled = vim.fn.has 'nvim-0.10.1' == 1,
     event = { 'BufRead', 'BufNewFile' },
   },
-  -- gplug({
-  --     url = "sso://googler@user/cnieves/critique-nvim",
-  --     dependencies = {
-  --         "rktjmp/time-ago.vim",
-  --         "nvim-lua/plenary.nvim",
-  --         "nvim-telescope/telescope.nvim",
-  --         "runiq/neovim-throttle-debounce",
-  --     },
-  --     config = function()
-  --         -- Here are all the options and their default values:
-  --         require("critique.comments").setup({
-  --         -- Automatically fetch comments after setup and on BufEnter events.
-  --         auto_fetch = true,
-  --         -- If true, unresolved comments are automatically rendered when a buffer is opened.
-  --         auto_render = true,
-  --         -- Debounce time for throttling stubby requests to Critique, in milliseconds. Default is 10 seconds.
-  --         debounce = 10000,
-  --         display = {
-  --             -- Max width in character to render a comment's text before wrapping to a newline.
-  --             max_comment_width = 110,
-  --             -- Render comment threads marked as resolved?
-  --             render_resolved_threads = true,
-  --         },
-  --         -- Debug message level
-  --         debug = 0,
-  --         -- Whether or not the new comments notification includes file names.
-  --         verbose_notifications = true,
-  --         })
-  --     end,
-  -- }),
+  gplug {
+    url = 'sso://googler@user/cnieves/critique-nvim',
+    dependencies = {
+      'rktjmp/time-ago.vim',
+      'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
+      'runiq/neovim-throttle-debounce',
+    },
+    lazy = true,
+    event = { 'VeryLazy' },
+    config = function()
+      -- Here are all the options and their default values:
+      require('critique.comments').setup {
+        -- Automatically fetch comments after setup and on BufEnter events.
+        auto_fetch = true,
+        -- If true, unresolved comments are automatically rendered when a buffer is opened.
+        auto_render = true,
+        -- Debounce time for throttling stubby requests to Critique, in milliseconds. Default is 10 seconds.
+        debounce = 10000,
+        display = {
+          -- Max width in character to render a comment's text before wrapping to a newline.
+          max_comment_width = 110,
+          -- Render comment threads marked as resolved?
+          render_resolved_threads = true,
+        },
+        -- Debug message level
+        debug = 0,
+        -- Whether or not the new comments notification includes file names.
+        verbose_notifications = true,
+      }
+    end,
+  },
+  {
+    url = 'sso://user/fentanes/nvgoog',
+    import = 'nvgoog.default.blaze',
+  },
 }
 
 vim.g.have_nerd_font = true
@@ -824,11 +850,13 @@ vim.keymap.set('n', '<C-e>', '$')
 vim.keymap.set('c', '<C-a>', '<Home>')
 vim.keymap.set('c', '<C-e>', '<End>')
 
-map('<leader>b', '[B]ugs')
-gmap('<leader>bs', ':FindBugs<CR>', '[B]uganizer [S]earch')
+gmap('<leader>b', '[B]laze')
 
-map('<leader>c', '[C]ode')
--- map('<leader>cc', 'See mini.comment', '[C]ode [C]omment')
+gmap('<leader>c', '[C]ritique')
+gmap(']c', ':CritiqueGotoNextComment<CR>', 'Comment forward')
+gmap('[c', ':CritiqueGotoPrevComment<CR>', 'Comment last')
+gmap('<leader>ca', ':CritiqueToggleAllComments<CR>', '[C]ritique [A]ll')
+gmap('<leader>cf', ':CritiqueFetchComments<CR>', '[C]ritique [F]etch')
 
 map('<leader>d', '[D]iagnostics')
 
@@ -867,7 +895,7 @@ map('<leader>q', vim.diagnostic.setloclist, '[Q]uickfix list')
 
 map('<leader>s', '[S]earch')
 map('<leader>sb', telescope.buffers, '[S]earch [B]uffers')
-gmap('<leader>sc', ':lua require("neocitc").pick_workspace()<CR>', '[S]earch [C]itc')
+map('<leader>sc', ':CritiqueCommentsTelescope<CR>', '[S]earch [C]ritique')
 map('<leader>sd', telescope.diagnostics, '[S]earch [D]iagnostics')
 map(
   '<leader>sf',
@@ -880,14 +908,14 @@ map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
 map('<leader>sm', find_modified_files, '[S]earch [M]odified files')
 map('<leader>sn', find_neovim_files, '[S]earch [N]eovim files')
 map('<leader>sp', ':lua require("neoscopes").select()<CR>', '[S]earch neosco[P]s')
-gmap('<leader>sq', ':CritiqueCommentsTelescope<CR>', '[S]earch criti[Q]ue comments')
 map('<leader>sr', telescope.resume, '[S]earch [R]esume')
 map('<leader>ss', telescope.lsp_document_symbols, '[S]earch document [s]ymbols')
 map('<leader>sS', telescope.lsp_dynamic_workspace_symbols, '[S]earch workspace [S]ymbols')
 map('<leader>st', telescope.builtin, '[S]earch [T]elescope pickers')
 map('<leader>sv', ':Telescope commands<CR>', '[S]earch [V]im commands')
+gmap('<leader>sw', ':lua require("neocitc").pick_workspace()<CR>', '[S]earch [W]orkspace')
 map(
-  '<leader>sw',
+  '<leader>sW',
   ':lua require("telescope.builtin").grep_string{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>',
   '[S]earch [W]ord'
 )
@@ -914,16 +942,6 @@ map('<leader>z', ':Lazy<Enter>', 'La[Z]y')
 map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 
 -- -- here are some mappings you might want:
--- keys = {
---     { "<leader>e", desc = "Critiqu[E]" },
---     { "]e", "<cmd>CritiqueGotoNextComment<CR>", desc = "Goto n[E]xt comment" },
---     { "[e", "<cmd>CritiqueGotoPrevComment<CR>", desc = "Goto pr[E]vious comment"},
---     { "<Leader>el", "<cmd>CritiqueToggleLineComment<CR>", desc = "Toggle [L]ine comments"},
---     { "<Leader>eu", "<cmd>CritiqueToggleUnresolvedComments<CR>", desc = "Toggle [U]nresolved comments" },
---     { "<Leader>ea", "<cmd>CritiqueToggleAllComments<CR>", desc = "Toggle [A]ll comments" },
---     { "<Leader>ef", "<cmd>CritiqueFetchComments<CR>", desc = "[F]etch comments" },
---     { "<Leader>et", "<cmd>CritiqueCommentsTelescope<CR>", desc = "[S]earch" },
--- },
 -- local function runInTerm(cmd)
 --   return function()
 --     vim.g._term_calling_cmd = 1
@@ -958,43 +976,6 @@ map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 -- { "]l",              "<cmd>lnext<cr>",      desc = "Goto next location list item" },
 -- { "[L",              "<cmd>lfirst<cr>",     desc = "Goto first location list item" },
 -- { "]L",              "<cmd>llast<cr>",      desc = "Goto next last list item" },
--- keys = {
---   {
---     "<leader>ha",
---     ":Hg amend<Enter>",
---     desc = "View [H]g [A]mend",
---   },
---   {
---     "<leader>he",
---     ":Hg evolve<Enter>",
---     desc = "View [H]g [E]volve",
---   },
---   {
---     "<leader>hc",
---     ":Hg commit<Enter>",
---     desc = "View [H]g [C]ommit",
---   },
---   {
---     "<leader>hu",
---     ":Hg uploadchain<Enter>",
---     desc = "View [H]g [U]pload",
---   },
---   {
---     "<leader>hs",
---     ":Hg sync<Enter>",
---     desc = "View [H]g [S]ync",
---   },
---   {
---     "<leader>hv",
---     ":Hg revert<Enter>",
---     desc = "View [H]g Re[V]ert",
---   },
---   {
---     "<leader>hr",
---     ":Hg rebase<Enter>",
---     desc = "View [H]g Re[B]ase",
---   },
---
 -- {
 --   "mhinz/vim-signify",
 --   opts = {
@@ -1033,64 +1014,3 @@ map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
 --     { "ac", "<Plug>(signify-motion-outer-pending)", desc = "Hunk text object",  mode = "x" },
 --   },
 -- },
---   keys = {
---     {
---       "<leader>ss",
---       "<cmd>lua require('telescope').extensions.codesearch.find_query{}<cr>",
---       desc = "Code Search"
---     },
---     {
---       "<leader>se",
---       "<cmd>lua require('telescope').extensions.codesearch.find_query{default_text_expand='f:'..vim.fn.getcwd():gsub('^.*/google3/?', '')..' '}<cr>",
---       desc = "Code Search for text in current directory"
---     },
---     {
---       "<leader>sW",
---       "<cmd>lua require('telescope').extensions.codesearch.find_query{default_text='trait:citc '}<cr>",
---       desc = "Code Search in current citc workspace"
---     },
---     {
---       "<leader>sD",
---       "<cmd>lua require('telescope').extensions.codesearch.find_query{default_text='\\\\b'..vim.fn.expand('<cword>')..'\\\\b'}<cr>",
---       desc = "Code Search for word under the cursor"
---     },
---     {
---       "<leader>sD",
---       "<cmd>lua require('telescope').extensions.codesearch.find_query{}<cr>",
---       mode = "v",
---       desc = "Code Search for selected text"
---     },
---     {
---       "<leader>sS",
---       "<cmd>lua require('telescope').extensions.codesearch.find_query{default_text='f:'..vim.fn.expand('<cword>')}<cr>",
---       desc = "Code Search for a file that matches the word under the cursor"
---     },
---     {
---       "<leader>sf",
---       desc = "Search scoped files",
---     },
---     {
---       "<leader>sg",
---       "<cmd>lua require('telescope.builtin').live_grep{search_dirs=require('neoscopes').get_current_paths()}<cr>",
---       desc = "Live grep scoped files",
---     },
---     -- Show modified files in citc workspace.
---     -- If not in a citc, try to show modified files for git.
---     {
---       "<leader>sc",
---       "<cmd>lua require('telescope').extensions.citc.workspaces()<cr>",
---       desc = "Search citc workspaces",
---     },
---     -- Recent files
---     {
---       "<leader>sr",
---       "<cmd>lua require('telescope').extensions.recent_files.pick()<cr>",
---       desc = "Search for recently opened files",
---     },
---     {
---       "<leader>ds",
---       "<cmd>lua require('telescope.builtin').lsp_document_symbols()<cr>",
---       desc = "Search document symbols",
---     },
---   },
--- })
