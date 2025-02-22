@@ -11,10 +11,15 @@ rm -rf nerd-fonts
 git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME"/.config/fzf
 "$HOME"/.config/fzf/install --xdg --no-bash --no-fish --key-bindings --completion --no-update-rc
 
-export BREW_DIR="$HOME"/.linuxbrew
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export BREW_DIR=/opt/homebrew
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  export BREW_DIR="$HOME"/.linuxbrew
+  mkdir -p "BREW_DIR"
+  curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "$BREW_DIR"
+fi
 export BREW="$BREW_DIR"/bin/brew
-mkdir -p $HOME/.linuxbrew
-curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "$BREW_DIR"
 "$BREW" shellenv
 "$BREW" install --force \
   neovim \
