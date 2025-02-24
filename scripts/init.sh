@@ -16,7 +16,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
   export BREW_DIR=/opt/homebrew
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  sudo apt install -y build-essential procps curl file git zsh
+  sudo apt install -y build-essential procps curl file git zsh clang
 
   if [[ $(command -v gcert) ]]; then
     mkdir -p "BREW_DIR"
