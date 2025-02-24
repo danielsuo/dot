@@ -12,19 +12,32 @@ git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME"/.config/fzf
 "$HOME"/.config/fzf/install --xdg --no-bash --no-fish --key-bindings --completion --no-update-rc
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  export BREW_DIR=/opt/homebrew
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+  export BREW_DIR=/opt/homebrew
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  sudo apt install -y build-essential procps curl file git
+  sudo apt install -y build-essential procps curl file git zsh
 
   if [[ $(command -v gcert) ]]; then
-    export BREW_DIR="$HOME"/.linuxbrew
     mkdir -p "BREW_DIR"
     curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "$BREW_DIR"
+
+    yes | sudo glinux-add-repo bugged
+    sudo apt update
+    sudo apt install -y \
+      gnubby-wrappers \
+      tmux \
+      glinux-vim \
+      cidermux \
+      clsearch \
+      bugged
+
+    export BREW_DIR="$HOME"/.linuxbrew
   else
-    export BREW_DIR=/home/linuxbrew/.linuxbrew
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    export BREW_DIR=/home/linuxbrew/.linuxbrew
   fi
+  ZSH=$(which zsh)
 fi
 export BREW="$BREW_DIR"/bin/brew
 "$BREW" shellenv
@@ -56,23 +69,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   if [[ $(command -v gcert) ]]; then
     sudo mule install roadwarrior
   fi
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  sudo apt install -y \
-    zsh
-  if [[ $(command -v gcert) ]]; then
-    yes | sudo glinux-add-repo bugged
-    sudo apt update
-    sudo apt install -y \
-      gnubby-wrappers \
-      tmux \
-      glinux-vim \
-      cidermux \
-      clsearch \
-      bugged
-  fi
-  ZSH=$(which zsh)
 fi
-
 
 curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 bash Miniforge3-$(uname)-$(uname -m).sh -b
