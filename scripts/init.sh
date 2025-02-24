@@ -71,7 +71,7 @@ curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Mi
 bash Miniforge3-$(uname)-$(uname -m).sh -b
 rm -rf Miniforge3*
 
-stow -d "$DIR"/.. -t "$HOME" --stow . -R
+"$BREW_DIR"/stow -d "$DIR"/.. -t "$HOME" --stow . -R
 
 git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
 if [[ $(command -v tmux) != 0 ]]; then
@@ -80,6 +80,8 @@ else
   TMUX=tmux
 fi
 "$TMUX" source-file $HOME/.config/tmux/tmux.conf
+
+echo "$BREW_DIR/bin/zsh >> $HOME/.bash_profile"
 
 # chrome-untrusted://terminal/html/nassh_preferences_editor.html
 # @font-face {font-family: "MesloLGM Nerd Font"; src: url("https://raw.githubusercontent.com/ye-rm/MesloNerdFont-in-chrome-OS/main/MesloLGMNerdFont-Regular.ttf"); font-weight: normal; font-style: normal; unicode-range: U+23fb-23fe, U+2665, U+26a1, U+2b58, U+e000-e00a, U+e0a0-e0a2, U+e0a3, U+e0b0-e0b3, U+e0b4-e0c8, U+e0ca, U+e0cc-e0d4, U+e200-e2a9, U+e300-e3e3, U+e5fa-e6b1, U+e5fa-e6b1, U+e700-e7c5, U+ea60-ebeb, U+f000-f2e0, U+f300-f372, U+f400-f532, U+f500-fd46, U+f0001-f1f0;}
