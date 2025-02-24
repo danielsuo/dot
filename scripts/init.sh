@@ -15,6 +15,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   export BREW_DIR=/opt/homebrew
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  sudo apt install -y build-essential procps curl file git
+
   if [[ $(command -v gcert) ]]; then
     export BREW_DIR="$HOME"/.linuxbrew
     mkdir -p "BREW_DIR"
@@ -33,7 +35,8 @@ export BREW="$BREW_DIR"/bin/brew
   luarocks \
   ripgrep \
   stow \
-  ripgrep
+  ripgrep \
+  gcc
 
 "$BREW" install --build-from-source \
   jandedobbeleer/oh-my-posh/oh-my-posh
