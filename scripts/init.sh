@@ -15,9 +15,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   export BREW_DIR=/opt/homebrew
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  export BREW_DIR="$HOME"/.linuxbrew
-  mkdir -p "BREW_DIR"
-  curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "$BREW_DIR"
+  if [[ $(command -v gcert) ]]; then
+    export BREW_DIR="$HOME"/.linuxbrew
+    mkdir -p "BREW_DIR"
+    curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "$BREW_DIR"
+  else
+    export BREW_DIR=/home/linuxbrew/.linuxbrew
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
 fi
 export BREW="$BREW_DIR"/bin/brew
 "$BREW" shellenv
@@ -46,6 +51,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     sudo mule install roadwarrior
   fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  sudo apt install -y \
+    zsh
   if [[ $(command -v gcert) ]]; then
     yes | sudo glinux-add-repo bugged
     sudo apt update
@@ -55,8 +62,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
       glinux-vim \
       cidermux \
       clsearch \
-      bugged \
-      zsh
+      bugged
   fi
 fi
 

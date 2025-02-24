@@ -631,13 +631,6 @@ require('lazy').setup {
   gdir { dir = 'ft-python', event = 'BufRead', 'BufNewFile *.py' },
   gdir { dir = 'googlestyle', event = { 'BufRead', 'BufNewFile' } },
   gdir { dir = 'autogen', event = 'BufNewFile' },
-  gdir {
-    dir = 'blaze',
-    opts = {
-      execution_mode = 'async',
-    },
-  },
-  gdir { dir = 'blazedeps', event = 'BufWritePost', cmd = 'BlazeDepsUpdate' },
   gdir { dir = 'relatedfiles', cmd = 'RelatedFilesWindow' },
 
   gplug { url = 'sso://user/vintharas/telescope-codesearch.nvim' },
@@ -733,10 +726,6 @@ require('lazy').setup {
       }
     end,
   },
-  gplug({
-    url = 'sso://user/fentanes/nvgoog',
-    import = 'nvgoog.default.blaze',
-  }),
 }
 
 vim.g.have_nerd_font = true
@@ -855,6 +844,8 @@ vim.keymap.set('i', '<C-a>', '<C-o>^')
 vim.keymap.set('i', '<C-e>', '<C-o>$')
 vim.keymap.set('n', '<C-a>', '0')
 vim.keymap.set('n', '<C-e>', '$')
+vim.keymap.set('v', '<C-a>', '0')
+vim.keymap.set('v', '<C-e>', '$')
 vim.keymap.set('c', '<C-a>', '<Home>')
 vim.keymap.set('c', '<C-e>', '<End>')
 
