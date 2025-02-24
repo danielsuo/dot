@@ -733,10 +733,10 @@ require('lazy').setup {
       }
     end,
   },
-  {
+  gplug({
     url = 'sso://user/fentanes/nvgoog',
     import = 'nvgoog.default.blaze',
-  },
+  }),
 }
 
 vim.g.have_nerd_font = true
