@@ -12,7 +12,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
   export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  export PATH="$HOME"/.linuxbrew/bin:"$PATH"
+  export PATH="$HOME"/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/bin:$PATH"
 fi
 
 ## ZSH
