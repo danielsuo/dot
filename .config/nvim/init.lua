@@ -190,6 +190,7 @@ require('lazy').setup {
           'lua_ls',
           'pyright',
           'clangd',
+          'bzl',
         },
       }
     end,
