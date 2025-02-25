@@ -3,6 +3,7 @@
 .DS_Store
 nvim-*
 .history
+.histfile
 .zcompdump*
 lazy-lock.json
 
