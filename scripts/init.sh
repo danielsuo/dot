@@ -50,7 +50,8 @@ export BREW="$BREW_DIR"/bin/brew
   stow \
   ripgrep \
   gcc \
-  node
+  node \
+  gh
 
 "$BREW" install --build-from-source \
   jandedobbeleer/oh-my-posh/oh-my-posh
@@ -86,6 +87,19 @@ else
   TMUX=tmux
 fi
 "$TMUX" source-file $HOME/.config/tmux/tmux.conf
+
+if [[ ! $(git config user.name) ]];
+  git config --global user.email "danielsuo@gmail.com"
+  git config --global user.name "Daniel Suo"
+  git config --global pull.rebase true
+
+  ssh-keygen -t ed25519 -C "danielsuo@gmail.com"
+  eval $(ssh-agent -s)
+  ssh-add "$HOME"/.ssh/id_ed25519
+
+  "$BREW_DIR"/bin/gh auth login
+  "$BREW_DIR"/bin/gh ssh-key add "$HOME"/.ssh/id_ed25519.pub -t "$(hostname)" --type authentication
+fi
 
 echo "$ZSH" >> "$HOME"/.bash_profile
 

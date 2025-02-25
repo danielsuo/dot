@@ -173,6 +173,16 @@ require('lazy').setup {
     'mfussenegger/nvim-lint',
   },
   {
+    'zapling/mason-conform.nvim',
+    dependencies = {
+      'williamboman/mason.nvim',
+      'stevearc/conform.nvim',
+    },
+    config = function()
+      require('mason-conform').setup()
+    end,
+  },
+  {
     'williamboman/mason-lspconfig.nvim',
     config = function()
       require('mason-lspconfig').setup {
@@ -187,9 +197,9 @@ require('lazy').setup {
   {
     'klen/nvim-test',
     config = function()
-      require('nvim-test').setup({
+      require('nvim-test').setup {
         term = 'toggleterm',
-      })
+      }
     end,
   },
   {
@@ -295,6 +305,7 @@ require('lazy').setup {
         formatters_by_ft = {
           lua = { 'stylua' },
           python = { 'isort', 'black' },
+          cpp = { 'clang-format' },
         },
       }
     end,
