@@ -38,8 +38,8 @@ compinit
 
 if [[ $(command -v gcert) ]]; then
   alias sd="rw dsuo.c.googlers.com"
-  alias sg="gcloud compute ssh --zone us-central1-a dsuo-a100 --project jax-dev"
-  alias sc="gcloud compute ssh --zone us-central1-f dsuo-cpu --project jax-dev"
+  alias sg="gcloud compute ssh --zone us-central1-f dsuo-a100 --project jax-dev"
+  alias sc="gcloud compute ssh --zone us-central1-a dsuo-cpu --project jax-dev"
 fi
 
 ## Zsh
