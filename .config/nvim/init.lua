@@ -190,7 +190,6 @@ require('lazy').setup {
           'lua_ls',
           'pyright',
           'clangd',
-          'buildifier',
         },
       }
     end,
@@ -282,7 +281,7 @@ require('lazy').setup {
             pyright = {},
             clangd = {},
             bzl = {},
-          }
+          },
         })
       end
       return opts
@@ -319,6 +318,7 @@ require('lazy').setup {
           lua = { 'stylua' },
           python = { 'isort', 'black' },
           cpp = { 'clang-format' },
+          bzl = { 'buildifier' },
         },
       }
     end,
