@@ -49,7 +49,8 @@ export BREW="$BREW_DIR"/bin/brew
   ripgrep \
   stow \
   ripgrep \
-  gcc
+  gcc \
+  node
 
 "$BREW" install --build-from-source \
   jandedobbeleer/oh-my-posh/oh-my-posh
