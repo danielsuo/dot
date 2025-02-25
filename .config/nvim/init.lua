@@ -459,6 +459,19 @@ require('lazy').setup {
       }
       require('mini.trailspace').setup { event = { 'BufRead', 'BufNewFile' }, config = true }
 
+      local map = require 'mini.map'
+      map.setup = {
+        integrations = {
+          map.gen_integration.builtin_search(),
+          map.gen_integration.diff(),
+          map.gen_integration.gitsigns(),
+          map.gen_integration.diagnostic(),
+        },
+        symbols = {
+          encode = map.gen_encode_symbols.dot(),
+        }
+      }
+
       if google then
         require('mini.statusline').setup {
           content = {
