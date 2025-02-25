@@ -190,6 +190,7 @@ require('lazy').setup {
           'lua_ls',
           'pyright',
           'clangd',
+          'buildifier',
         },
       }
     end,
@@ -280,6 +281,7 @@ require('lazy').setup {
             lua_ls = {},
             pyright = {},
             clangd = {},
+            bzl = {},
           }
         })
       end
