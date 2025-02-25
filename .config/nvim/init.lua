@@ -212,67 +212,78 @@ require('lazy').setup {
       'hrsh7th/cmp-nvim-lsp',
     },
     opts = function(_, opts)
-      local ciderlsp_config = {
-        cmd = {
-          '/google/bin/releases/cider/ciderlsp/ciderlsp',
-          '--tooltag=neovim-lsp',
-          '--noforward_sync_responses',
-        },
-        filetypes = {
-          'c',
-          'cpp',
-          'objc',
-          'objcpp',
-          'java',
-          'kotlin',
-          'go',
-          'python',
-          'typescript',
-          'typescriptreact',
-          'proto',
-          'textproto',
-          'dart',
-          'bzl',
-          'cs',
-          'googlesql',
-          'eml',
-          'mlir',
-          'dataz',
-          'soy',
-          'graphql',
-          'javascript',
-          'javascriptreact',
-          'css',
-          'scss',
-          'html',
-          'json',
-          'jslayout',
-          'gcl',
-          'borg',
-          'markdown',
-          'piccolo',
-          'ncl',
-          'conf',
-        },
-        root_dir = require('lspconfig').util.root_pattern '.citc',
-        settings = {},
-      }
-      require('lspconfig.configs').ciderlsp = {
-        default_config = ciderlsp_config,
-      }
-
-      local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      local cmp_nvim_ciderlsp_enabled = require('lazy.core.config').plugins['cmp_nvim_ciderlsp']
-      if cmp_nvim_ciderlsp_enabled then
-        capabilities = require('cmp_nvim_ciderlsp').update_capabilities(capabilities)
-      end
-      return vim.tbl_deep_extend('force', opts, {
-        servers = {
-          ciderlsp = {
-            capabilities = capabilities,
+      if google then
+        local ciderlsp_config = {
+          cmd = {
+            '/google/bin/releases/cider/ciderlsp/ciderlsp',
+            '--tooltag=neovim-lsp',
+            '--noforward_sync_responses',
           },
-        },
-      })
+          filetypes = {
+            'c',
+            'cpp',
+            'objc',
+            'objcpp',
+            'java',
+            'kotlin',
+            'go',
+            'python',
+            'typescript',
+            'typescriptreact',
+            'proto',
+            'textproto',
+            'dart',
+            'bzl',
+            'cs',
+            'googlesql',
+            'eml',
+            'mlir',
+            'dataz',
+            'soy',
+            'graphql',
+            'javascript',
+            'javascriptreact',
+            'css',
+            'scss',
+            'html',
+            'json',
+            'jslayout',
+            'gcl',
+            'borg',
+            'markdown',
+            'piccolo',
+            'ncl',
+            'conf',
+          },
+          root_dir = require('lspconfig').util.root_pattern '.citc',
+          settings = {},
+        }
+        require('lspconfig.configs').ciderlsp = {
+          default_config = ciderlsp_config,
+        }
+
+        local capabilities = require('cmp_nvim_lsp').default_capabilities()
+        local cmp_nvim_ciderlsp_enabled = require('lazy.core.config').plugins['cmp_nvim_ciderlsp']
+        if cmp_nvim_ciderlsp_enabled then
+          capabilities = require('cmp_nvim_ciderlsp').update_capabilities(capabilities)
+        end
+        opts = vim.tbl_deep_extend('force', opts, {
+          servers = {
+            ciderlsp = {
+              capabilities = capabilities,
+            },
+          },
+        })
+      else
+        opts = vim.tbl_deep_extend('force', opts, {
+          servers = {
+            lua_ls = {},
+            pyright = {},
+            clangd = {},
+          }
+        })
+      end
+      return opts
     end,
     config = function(_, opts)
       -- Remove current directory from backupdir, otherwise CiderLSP can get confused
