@@ -69,6 +69,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
   if [[ $(command -v gcert) ]]; then
     sudo mule install roadwarrior
+    "$BREW" install google-cloud-sdk
   fi
 fi
 
