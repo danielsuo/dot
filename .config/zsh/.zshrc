@@ -76,6 +76,25 @@ alias dgf="pushd ~/dot && gf && popd"
 alias dgu="pushd ~/dot && gu && popd"
 
 ################################################################################
+# UI
+################################################################################
+
+# load module for list-style selection
+zmodload zsh/complist
+setopt menucomplete
+
+# use the module above for autocomplete selection
+zstyle ':completion:*' menu select=0 search
+
+# now we can define keybindings for complist module
+# you want to trigger search on autocomplete items
+# so we'll bind some key to trigger history-incremental-search-forward function
+bindkey -M menuselect '?' history-incremental-search-forward
+bindkey -M menuselect '/' history-incremental-search-backward
+
+zstyle ':autocomplete:*' default-context history-incremental-search-backward
+
+################################################################################
 # USER-DEFINED FUNCTIONS
 ################################################################################
 weather() {

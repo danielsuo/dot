@@ -40,22 +40,6 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   ZSH=$(which zsh)
 fi
 export BREW="$BREW_DIR"/bin/brew
-"$BREW" shellenv
-"$BREW" install --force \
-  neovim \
-  tmux \
-  lua \
-  luarocks \
-  ripgrep \
-  stow \
-  ripgrep \
-  gcc \
-  node \
-  gh
-
-"$BREW" install --build-from-source \
-  jandedobbeleer/oh-my-posh/oh-my-posh
-
 if [[ "$OSTYPE" == "darwin"* ]]; then
   "$BREW" install --force\
       karabiner-elements \
@@ -73,6 +57,22 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     "$BREW" install google-cloud-sdk
   fi
 fi
+
+"$BREW" shellenv
+"$BREW" install --force \
+  neovim \
+  tmux \
+  lua \
+  luarocks \
+  ripgrep \
+  stow \
+  ripgrep \
+  gcc \
+  node \
+  gh
+
+"$BREW" install --build-from-source \
+  jandedobbeleer/oh-my-posh/oh-my-posh
 
 curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 bash Miniforge3-$(uname)-$(uname -m).sh -b
