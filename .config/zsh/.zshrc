@@ -164,6 +164,10 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
     shift
     tap_presubmit --email --detach -c $CL -p all --test_tag_filters=requires-jellyfish,requires-dragonfish,requires-viperfish,requires-viperfish:4,requires-viperlite,requires-viperlite:8,requires-pufferfish:4,requires-pufferfish,requires-puffylite,requires-gpu-nvidia --skip_exotic_targets=false $@
   }
+
+  if [ -r /google/data/ro/teams/deepmind-eng/config/bashrc ] ; then
+    source /google/data/ro/teams/deepmind-eng/config/bashrc
+  fi
 fi
 
 # >>> conda initialize >>>
