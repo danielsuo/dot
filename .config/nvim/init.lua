@@ -515,17 +515,19 @@ require('lazy').setup {
     'smartpde/neoscopes',
     config = function()
       local scopes = require 'neoscopes'
-      local citc_root = '/google/src/cloud/dsuo'
-      if vim.loop.cwd():sub(1, #citc_root) == citc_root then
-        scopes.add {
-          name = 'jax',
-          dirs = {
-            'third_party/py/jax',
-            'third_party/tensorflow',
-            'experimental/users/dsuo',
-          },
-        }
-        scopes.set_current 'jax'
+      if google then
+        local citc_root = '/google/src/cloud/dsuo'
+        if vim.loop.cwd():sub(1, #citc_root) == citc_root then
+          scopes.add {
+            name = 'jax',
+            dirs = {
+              'third_party/py/jax',
+              'third_party/tensorflow',
+              'experimental/users/dsuo',
+            },
+          }
+          scopes.set_current 'jax'
+        end
       else
         scopes.add_startup_scope()
       end

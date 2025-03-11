@@ -118,7 +118,7 @@ weather() {
 function jn() {
   git clone git@github.com:jax-ml/jax.git
   git clone git@github.com:openxla/xla.git
-  conda create -n $1 python=3.13.2
+  conda create -y -n $1 python=3.13.2
   conda activate $1
 
   pushd jax
