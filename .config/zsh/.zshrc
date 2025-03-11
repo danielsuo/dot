@@ -95,13 +95,6 @@ bindkey -M menuselect '/' history-incremental-search-backward
 
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
 
-################################################################################
-# USER-DEFINED FUNCTIONS
-################################################################################
-weather() {
-   curl wttr.in/$1
-}
-
 [ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh
 export FZF_CTRL_R_OPTS="
   --prompt 'History > '
@@ -110,6 +103,41 @@ export FZF_CTRL_R_OPTS="
   --bind 'ctrl-t:track+clear-query'
   --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
   --color header:italic"
+
+################################################################################
+# USER-DEFINED FUNCTIONS
+################################################################################
+weather() {
+   curl wttr.in/$1
+}
+
+################################################################################
+# JAX
+################################################################################
+
+function jn() {
+  git clone git@github.com:jax-ml/jax.git
+  git clone git@github.com:openxla/xla.git
+  conda create -n $1 python=3.13.2
+  conda activate $1
+
+  pushd jax
+  gh pr checkout $1
+  pip install -e .
+  pip install -r build/test-requirements.txt
+  popd
+
+  pushd xla
+  gh pr checkout $2
+  popd
+
+  cd jax
+  WHEELS=jaxlib
+  if [[ "$(command -v nvidia-smi)" ]]; then
+    WHEELS="WHEELS",jax-cuda-plugin,jax-cuda-pjrt
+  fi
+  python build/build.py build --wheels="$WHEELS" --local_xla_path=../xla
+}
 
 ################################################################################
 # GOOGLE
