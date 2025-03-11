@@ -135,7 +135,7 @@ function jn() {
   WHEELS=jaxlib
   if [[ "$(command -v nvidia-smi)" ]]; then
     pip install -e ".[cuda12]"
-    WHEELS="WHEELS",jax-cuda-plugin,jax-cuda-pjrt
+    WHEELS="$WHEELS",jax-cuda-plugin,jax-cuda-pjrt
   fi
   python build/build.py build --wheels="$WHEELS" --local_xla_path=../xla
 }
