@@ -119,10 +119,11 @@ function jn() {
   cd jax
   WHEELS=jaxlib
   if [[ "$(command -v nvidia-smi)" ]]; then
-    pip install -e ".[cuda12]"
+    pip install -e ".[cuda12]" --force-reinstall
     WHEELS="$WHEELS",jax-cuda-plugin,jax-cuda-pjrt
   fi
   python build/build.py build --wheels="$WHEELS" --local_xla_path=../xla
+  pip install dist/*whl --force-reinstall
 }
 
 ################################################################################
