@@ -108,8 +108,6 @@ function jn() {
 
   pushd jax
   gh pr checkout $1
-  pip install -e .
-  pip install -r build/test-requirements.txt
   popd
 
   pushd xla
@@ -119,11 +117,16 @@ function jn() {
   cd jax
   WHEELS=jaxlib
   if [[ "$(command -v nvidia-smi)" ]]; then
-    pip install -e ".[cuda12]" --force-reinstall
     WHEELS="$WHEELS",jax-cuda-plugin,jax-cuda-pjrt
   fi
   python build/build.py build --wheels="$WHEELS" --local_xla_path=../xla
-  pip install dist/*whl --force-reinstall
+  pip install -r build/test-requirements.txt
+
+  if [[ "$(command -v nvidia-smi)" ]]; then
+    pip install -e ".[cuda12]"
+  else
+    pip install -e .
+  fi
 }
 
 ################################################################################
