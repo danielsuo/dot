@@ -127,6 +127,7 @@ function jn() {
   else
     pip install -e .
   fi
+  pip install dist/*.whl --force-reinstall
 }
 
 ################################################################################
