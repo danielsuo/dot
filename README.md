@@ -12,4 +12,5 @@ Public subset of dotfiles
 sudo apt install git gh
 yes | ssh-keygen -q -c "danielsuo@gmail.com" -t ed25519 -N '' -f "$HOME"/.ssh/id_ed25519 >/dev/null 2>&1
 gh auth login
+yes | git clone git@github.com:danielsuo/dot.git
 ```
