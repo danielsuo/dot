@@ -75,6 +75,13 @@ alias gf="git commit -am 'Update' && gp"
 alias gu="git pull"
 alias dgf="pushd ~/dot && gf && popd"
 alias dgu="pushd ~/dot && gu && popd"
+function gpru() {
+ BRANCH="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
+ git checkout main
+ git branch -D $BRANCH
+ git pull
+ git checkout $BRANCH
+}
 
 ################################################################################
 # UI
