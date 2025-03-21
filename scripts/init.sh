@@ -69,7 +69,8 @@ fi
   ripgrep \
   gcc \
   node \
-  gh
+  gh \
+  bazelisk
 
 "$BREW" install --build-from-source \
   jandedobbeleer/oh-my-posh/oh-my-posh
