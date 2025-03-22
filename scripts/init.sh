@@ -30,7 +30,11 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
       glinux-vim \
       cidermux \
       clsearch \
-      bugged
+      bugged \
+      google-guitar
+    sudo ln -s /google/data/ro/users/ja/jacobsa/benchstat /usr/local/bin/benchstat
+    sudo ln -s /google/data/ro/users/ja/jacobsa/benchy /usr/local/bin/benchy
+
 
     export BREW_DIR="$HOME"/.linuxbrew
   else
