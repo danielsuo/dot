@@ -153,6 +153,12 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias t=tmx2
 
   source /etc/bash_completion.d/hgd
+  source /etc/bash_completion.d/g4d
+
+  # source the common Brain bashrc (go/brain-bashrc)
+  if [ -r /google/data/ro/teams/brain-frameworks/config/ml_bashrc ] ; then
+      emulate sh -c 'source /google/data/ro/teams/brain-frameworks/config/ml_bashrc'
+  fi
 
   bisect_cl() {
     bisect -low $1 -high $2 \
