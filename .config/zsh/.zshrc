@@ -142,7 +142,7 @@ function jn() {
 ################################################################################
 if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias copybara="/google/data/ro/teams/copybara/copybara"
-  alias aclcheck="/google/data/ro/projects/ganpati/aclcheck"
+  alias aclcheck="/google/bin/releases/ganpati-acls/tools/aclcheck"
   alias perfgate="/google/bin/releases/perfgate/cli/perfgate"
   alias pastebin="/google/src/head/depot/eng/tools/pastebin"
   alias bisect="/google/data/ro/teams/tetralight/bin/bisect"
