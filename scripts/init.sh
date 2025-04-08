@@ -31,7 +31,8 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
       cidermux \
       clsearch \
       bugged \
-      google-guitar
+      google-guitar \
+      tap-cli
     sudo ln -s /google/data/ro/users/ja/jacobsa/benchstat /usr/local/bin/benchstat
     sudo ln -s /google/data/ro/users/ja/jacobsa/benchy /usr/local/bin/benchy
 
