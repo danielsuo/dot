@@ -33,7 +33,8 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
       bugged \
       google-guitar \
       tap-cli \
-      linux-cpupower
+      linux-cpupower \
+      manage-cl
     sudo ln -s /google/data/ro/users/ja/jacobsa/benchstat /usr/local/bin/benchstat
     sudo ln -s /google/data/ro/users/ja/jacobsa/benchy /usr/local/bin/benchy
 
