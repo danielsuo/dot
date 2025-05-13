@@ -32,7 +32,8 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
       clsearch \
       bugged \
       google-guitar \
-      tap-cli
+      tap-cli \
+      linux-cpupower
     sudo ln -s /google/data/ro/users/ja/jacobsa/benchstat /usr/local/bin/benchstat
     sudo ln -s /google/data/ro/users/ja/jacobsa/benchy /usr/local/bin/benchy
 
