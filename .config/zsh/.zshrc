@@ -146,6 +146,7 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias perfgate="/google/bin/releases/perfgate/cli/perfgate"
   alias pastebin="/google/src/head/depot/eng/tools/pastebin"
   alias bisect="/google/data/ro/teams/tetralight/bin/bisect"
+  alias floorcloth="/google/bin/releases/third-party-support/floorcloth/floorcloth"
   alias ml-actions-connect="/google/src/head/depot/google3/learning/brain/testing/github_actions/scripts/ml-actions-connect.sh"
 
   alias bt="blaze test --test_arg=--alsologtostderr --test_output=all"
