@@ -152,7 +152,7 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias perfgate="/google/bin/releases/perfgate/cli/perfgate"
 
 
-  alias bt="blaze test --test_arg=--alsologtostderr --test_output=all"
+  alias bt="blaze test --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all"
 
   alias t=tmx2
 
