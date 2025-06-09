@@ -73,6 +73,7 @@ alias ga="git add ."
 alias gs="git status"
 alias gf="git commit -am 'Update' && gp"
 alias gu="git pull"
+alias gl="git log --graph --pretty='format:%C(auto)%h %d %s %C(green)%an%C(bold blue) %ad' --all --date=relative"
 alias dgf="pushd ~/dot && gf && popd"
 alias dgu="pushd ~/dot && gu && popd"
 function gpru() {
