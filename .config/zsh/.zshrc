@@ -152,7 +152,8 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias capabilities="/google/data/ro/projects/borg-sre/capabilities.par"
   alias perfgate="/google/bin/releases/perfgate/cli/perfgate"
 
-  alias frm="fileutil rm -R -f recursivedeletegfsbackup --allow_recursivedeletegfsbackup_from_interactive_shell"
+  alias frm="fileutil rm -R -f"
+  alias fbrm="fileutil recursivedeletegfsbackup --allow_recursivedeletegfsbackup_from_interactive_shell"
 
 
   alias bt="blaze test --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all"
