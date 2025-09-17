@@ -160,13 +160,13 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   btj() {
    TEST=$1
    shift
-   bt third_party/py/jax/tests"$TEST" $@
+   bt third_party/py/jax/tests"$TEST" -c opt --config=cuda $@
   }
   alias rt="rabbit test --define PYTYPE=FALSE --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all"
   rtj() {
    TEST=$1
    shift
-   rt third_party/py/jax/tests"$TEST" $@
+   rt third_party/py/jax/tests"$TEST" -c opt --config=cuda $@
   }
   alias br="blaze run"
   alias minrl=/google/src/head/depot/google3/learning/deepmind/research/control/minrl/minrl.sh
