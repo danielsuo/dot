@@ -156,11 +156,11 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
   alias fbrm="fileutil recursivedeletegfsbackup --allow_recursivedeletegfsbackup_from_interactive_shell"
 
 
-  alias bt="blaze test --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all"
+  alias bt="blaze test --define PYTYPE=FALSE --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all"
   btj() {
    bt third_party/py/jax/tests"$1"
   }
-  alias rt="rabbit test --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all"
+  alias rt="rabbit test --define PYTYPE=FALSE --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all"
   rtj() {
    rt third_party/py/jax/tests"$1"
   }
