@@ -162,7 +162,7 @@ if [[ $(command -v gcert) && "$OSTYPE" == "linux-gnu"* ]]; then
    shift
     blaze test --define PYTYPE=FALSE --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_DUMP_IR_TO=sponge --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_output=all --test_strategy=local --test_sharding_strategy=disabled third_party/py/jax/tests"$TEST" -c opt --config=cuda $@
   }
-  alias rt="rabbit test --define PYTYPE=FALSE --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_DUMP_IR_TO=sponge --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_sharding_strategy_disabled --test_output=all"
+  alias rt="rabbit test --define PYTYPE=FALSE --test_env=XLA_FLAGS='--xla_dump_to=sponge --xla_dump_hlo_pass_re=.*' --test_env=JAX_DUMP_IR_TO=sponge --test_env=JAX_TRACEBACK_FILTERING=off --test_arg=--alsologtostderr --test_sharding_strategy=disabled --test_output=all"
   rtj() {
    TEST=$1
    shift
