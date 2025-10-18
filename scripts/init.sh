@@ -51,6 +51,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   "$BREW" install --force\
       karabiner-elements \
       hammerspoon \
+      superkey \
       wezterm \
       coreutils \
       miniforge \
