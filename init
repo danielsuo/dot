@@ -17,6 +17,7 @@ export BREW="$BREW_DIR"/bin/brew
   gcc \
   gh \
   hammerspoon \
+  karabiner-elements \
   lua \
   luarocks \
   ripgrep \
