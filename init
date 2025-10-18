@@ -56,7 +56,7 @@ popd
 
 # Restore and set up configuration files.
 pushd "$DOT_DIR"
-sudo "$BREW_DIR"/bin/stow -d "$HOME" -S .config
+sudo "$BREW_DIR"/bin/stow -d . -t "$HOME" --stow . -R
 popd
 
 # Set up hammerspoon.
