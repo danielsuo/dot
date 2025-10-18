@@ -86,3 +86,4 @@ echo "$ZSH" >> "$HOME"/.bash_profile
 # Set up some MacOS configs.
 defaults write -g com.apple.swipescrolldirection -boolean NO
 defaults write com.apple.dock persistent-apps -array; killall Dock
+defaults write com.apple.dock autohide -bool true && killall Dock
