@@ -86,7 +86,8 @@ curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Mi
 bash Miniforge3-$(uname)-$(uname -m).sh -b
 rm -rf Miniforge3*
 
-"$BREW_DIR"/bin/stow -d "$DIR"/.. -t "$HOME" --stow . -R
+# "$BREW_DIR"/bin/stow -d "$DIR"/.. -t "$HOME" --stow . -R
+sudo "$BREW_DIR"/bin/stow -d "$HOME" -S .config
 
 git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
 if [[ $(command -v tmux) != 0 ]]; then
