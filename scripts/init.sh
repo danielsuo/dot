@@ -96,7 +96,7 @@ else
 fi
 "$TMUX" source-file $HOME/.config/tmux/tmux.conf
 
-if [[ ! $(git config user.name) ]];
+if [[ ! $(git config user.name) ]]; then
   git config --global user.email "danielsuo@gmail.com"
   git config --global user.name "Daniel Suo"
   git config --global pull.rebase true
