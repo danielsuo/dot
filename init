@@ -31,7 +31,7 @@ export BREW="$BREW_DIR"/bin/brew
   wezterm \
   zsh
 
-"$BREW" install -u --cask --force \
+"$BREW" install --cask --force \
   miniconda
 
 # Set up github.
