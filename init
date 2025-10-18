@@ -31,7 +31,7 @@ export BREW="$BREW_DIR"/bin/brew
   wezterm \
   zsh
 
-"$BREW" install --cask --force \
+"$BREW" install --update --cask --force \
   miniconda
 
 # Set up github.
@@ -55,7 +55,9 @@ export DOT_DIR="$HOME/dot"
 popd
 
 # Restore and set up configuration files.
-sudo "$BREW_DIR"/bin/stow -d "$HOME" -S "$DOT_DIR"/.config
+pushd "$DOT_DIR"
+sudo "$BREW_DIR"/bin/stow -d "$HOME" -S .config
+popd
 
 # Set up hammerspoon.
 defaults write org.hammerspoon.Hammerspoon MJConfigFile "$HOME/.config/hammerspoon/init.lua"
