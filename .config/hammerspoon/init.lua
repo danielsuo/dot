@@ -69,10 +69,11 @@ hs.grid.setGrid(GRID_SIZE .. 'x' .. GRID_SIZE)
 hs.grid.setMargins({5, 5})
 hs.window.animationDuration = 0
 
-local screenPositions       = {}
-screenPositions.full = {x = 0, y = 0, w = GRID_SIZE, h = GRID_SIZE }
-screenPositions.left        = {x = 0,              y = 0,              w = HALF_GRID_SIZE, h = GRID_SIZE     }
-screenPositions.right       = {x = HALF_GRID_SIZE, y = 0,              w = HALF_GRID_SIZE, h = GRID_SIZE     }
+local screenPositions = {}
+screenPositions.full  = {x = 0, y = 0, w = GRID_SIZE, h = GRID_SIZE }
+screenPositions.left  = {x = 0, y = 0, w = HALF_GRID_SIZE, h = GRID_SIZE }
+screenPositions.right = {x = HALF_GRID_SIZE, y = 0, w = HALF_GRID_SIZE, h = GRID_SIZE }
+screenPositions.middle = {x = GRID_SIZE / 3, y= 0, w = HALF_GRID_SIZE, h = GRID_SIZE }
 
 function moveWindowToPosition(cell, window)
   if window == nil then
@@ -87,5 +88,7 @@ end
 hs.hotkey.bind(hyper, "[", function() moveWindowToPosition(screenPositions.left) end)
 hs.hotkey.bind(hyper, "]", function() moveWindowToPosition(screenPositions.right) end)
 hs.hotkey.bind(hyper, "=", function() moveWindowToPosition(screenPositions.full) end)
+hs.hotkey.bind(hyper, "\\", function() moveWindowToPosition(screenPositions.middle) end)
+
 
 
