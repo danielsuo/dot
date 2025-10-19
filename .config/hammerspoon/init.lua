@@ -1,17 +1,12 @@
 require("hs.ipc")
 
 hs.loadSpoon("URLDispatcher")
-hs.loadSpoon("ShiftIt")
 
 hyper = { "cmd", "alt", "ctrl", "shift" }
 
 spoon.URLDispatcher:start()
-spoon.ShiftIt:bindHotkeys({
-	left = { hyper, "[" },
-	right = { hyper, "]" },
-	maximum = { hyper, "=" },
-})
 hs.window.animationDuration = 0
+
 
 local launch_app = function(app)
 	return function()
@@ -67,3 +62,30 @@ hs.hotkey.bind(hyper, "Y", hs.toggleConsole)
 hs.hotkey.bind(hyper, "UP", change_volume(5))
 hs.hotkey.bind(hyper, "DOWN", change_volume(-5))
 hs.hotkey.bind(hyper, "LEFT", toggle_mute)
+
+local GRID_SIZE = 4
+local HALF_GRID_SIZE = GRID_SIZE / 2
+hs.grid.setGrid(GRID_SIZE .. 'x' .. GRID_SIZE)
+hs.grid.setMargins({5, 5})
+hs.window.animationDuration = 0
+
+local screenPositions       = {}
+screenPositions.full = {x = 0, y = 0, w = GRID_SIZE, h = GRID_SIZE }
+screenPositions.left        = {x = 0,              y = 0,              w = HALF_GRID_SIZE, h = GRID_SIZE     }
+screenPositions.right       = {x = HALF_GRID_SIZE, y = 0,              w = HALF_GRID_SIZE, h = GRID_SIZE     }
+
+function moveWindowToPosition(cell, window)
+  if window == nil then
+    window = hs.window.focusedWindow()
+  end
+  if window then
+    local screen = window:screen()
+    hs.grid.set(window, cell, screen)
+  end
+end
+
+hs.hotkey.bind(hyper, "[", function() moveWindowToPosition(screenPositions.left) end)
+hs.hotkey.bind(hyper, "]", function() moveWindowToPosition(screenPositions.right) end)
+hs.hotkey.bind(hyper, "=", function() moveWindowToPosition(screenPositions.full) end)
+
+
