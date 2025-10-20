@@ -66,7 +66,7 @@ hs.hotkey.bind(hyper, "LEFT", toggle_mute)
 local GRID_SIZE = 4
 local HALF_GRID_SIZE = GRID_SIZE / 2
 hs.grid.setGrid(GRID_SIZE .. 'x' .. GRID_SIZE)
-hs.grid.setMargins({5, 5})
+hs.grid.setMargins({0, 0})
 hs.window.animationDuration = 0
 
 local screenPositions = {}
