@@ -17,6 +17,7 @@ export BREW="$BREW_DIR"/bin/brew
   gcc \
   gh \
   hammerspoon \
+  homerow \
   karabiner-elements \
   lua \
   luarocks \
@@ -26,7 +27,6 @@ export BREW="$BREW_DIR"/bin/brew
   node \
   oh-my-posh \
   stow \
-  superkey \
   tmux \
   tpm \
   wezterm \
