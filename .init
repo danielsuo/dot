@@ -1,0 +1,98 @@
+
+#!/bin/bash
+
+DIR="$(dirname "$(readlink -f "$0")")"
+
+# Install homebrew.
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+export BREW_DIR=/opt/homebrew
+export BREW="$BREW_DIR"/bin/brew
+
+# Install bottles and casks.
+"$BREW" shellenv
+"$BREW" install --force \
+  bazelisk \
+  coreutils \
+  fzf \
+  gcc \
+  gh \
+  hammerspoon \
+  homerow \
+  karabiner-elements \
+  lua \
+  luarocks \
+  ripgrep \
+  miniforge \
+  neovim \
+  node \
+  oh-my-posh \
+  stow \
+  tmux \
+  tpm \
+  wezterm \
+  zsh
+
+# Language servers
+"$BREW" install --force \
+  lua-language-server \
+  pyright
+
+
+"$BREW" install --cask --force \
+  miniconda
+
+# Set up github.
+if [[ ! $(git config user.name) ]]; then
+  git config --global user.email "danielsuo@gmail.com"
+  git config --global user.name "Daniel Suo"
+  git config --global pull.rebase true
+
+  yes | ssh-keygen -q -C "danielsuo@gmail.com" -t ed25519 -N '' -f "$HOME"/.ssh/id_ed25519 >/dev/null 2>&1
+  eval $(ssh-agent -s)
+  ssh-add "$HOME"/.ssh/id_ed25519
+
+  gh auth login -h github.com -p ssh -c -w
+fi
+
+# Clone configuration files.
+pushd "$HOME"
+GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:danielsuo/dot.git
+export DOT_DIR="$HOME/dot"
+popd
+
+# Restore and set up configuration files.
+pushd "$DOT_DIR"
+sudo "$BREW_DIR"/bin/stow -d . -t "$HOME" --stow . -R
+popd
+
+# Set up hammerspoon.
+defaults write org.hammerspoon.Hammerspoon MJConfigFile "$HOME/.config/hammerspoon/init.lua"
+
+# Set up tmux.
+git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
+TMUX="$BREW_DIR"/bin/tmux
+"$TMUX" source-file $HOME/.config/tmux/tmux.conf
+
+# Install fonts.
+git clone --filter=blob:none --sparse git@github.com:ryanoasis/nerd-fonts
+pushd nerd-fonts
+git sparse-checkout add patched-fonts/FiraCode && ./install.sh FiraCode
+popd
+rm -rf nerd-fonts
+
+# Install FZF.
+git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME"/.config/fzf
+"$HOME"/.config/fzf/install --xdg --no-bash --no-fish --key-bindings --completion --no-update-rc
+
+# Set up zsh.
+ZSH="$BREW_DIR"/bin/zsh
+echo "$ZSH" >> "$HOME"/.bash_profile
+
+# Set up some MacOS configs.
+defaults write -g com.apple.swipescrolldirection -boolean NO
+defaults write com.apple.dock persistent-apps -array; killall Dock
+defaults write com.apple.dock autohide -bool true && killall Dock
+defaults write -g ApplePressAndHoldEnabled -bool false
+defaults write com.apple.dock wvous-br-corner -int 0
+defaults write com.apple.dock wvous-br-modifier -int 0
+
