@@ -91,6 +91,8 @@ function a() {
 }
 alias d=deactivate
 alias pip="uv pip"
+export IPYTHONDIR=~/.config/ipython
+
 
 ################################################################################
 # UI
