@@ -89,8 +89,8 @@ function a() {
   [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1)
   source envs/$1/bin/activate
 }
-
 alias d=deactivate
+alias pip="uv pip"
 
 ################################################################################
 # UI
