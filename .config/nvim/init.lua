@@ -43,8 +43,15 @@ require('lazy').setup {
       vim.lsp.config('lua_ls', {
         settings = {
           Lua = {
+            format = {
+              enable = true,
+              defaultConfig = {
+                indent_style = "space",
+                indent_size = "2",
+              },
+            },
             diagnostics = {
-              globals = { 'vim' }
+              globals = { 'vim', 'hs', 'spoon' }
             }
           }
         }
@@ -52,7 +59,7 @@ require('lazy').setup {
       vim.lsp.enable('pyright')
     end,
   },
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  'tpope/vim-commentary', -- Easy comments.
   'rcarriga/nvim-notify',
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -438,7 +445,6 @@ map('<leader>q', vim.diagnostic.setloclist, '[Q]uickfix list')
 
 map('<leader>s', '[S]earch')
 map('<leader>sb', telescope.buffers, '[S]earch [B]uffers')
-map('<leader>sc', ':CritiqueCommentsTelescope<CR>', '[S]earch [C]ritique')
 map('<leader>sd', telescope.diagnostics, '[S]earch [D]iagnostics')
 map(
   '<leader>sf',
