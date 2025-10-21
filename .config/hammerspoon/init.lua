@@ -216,7 +216,6 @@ hyper:bind({}, "UP", change_volume(5))
 hyper:bind({}, "DOWN", change_volume(-5))
 hyper:bind({}, "LEFT", toggle_mute)
 
-
 hyper:bind({}, "[", function() moveWindowToPosition(screenPositions.left) end)
 hyper:bind({"cmd"}, "[", function() move_window_to_prev_screen() end)
 hyper:bind({}, "]", function() moveWindowToPosition(screenPositions.right) end)
@@ -224,4 +223,11 @@ hyper:bind({"cmd"}, "]", function() move_window_to_next_screen() end)
 hyper:bind({}, "=", function() moveWindowToPosition(screenPositions.full) end)
 hyper:bind({}, "\\", function() moveWindowToPosition(screenPositions.middle) end)
 
-
+hs.hotkey.bind({'alt'}, 'f', function() hs.eventtap.keyStroke({'alt'}, 'right') end)
+hs.hotkey.bind({'alt', 'shift'}, 'f', function() hs.eventtap.keyStroke({'alt', 'shift'}, 'right') end)
+hs.hotkey.bind({'alt'}, 'b', function() hs.eventtap.keyStroke({'alt'}, 'left') end)
+hs.hotkey.bind({'alt', 'shift'}, 'b', function() hs.eventtap.keyStroke({'alt', 'shift'}, 'left') end)
+hs.hotkey.bind({'ctrl'}, 'down', function() hs.eventtap.keyStroke({'ctrl'}, 'n') end)
+hs.hotkey.bind({'ctrl', 'shift'}, 'down', function() hs.eventtap.keyStroke({'ctrl', 'shift'}, 'n') end)
+hs.hotkey.bind({'ctrl'}, 'up', function() hs.eventtap.keyStroke({'ctrl'}, 'p') end)
+hs.hotkey.bind({'ctrl', 'shift'}, 'up', function() hs.eventtap.keyStroke({'ctrl', 'shift'}, 'p') end)
