@@ -85,12 +85,20 @@ function gpru() {
 }
 
 # Python
+alias d=deactivate
+alias pip="uv pip"
+alias ptw="pytest-watcher --ext=py,yaml,yml --ignore=envs --ignore=build --pdb -v"
 function a() {
   [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1)
   source envs/$1/bin/activate
+  pip install \
+    ipython \
+    jaxlib \
+    pytest \
+    pytest-watcher \
+    pytest-xdist
+
 }
-alias d=deactivate
-alias pip="uv pip"
 export IPYTHONDIR=~/.config/ipython
 
 
