@@ -32,6 +32,12 @@ export BREW="$BREW_DIR"/bin/brew
   wezterm \
   zsh
 
+# Language servers
+"$BREW" install --force \
+  lua-language-server \
+  pyright
+
+
 "$BREW" install --cask --force \
   miniconda
 

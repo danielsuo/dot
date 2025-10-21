@@ -32,9 +32,26 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
     error('Error cloning lazy.nvim:\n' .. out)
   end
 end ---@diagnostic disable-next-line: undefined-field
+
 vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup {
+  { -- Default LSP configurations
+    'neovim/nvim-lspconfig',
+    config = function()
+      vim.lsp.enable('lua_ls')
+      vim.lsp.config('lua_ls', {
+        settings = {
+          Lua = {
+            diagnostics = {
+              globals = { 'vim' }
+            }
+          }
+        }
+      })
+      vim.lsp.enable('pyright')
+    end,
+  },
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   'rcarriga/nvim-notify',
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
