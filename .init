@@ -27,7 +27,6 @@ export BREW="$BREW_DIR"/bin/brew
   neovim \
   node \
   oh-my-posh \
-  pyright \
   ruff \
   stow \
   tmux \

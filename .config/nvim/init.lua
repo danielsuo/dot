@@ -56,7 +56,7 @@ require('lazy').setup {
           }
         }
       })
-      vim.lsp.enable('pyright')
+      vim.lsp.enable('ruff')
     end,
   },
   'tpope/vim-commentary', -- Easy comments.
