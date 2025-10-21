@@ -87,17 +87,38 @@ function gpru() {
 # Python
 alias d=deactivate
 alias pip="uv pip"
-alias ptw="pytest-watcher --ext=py,yaml,yml --ignore=envs --ignore=build --pdb -v"
+alias ptw="pytest-watcher . --pdb -v"
 function a() {
   [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1)
   source envs/$1/bin/activate
   pip install \
+    absl-py \
+    auditwheel \
+    build \
+    cloudpickle \
+    dill \
+    etils \
+    filelock \
+    flatbuffers \
+    hypothesis \
     ipython \
     jaxlib \
+    matplotlib \
+    ml_dtypes \
+    mpmath \
+    numpy \
+    opt-einsum \
+    pandas \
+    pillow \
     pytest \
     pytest-watcher \
-    pytest-xdist
-
+    pytest-xdist \
+    rich \
+    scipy \
+    scipy-stubs \
+    setuptools \
+    watchdog \
+    wheel
 }
 export IPYTHONDIR=~/.config/ipython
 
