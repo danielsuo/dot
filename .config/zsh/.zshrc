@@ -1,11 +1,13 @@
 ################################################################################
-# EXPORTS
+# Exports
 ################################################################################
 export XDG_CONFIG_HOME="$HOME/.config"
 export EDITOR=nvim
 export VISUAL=nvim
 
-## PATH
+################################################################################
+# PATH
+################################################################################
 export PATH="$HOME"/.local/share/../bin:$PATH
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -15,13 +17,8 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   export PATH="$HOME"/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/bin:"$PATH"
 fi
 
-## ZSH
-export HISTFILE=~/.config/zsh/.histfile
-export HISTSIZE=1000
-export SAVEHIST=1000
-
 ################################################################################
-# TERMINAL
+# Terminal
 ################################################################################
 eval "$(oh-my-posh init zsh --config $XDG_CONFIG_HOME/oh-my-posh/config.toml)"
 
@@ -33,9 +30,8 @@ autoload -Uz compinit
 compinit
 
 ################################################################################
-# ALIASES
+# SSH
 ################################################################################
-
 if [[ $(command -v gcert) ]]; then
   alias s="ssh dsuo.c.googlers.com"
   alias sd="rw dsuo.c.googlers.com"
@@ -43,17 +39,44 @@ if [[ $(command -v gcert) ]]; then
   alias sc="gcloud compute ssh --zone us-central1-a dsuo-cpu --project jax-dev"
 fi
 
-## Zsh
+################################################################################
+# Zsh
+################################################################################
 alias ls="ls -la"
 alias sz="source ~/.config/zsh/.zshrc"
+export HISTFILE=~/.config/zsh/.histfile
+export HISTSIZE=1000
+export SAVEHIST=1000
 
-## Tmux
+################################################################################
+# Tmux
+################################################################################
 alias t="tmux"
 alias ta="t new -A -s"
 alias tl="t ls"
 alias tk="t kill-session -t"
+alias tka="t kill-server"
+alias tks="t kill-session -a"
 
-## Neovim
+# JAX environment
+function tj() {
+  env=$1
+
+  tmux new-session -d -s "$env"
+  tmux rename-window -t "$env:0" "$env"
+  tmux send-keys -t "$env:$env.0" "cd ~/src/jax && a $env" C-m
+  tmux send-keys -t "$env:$env.0" "pip install jaxlib -e ." C-m
+  tmux send-keys -t "$env:$env.0" "wf" C-m
+  tmux split-window -h -t "$env:$env.0"
+  tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
+  tmux send-keys -t "$env:$env.1" "v" C-m
+  tmux resize-pane -t "$env:$env.0" -x 33%
+  tmux attach-session -t "$env"
+}
+
+################################################################################
+# Neovim
+################################################################################
 alias v=nvim
 alias vim=nvim
 alias vd="nvim ~/dot"
@@ -65,7 +88,9 @@ alias vv="nvim ~/.config/nvim/init.lua"
 alias vw="nvim ~/.config/wezterm/wezterm.lua"
 alias vz="nvim ~/.config/zsh/.zshrc"
 
-## Git
+################################################################################
+# Git
+################################################################################
 alias gcam="git commit -am"
 alias gd="git diff"
 alias gp="git push"
@@ -84,10 +109,16 @@ function gpru() {
  git checkout $BRANCH
 }
 
+################################################################################
 # Python
+################################################################################
 alias d=deactivate
 alias pip="uv pip"
-alias ptw="pytest-watcher . --pdb -v"
+alias wt="pytest-watcher . --pdb -v"
+function wf() {
+  file=${1:-'${watch_src_path}'}
+  watchmedo shell-command --patterns="**/*.*" --recursive --command="python ${file}" --drop
+}
 function a() {
   [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1)
   source envs/$1/bin/activate
@@ -124,9 +155,8 @@ export IPYTHONDIR=~/.config/ipython
 
 
 ################################################################################
-# UI
+# FZF
 ################################################################################
-
 [ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh
 export FZF_CTRL_R_OPTS="
   --prompt 'History > '
@@ -140,7 +170,8 @@ export FZF_CTRL_R_OPTS="
 # USER-DEFINED FUNCTIONS
 ################################################################################
 weather() {
-   curl wttr.in/$1
+  location="${1:-Princeton}"
+   curl wttr.in/"$location?u"
 }
 
 ################################################################################
