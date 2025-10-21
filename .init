@@ -20,26 +20,21 @@ export BREW="$BREW_DIR"/bin/brew
   homerow \
   karabiner-elements \
   lua \
+  lua-language-server \
   luarocks \
   ripgrep \
   miniforge \
   neovim \
   node \
   oh-my-posh \
+  pyright \
+  ruff \
   stow \
   tmux \
   tpm \
+  uv \
   wezterm \
   zsh
-
-# Language servers
-"$BREW" install --force \
-  lua-language-server \
-  pyright
-
-
-"$BREW" install --cask --force \
-  miniconda
 
 # Set up github.
 if [[ ! $(git config user.name) ]]; then
