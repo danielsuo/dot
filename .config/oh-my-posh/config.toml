@@ -144,6 +144,7 @@ final_space = true
       fetch_version = true
       fetch_virtual_env = true
       display_default = false
+      home_enabled = true
 
   [[blocks.segments]]
     template = 'in <p:blue><b>{{ .Name }}</b></> '

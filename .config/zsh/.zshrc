@@ -6,7 +6,7 @@ export EDITOR=nvim
 export VISUAL=nvim
 
 ## PATH
-# export PATH="$HOME/.local/bin:$HOME/miniforge3/bin:$PATH"  # commented out by conda initialize
+export PATH="$HOME"/.local/share/../bin:$PATH
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
@@ -83,6 +83,14 @@ function gpru() {
  git pull
  git checkout $BRANCH
 }
+
+# Python
+function a() {
+  [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1)
+  source envs/$1/bin/activate
+}
+
+alias d=deactivate
 
 ################################################################################
 # UI
