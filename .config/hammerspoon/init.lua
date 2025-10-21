@@ -1,8 +1,8 @@
-require("hs.ipc")
+require('hs.ipc')
 
-hs.loadSpoon("URLDispatcher")
+hs.loadSpoon('URLDispatcher')
 
-hyper = { "cmd", "alt", "ctrl", "shift" }
+hyper = { 'cmd', 'alt', 'ctrl', 'shift' }
 
 spoon.URLDispatcher:start()
 hs.window.animationDuration = 0
@@ -38,7 +38,7 @@ end
 -- Web
 local dispatch_url = function(url)
 	return function()
-		spoon.URLDispatcher:dispatchURL("", "", "", "https://" .. url, -1)
+		spoon.URLDispatcher:dispatchURL('', '', '', 'https://' .. url, -1)
 	end
 end
 
@@ -73,7 +73,7 @@ function change_volume(diff)
 			hs.audiodevice.defaultOutputDevice():setMuted(false)
 		end
 		hs.alert.closeAll(0.0)
-		hs.alert.show("Volume " .. new .. "%", {}, 0.5)
+		hs.alert.show('Volume ' .. new .. '%', {}, 0.5)
 		hs.audiodevice.defaultOutputDevice():setVolume(new)
 	end
 end
@@ -83,9 +83,9 @@ local toggle_mute = function()
 	hs.audiodevice.defaultOutputDevice():setMuted(mute)
 	hs.alert.closeAll(0.0)
 	if mute then
-		hs.alert.show("Muted")
+		hs.alert.show('Muted')
 	else
-		hs.alert.show("Unmuted")
+		hs.alert.show('Unmuted')
 	end
 end
 
@@ -98,7 +98,7 @@ end
 -- Hammerspoon-powered OSX automation.
 --
 -- I chiefly use it to launch applications quickly from a single press,
--- although I also use it to create "universal" local bindings inspired by
+-- although I also use it to create 'universal' local bindings inspired by
 -- Shawn Blanc's OopsieThings.
 -- https://thesweetsetup.com/oopsiethings-applescript-for-things-on-mac/
 --
@@ -127,13 +127,13 @@ hs.hotkey.bind({}, 'F19', hyper.pressed, hyper.released)
 
 hyper.allowed = function(app)
   if app.tags then
-    if hs.settings.get("only") then
-      return hs.fnutils.some(hs.settings.get("only"), function(tag)
+    if hs.settings.get('only') then
+      return hs.fnutils.some(hs.settings.get('only'), function(tag)
         return hs.fnutils.contains(app.tags, tag)
       end)
     else
-      if hs.settings.get("never") then
-        return hs.fnutils.every(hs.settings.get("never"), function(tag)
+      if hs.settings.get('never') then
+        return hs.fnutils.every(hs.settings.get('never'), function(tag)
           return not hs.fnutils.contains(app.tags, tag)
         end)
       end
@@ -146,7 +146,7 @@ hyper.launch = function(app)
   if hyper.allowed(app) then
     hs.application.launchOrFocusByBundleID(app.bundleID)
   else
-    hs.notify.show("Blocked " .. app.bundleID, "You have to switch headspaces", "")
+    hs.notify.show('Blocked ' .. app.bundleID, 'You have to switch headspaces', '')
   end
 end
 
@@ -194,34 +194,43 @@ hyper.start = function(config_table)
   end
 end
 
-hyper:bind({}, "A", launch_app("Activity Monitor"))
-hyper:bind({}, "B", dispatch_url("b.corp.google.com/home"))
-hyper:bind({}, "C", launch_app("Google Chrome"))
-hyper:bind({}, "E", dispatch_url("goto2.corp.google.com/sknow"))
-hyper:bind({}, "F", launch_app("Finder"))
-hyper:bind({}, "G", dispatch_url("github.com/jax-ml/jax"))
-hyper:bind({}, "H", launch_app("Google Chat"))
-hyper:bind({}, "I", launch_app("Messages"))
-hyper:bind({}, "J", dispatch_url("goto2.corp.google.com/jaxplorations"))
-hyper:bind({}, "L", dispatch_url("calendar.google.com"))
-hyper:bind({}, "M", dispatch_url("mail.google.com"))
-hyper:bind({}, "Q", dispatch_url("critique.corp.google.com"))
-hyper:bind({}, "R", launch_app("Reminders"))
-hyper:bind({}, "S", launch_app("Settings"))
-hyper:bind({}, "T", launch_app("WezTerm"))
-hyper:bind({}, "U", hs.reload)
-hyper:bind({}, "V", launch_app("Cider"))
-hyper:bind({}, "Y", hs.toggleConsole)
-hyper:bind({}, "UP", change_volume(5))
-hyper:bind({}, "DOWN", change_volume(-5))
-hyper:bind({}, "LEFT", toggle_mute)
+config = {}
+config.applications = {
+  ['Homerow'] = {
+    bundleID = 'com.superultra.Homerow',
+    local_bindings = {'space'}
+  },
+}
+hyper.start(config)
 
-hyper:bind({}, "[", function() moveWindowToPosition(screenPositions.left) end)
-hyper:bind({"cmd"}, "[", function() move_window_to_prev_screen() end)
-hyper:bind({}, "]", function() moveWindowToPosition(screenPositions.right) end)
-hyper:bind({"cmd"}, "]", function() move_window_to_next_screen() end)
-hyper:bind({}, "=", function() moveWindowToPosition(screenPositions.full) end)
-hyper:bind({}, "\\", function() moveWindowToPosition(screenPositions.middle) end)
+hyper:bind({}, 'A', launch_app('Activity Monitor'))
+hyper:bind({}, 'B', dispatch_url('b.corp.google.com/home'))
+hyper:bind({}, 'C', launch_app('Google Chrome'))
+hyper:bind({}, 'E', dispatch_url('goto2.corp.google.com/sknow'))
+hyper:bind({}, 'F', launch_app('Finder'))
+hyper:bind({}, 'G', dispatch_url('github.com/jax-ml/jax'))
+hyper:bind({}, 'H', launch_app('Google Chat'))
+hyper:bind({}, 'I', launch_app('Messages'))
+hyper:bind({}, 'J', dispatch_url('goto2.corp.google.com/jaxplorations'))
+hyper:bind({}, 'L', dispatch_url('calendar.google.com'))
+hyper:bind({}, 'M', dispatch_url('mail.google.com'))
+hyper:bind({}, 'Q', dispatch_url('critique.corp.google.com'))
+hyper:bind({}, 'R', launch_app('Reminders'))
+hyper:bind({}, 'S', launch_app('Settings'))
+hyper:bind({}, 'T', launch_app('WezTerm'))
+hyper:bind({}, 'U', hs.reload)
+hyper:bind({}, 'V', launch_app('Cider'))
+hyper:bind({}, 'Y', hs.toggleConsole)
+hyper:bind({}, 'UP', change_volume(5))
+hyper:bind({}, 'DOWN', change_volume(-5))
+hyper:bind({}, 'LEFT', toggle_mute)
+
+hyper:bind({}, '[', function() moveWindowToPosition(screenPositions.left) end)
+hyper:bind({'cmd'}, '[', function() move_window_to_prev_screen() end)
+hyper:bind({}, ']', function() moveWindowToPosition(screenPositions.right) end)
+hyper:bind({'cmd'}, ']', function() move_window_to_next_screen() end)
+hyper:bind({}, '=', function() moveWindowToPosition(screenPositions.full) end)
+hyper:bind({}, '\\', function() moveWindowToPosition(screenPositions.middle) end)
 
 hs.hotkey.bind({'alt'}, 'f', function() hs.eventtap.keyStroke({'alt'}, 'right') end)
 hs.hotkey.bind({'alt', 'shift'}, 'f', function() hs.eventtap.keyStroke({'alt', 'shift'}, 'right') end)
