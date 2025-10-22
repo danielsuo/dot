@@ -119,7 +119,8 @@ function wf() {
   watchmedo shell-command --patterns="**/*.*" --recursive --command="python ${file}" --drop
 }
 function a() {
-  [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1)
+  python=${2:-3.13}
+  [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1 --python "${python}")
   source envs/$1/bin/activate
   pip install \
     absl-py \
