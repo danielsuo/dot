@@ -65,24 +65,6 @@ alias tk="t kill-session -t"
 alias tka="t kill-server"
 alias tks="t kill-session -a"
 
-# JAX environment
-function tj() {
-  env=$1
-
-  tmux new-session -d -s "$env"
-  tmux rename-window -t "$env:0" "$env"
-  tmux send-keys -t "$env:$env.0" "cd ~/src/jax && a $env" C-m
-  tmux send-keys -t "$env:$env.0" "pip install jaxlib -e ." C-m
-  tmux send-keys -t "$env:$env.0" "wf" C-m
-  tmux split-window -h -t "$env:$env.0"
-  tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
-  tmux send-keys -t "$env:$env.1" "v" C-m
-  tmux split-window -v -t "$env:$env.0"
-  tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
-  tmux select-pane -t "$env:$env.1"h
-  tmux attach-session -t "$env"
-}
-
 ################################################################################
 # Neovim
 ################################################################################
@@ -125,7 +107,11 @@ function gpru() {
 ################################################################################
 alias d=deactivate
 alias pip="uv pip"
-alias wt="pytest-watcher . --pdb -v"
+
+function wt() {
+  test=${1:-}
+  pytest-watcher . --pdb -v -s --log-cli-level=INFO "$test"
+}
 function wf() {
   file=${1:-'${watch_src_path}'}
   # TODO(dsuo): Drop into pdb conditionally on error, quit otherwise. Right
@@ -190,6 +176,9 @@ weather() {
 ################################################################################
 # JAX
 ################################################################################
+function jd() {
+  cd ~/src/jax && a "$1"
+}
 
 export JAX_TRACEBACK_FILTERING=off
 
@@ -221,6 +210,24 @@ function jn() {
     pip install -e .
   fi
   pip install dist/*.whl --force-reinstall
+}
+
+# JAX tmux environment
+function tj() {
+  env=$1
+
+  tmux new-session -d -s "$env"
+  tmux rename-window -t "$env:0" "$env"
+  tmux send-keys -t "$env:$env.0" "cd ~/src/jax && a $env" C-m
+  tmux send-keys -t "$env:$env.0" "pip install jaxlib -e ." C-m
+  tmux send-keys -t "$env:$env.0" "wf" C-m
+  tmux split-window -h -t "$env:$env.0"
+  tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
+  tmux send-keys -t "$env:$env.1" "v" C-m
+  tmux split-window -v -t "$env:$env.0"
+  tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
+  tmux select-pane -t "$env:$env.1"h
+  tmux attach-session -t "$env"
 }
 
 ################################################################################
