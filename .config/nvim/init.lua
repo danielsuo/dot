@@ -62,7 +62,7 @@ require('lazy').setup {
   },
   'tpope/vim-commentary', -- Easy comments.
   'rcarriga/nvim-notify',
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
+  {                       -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
       signs = {
@@ -74,7 +74,7 @@ require('lazy').setup {
       },
     },
   },
-  { -- Useful plugin to show you pending keybinds.
+  {                     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -96,7 +96,7 @@ require('lazy').setup {
         end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
     },
     config = function()
       require('telescope').setup {
@@ -161,7 +161,7 @@ require('lazy').setup {
     end,
   },
   'nvchad/volt', -- optional, needed for theme switcher
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
+  { 'folke/todo-comments.nvim',    event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
   {
     'goolord/alpha-nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -202,7 +202,6 @@ require('lazy').setup {
           encode = map.gen_encode_symbols.dot(),
         },
       }
-
     end,
   },
   { -- Highlight, edit, and navigate code
@@ -235,6 +234,7 @@ require('lazy').setup {
       indent = { enable = false },
     },
   },
+  'nvim-treesitter/nvim-treesitter-context',
   {
     'smartpde/neoscopes',
     config = function()
@@ -400,6 +400,8 @@ map('gI', telescope.lsp_implementations, '[G]oto [I]mplementation')
 map('gl', '<esc>:URLOpenUnderCursor<cr>', 'Open URL')
 map('gr', telescope.lsp_references, '[G]oto [R]eferences')
 map('gt', telescope.lsp_type_definitions, '[G]oto [T]ype definition')
+map('g[', ':bprevious<CR>')
+map('g]', ':bnext<CR>')
 
 map('<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights after search')
 map('<C-h>', '<C-w><C-h>', 'Move focus to the left window')
@@ -416,6 +418,8 @@ vim.keymap.set('c', '<C-a>', '<Home>')
 vim.keymap.set('c', '<C-e>', '<End>')
 
 map('<leader>d', '[D]iagnostics')
+map('<leader>ds', ':Trouble symbols toggle<CR>', '[T]rouble [S]ymbols')
+map('<leader>dd', ':Trouble diagnostics toggle<CR>', '[T]rouble [D]iagnostics')
 
 map('<leader>e', '[E]dit')
 map('<leader>ew', ':e <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [W]indow')
@@ -452,7 +456,9 @@ map(
   ':lua require("telescope.builtin").find_files{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>',
   '[S]earch [F]iles'
 )
-map('<leader>sg', ':lua require("telescope.builtin").live_grep{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [G]rep')
+map('<leader>sg',
+  ':lua require("telescope.builtin").live_grep{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>',
+  '[S]earch [G]rep')
 map('<leader>sh', telescope.help_tags, '[S]earch [H]elp')
 map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
 map('<leader>sm', find_modified_files, '[S]earch [M]odified files')
@@ -472,9 +478,7 @@ map('<leader>sz', find_fuzzy_in_current, '[S]earch fu[Z]zy in current')
 map('<leader>s.', telescope.oldfiles, '[S]earch recent files')
 map('<leader>s/', live_grep_in_open, '[S]earch in open files')
 
-map('<leader>t', '[T]rouble')
-map('<leader>ts', ':Trouble symbols toggle<CR>', '[T]rouble [S]ymbols')
-map('<leader>td', ':Trouble diagnostics toggle<CR>', '[T]rouble [D]iagnostics')
+map('<leader>[', ':tabprevious<CR>')
 
 map('<leader>u', '[U]I')
 map('<leader>ut', toggle_light_dark, '[U]I [T]oggle light/dark')
@@ -486,4 +490,3 @@ map('<leader>z', ':Lazy<Enter>', 'La[Z]y')
 
 -- [[ Terminal mode ]]
 map('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode', 't')
-
