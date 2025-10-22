@@ -60,7 +60,6 @@ require('lazy').setup {
       vim.lsp.enable('pylsp')
     end,
   },
-  'tpope/vim-commentary', -- Easy comments.
   'rcarriga/nvim-notify',
   {                       -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
