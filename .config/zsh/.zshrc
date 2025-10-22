@@ -71,6 +71,7 @@ function tj() {
   tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
   tmux send-keys -t "$env:$env.1" "v" C-m
   tmux split-window -v -t "$env:$env.0"
+  tmux send-keys -t "$env:$env.1" "cd ~/src/jax" C-m
   tmux select-pane -t "$env:$env.1"
   tmux attach-session -t "$env"
 }
