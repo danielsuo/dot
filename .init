@@ -20,6 +20,7 @@ export BREW="$BREW_DIR"/bin/brew
   hammerspoon \
   homerow \
   karabiner-elements \
+  llvm \
   lua \
   lua-language-server \
   luarocks \
@@ -28,6 +29,7 @@ export BREW="$BREW_DIR"/bin/brew
   neovim \
   node \
   oh-my-posh \
+  python-lsp-server \
   ruff \
   stow \
   tmux \
