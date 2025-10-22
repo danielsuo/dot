@@ -184,6 +184,8 @@ weather() {
 # JAX
 ################################################################################
 
+export JAX_TRACEBACK_FILTERING=off
+
 function jn() {
   git clone git@github.com:jax-ml/jax.git
   git clone git@github.com:openxla/xla.git
