@@ -121,7 +121,7 @@ alias pip="uv pip"
 alias wt="pytest-watcher . --pdb -v"
 function wf() {
   file=${1:-'${watch_src_path}'}
-  watchmedo shell-command --patterns="**/*.*" --recursive --command="python -m pdb -c continue ${file}" --drop
+  watchmedo shell-command --patterns="**/*.*" --recursive --command="echo 'continue\nquit' | python -m pdb ${file}" --drop
 }
 function a() {
   [ -f envs/$1/bin/activate ] || (mkdir -p envs && uv venv envs/$1)
