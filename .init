@@ -15,6 +15,7 @@ export BREW="$BREW_DIR"/bin/brew
   coreutils \
   fzf \
   gcc \
+  gdb \
   gh \
   hammerspoon \
   homerow \
