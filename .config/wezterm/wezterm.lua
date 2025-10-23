@@ -19,8 +19,7 @@ SetActiveTabTitle = act.PromptInputLine {
 
 -- UI
 config.pane_focus_follows_mouse = true
-config.tab_bar_at_bottom = true
-config.use_fancy_tab_bar = false
+config.use_fancy_tab_bar = true
 config.switch_to_last_active_tab_when_closing_tab = true
 config.scrollback_lines = 5000
 config.window_padding = { left = 0, right = 0, top = 0, bottom = 0, }
