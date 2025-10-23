@@ -56,16 +56,6 @@ export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 
 ################################################################################
-# Tmux
-################################################################################
-alias t="tmux"
-alias ta="t new -A -s"
-alias tl="t ls"
-alias tk="t kill-session -t"
-alias tka="t kill-server"
-alias tks="t kill-session -a"
-
-################################################################################
 # Neovim
 ################################################################################
 alias v=nvim
@@ -74,7 +64,6 @@ alias vd="nvim ~/dot"
 alias vinit="nvim ~/dot/.init"
 alias vh="nvim ~/.config/hammerspoon/init.lua"
 alias vo="nvim ~/.config/oh-my-posh/config.toml"
-alias vt="nvim ~/.config/tmux/tmux.conf"
 alias vv="nvim ~/.config/nvim/init.lua"
 alias vw="nvim ~/.config/wezterm/wezterm.lua"
 alias vz="nvim ~/.config/zsh/.zshrc"
@@ -211,26 +200,6 @@ function jn() {
     pip install -e .
   fi
   pip install dist/*.whl --force-reinstall
-}
-
-# JAX tmux environment
-function tj() {
-  env=$1
-
-  if ! tmux has-session -t "$env"; then
-    tmux new-session -d -s "$env"
-    tmux rename-window -t "$env:0" "$env"
-    tmux send-keys -t "$env:$env.0" "cd ~/src/jax && a $env" C-m
-    tmux send-keys -t "$env:$env.0" "pip install jaxlib -e ." C-m
-    tmux send-keys -t "$env:$env.0" "wf" C-m
-    tmux split-window -h -t "$env:$env.0"
-    tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
-    tmux send-keys -t "$env:$env.1" "v" C-m
-    tmux split-window -v -t "$env:$env.0"
-    tmux send-keys -t "$env:$env.1" "cd ~/src/jax && a $env" C-m
-    tmux select-pane -t "$env:$env.1"h
-  fi
-  tmux attach-session -t "$env"
 }
 
 ################################################################################

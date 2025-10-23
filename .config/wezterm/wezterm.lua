@@ -4,11 +4,13 @@ local smart_splits = wezterm.plugin.require("https://github.com/mrjones2014/smar
 local config = wezterm.config_builder()
 local act = wezterm.action
 
+-- UI
 config.use_ime = false
 config.debug_key_events = true
 config.disable_default_key_bindings = true
 config.term = "xterm-256color"
 
+-- Keybindings
 config.leader = { key = "s", mods = "CTRL", timeout_milliseconds = 2000 }
 config.keys = {
 	{ key = "c", mods = "SUPER", action = act.CopyTo("Clipboard") },
@@ -27,11 +29,13 @@ config.keys = {
 	-- Swap active pane with another one
 	{ key = "s", mods = "LEADER", action = act.PaneSelect({ mode = "SwapWithActiveKeepFocus" }) },
 }
-
 smart_splits.apply_to_config(config, {
 	direction_keys = { "h", "j", "k", "l" },
 	modifiers = { move = "CTRL", resize = "ALT" },
 	log_level = "info",
 })
+
+-- Sessions
+config.unix_domains = { { name = "unix" } }
 
 return config

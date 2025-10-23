@@ -33,8 +33,6 @@ export BREW="$BREW_DIR"/bin/brew
   ruff \
   stow \
   stylua \
-  tmux \
-  tpm \
   uv \
   wezterm \
   zsh
@@ -65,11 +63,6 @@ popd
 
 # Set up hammerspoon.
 defaults write org.hammerspoon.Hammerspoon MJConfigFile "$HOME/.config/hammerspoon/init.lua"
-
-# Set up tmux.
-git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
-TMUX="$BREW_DIR"/bin/tmux
-"$TMUX" source-file $HOME/.config/tmux/tmux.conf
 
 # Install fonts.
 git clone --filter=blob:none --sparse git@github.com:ryanoasis/nerd-fonts
