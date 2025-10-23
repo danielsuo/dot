@@ -39,31 +39,31 @@ require('lazy').setup {
   { -- Default LSP configurations
     'neovim/nvim-lspconfig',
     config = function()
-      vim.lsp.enable('lua_ls')
+      vim.lsp.enable 'lua_ls'
       vim.lsp.config('lua_ls', {
         settings = {
           Lua = {
             format = {
               enable = true,
               defaultConfig = {
-                indent_style = "space",
-                indent_size = "2",
+                indent_style = 'space',
+                indent_size = '2',
               },
             },
             diagnostics = {
-              globals = { 'vim', 'hs', 'spoon' }
-            }
-          }
-        }
+              globals = { 'vim', 'hs', 'spoon' },
+            },
+          },
+        },
       })
-      vim.lsp.enable('ruff')
-      vim.lsp.enable('pylsp')
+      vim.lsp.enable 'ruff'
+      vim.lsp.enable 'pylsp'
     end,
   },
   'mrjones2014/smart-splits.nvim',
   'tpope/vim-surround',
   'rcarriga/nvim-notify',
-  {                       -- Adds git related signs to the gutter, as well as utilities for managing changes
+  { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
       signs = {
@@ -75,7 +75,7 @@ require('lazy').setup {
       },
     },
   },
-  {                     -- Useful plugin to show you pending keybinds.
+  { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -97,7 +97,7 @@ require('lazy').setup {
         end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
-      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
       require('telescope').setup {
@@ -162,7 +162,7 @@ require('lazy').setup {
     end,
   },
   'nvchad/volt', -- optional, needed for theme switcher
-  { 'folke/todo-comments.nvim',    event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
+  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
   {
     'goolord/alpha-nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -405,14 +405,17 @@ map('g[', ':bprevious<CR>')
 map('g]', ':bnext<CR>')
 
 map('<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights after search')
-map('<C-h>', '<C-w><C-h>', 'Move focus to the left window')
-map('<C-l>', '<C-w><C-l>', 'Move focus to the right window')
-map('<C-j>', '<C-w><C-j>', 'Move focus to the lower window')
-map('<C-k>', '<C-w><C-k>', 'Move focus to the upper window')
--- recommended mappings
--- resizing splits
--- these keymaps will also accept a range,
--- for example `10<A-h>` will `resize_left` by `(10 * config.default_amount)`
+map('<C-w>h', '<C-w>H', 'Move to the left window')
+map('<C-w><C-h>', '<C-w>H', 'Move to the left window')
+map('<C-w>l', '<C-w>L', 'Move to the right window')
+map('<C-w><C-l>', '<C-w>L', 'Move to the right window')
+map('<C-w>j', '<C-w>J', 'Move to the lower window')
+map('<C-w><C-j>', '<C-w>J', 'Move to the lower window')
+map('<C-w>k', '<C-w>K', 'Move to the upper window')
+map('<C-w><C-k>', '<C-w>K', 'Move to the upper window')
+map('<C-\\>', ':vsp<CR>', 'Vertical split')
+map('<C-_>', ':sp<CR>', 'Horizontal split')
+
 map('<A-h>', require('smart-splits').resize_left)
 map('<A-j>', require('smart-splits').resize_down)
 map('<A-k>', require('smart-splits').resize_up)
@@ -422,12 +425,6 @@ map('<C-h>', require('smart-splits').move_cursor_left)
 map('<C-j>', require('smart-splits').move_cursor_down)
 map('<C-k>', require('smart-splits').move_cursor_up)
 map('<C-l>', require('smart-splits').move_cursor_right)
-map('<C-\\>', require('smart-splits').move_cursor_previous)
--- swapping buffers between windows
-map('<leader><leader>h', require('smart-splits').swap_buf_left)
-map('<leader><leader>j', require('smart-splits').swap_buf_down)
-map('<leader><leader>k', require('smart-splits').swap_buf_up)
-map('<leader><leader>l', require('smart-splits').swap_buf_right)
 vim.keymap.set('i', '<C-a>', '<C-o>^')
 vim.keymap.set('i', '<C-e>', '<C-o>$')
 vim.keymap.set('n', '<C-a>', '0')
@@ -451,13 +448,13 @@ map('<leader>et', ':tabe <C-R>=expand("%:p:h") . "/" <CR>', '[E]dit in [T]ab')
 map('<leader>f', '[F]ile')
 map('<leader>fe', toggle_mini_files, '[F]ile [M]inifile')
 map('<leader>fl', ':FormatLines<Enter>', '[F]ile [L]ine format')
-map('<leader>fw', ':bp<bar>sp<bar>bn<bar>bd<CR>', '[File] buffer [C]lose')
+map('<leader>fw', ':bp<bar>sp<bar>bn<bar>bd<CR>', '[File] buffer [W]lose')
 map('<leader>fq', ':q<CR>', '[F]ile [Q]uit')
 map('<leader>fs', ':w<CR>', '[F]ile [S]ave')
 map('<leader>ft', format_file, '[F]ile forma[T]')
 map('<leader>fx', ':Ex<CR>', '[F]ile E[X]')
 
-map('<leader>h', '[H]git')
+map('<leader>h', '[G]it')
 
 map('<leader>l', '[L]SP')
 map('<leader>la', vim.lsp.buf.code_action, '[L]SP code [A]ction', { 'n', 'x' })
@@ -476,9 +473,7 @@ map(
   ':lua require("telescope.builtin").find_files{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>',
   '[S]earch [F]iles'
 )
-map('<leader>sg',
-  ':lua require("telescope.builtin").live_grep{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>',
-  '[S]earch [G]rep')
+map('<leader>sg', ':lua require("telescope.builtin").live_grep{ hidden = true, search_dirs = require("neoscopes").get_current_paths() }<CR>', '[S]earch [G]rep')
 map('<leader>sh', telescope.help_tags, '[S]earch [H]elp')
 map('<leader>sk', telescope.keymaps, '[S]earch [K]eymaps')
 map('<leader>sm', find_modified_files, '[S]earch [M]odified files')
