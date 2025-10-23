@@ -33,6 +33,8 @@ export BREW="$BREW_DIR"/bin/brew
   ruff \
   stow \
   stylua \
+  tmux \
+  tpm \
   uv \
   wezterm \
   zsh
