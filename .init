@@ -32,6 +32,7 @@ export BREW="$BREW_DIR"/bin/brew
   python-lsp-server \
   ruff \
   stow \
+  stylua \
   tmux \
   tpm \
   uv \

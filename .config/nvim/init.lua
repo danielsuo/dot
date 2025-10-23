@@ -60,6 +60,8 @@ require('lazy').setup {
       vim.lsp.enable('pylsp')
     end,
   },
+  'mrjones2014/smart-splits.nvim',
+  'tpope/vim-surround',
   'rcarriga/nvim-notify',
   {                       -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -407,6 +409,25 @@ map('<C-h>', '<C-w><C-h>', 'Move focus to the left window')
 map('<C-l>', '<C-w><C-l>', 'Move focus to the right window')
 map('<C-j>', '<C-w><C-j>', 'Move focus to the lower window')
 map('<C-k>', '<C-w><C-k>', 'Move focus to the upper window')
+-- recommended mappings
+-- resizing splits
+-- these keymaps will also accept a range,
+-- for example `10<A-h>` will `resize_left` by `(10 * config.default_amount)`
+map('<A-h>', require('smart-splits').resize_left)
+map('<A-j>', require('smart-splits').resize_down)
+map('<A-k>', require('smart-splits').resize_up)
+map('<A-l>', require('smart-splits').resize_right)
+-- moving between splits
+map('<C-h>', require('smart-splits').move_cursor_left)
+map('<C-j>', require('smart-splits').move_cursor_down)
+map('<C-k>', require('smart-splits').move_cursor_up)
+map('<C-l>', require('smart-splits').move_cursor_right)
+map('<C-\\>', require('smart-splits').move_cursor_previous)
+-- swapping buffers between windows
+map('<leader><leader>h', require('smart-splits').swap_buf_left)
+map('<leader><leader>j', require('smart-splits').swap_buf_down)
+map('<leader><leader>k', require('smart-splits').swap_buf_up)
+map('<leader><leader>l', require('smart-splits').swap_buf_right)
 vim.keymap.set('i', '<C-a>', '<C-o>^')
 vim.keymap.set('i', '<C-e>', '<C-o>$')
 vim.keymap.set('n', '<C-a>', '0')
