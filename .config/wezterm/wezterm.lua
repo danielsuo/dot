@@ -1,14 +1,33 @@
 local wezterm = require("wezterm")
 local smart_splits = wezterm.plugin.require("https://github.com/mrjones2014/smart-splits.nvim")
 
+
 local config = wezterm.config_builder()
 local act = wezterm.action
 
+-- Functions
+local set_active_tab_title = function(window, pane, line)
+  if line then
+    window:active_tab():set_title(line)
+  end
+end
+
+SetActiveTabTitle = act.PromptInputLine {
+  description = 'Enter new name for tab',
+  action = wezterm.action_callback(set_active_tab_title),
+}
+
 -- UI
+config.pane_focus_follows_mouse = true
+config.tab_bar_at_bottom = true
+config.use_fancy_tab_bar = false
+config.switch_to_last_active_tab_when_closing_tab = true
+config.scrollback_lines = 5000
+config.window_padding = { left = 0, right = 0, top = 0, bottom = 0, }
+config.colors = { tab_bar = { active_tab = { fg_color = '#073642', bg_color = '#2aa198' } } }
 config.use_ime = false
 config.debug_key_events = true
 config.disable_default_key_bindings = true
-config.term = "xterm-256color"
 
 -- Keybindings
 config.leader = { key = "s", mods = "CTRL", timeout_milliseconds = 2000 }
@@ -27,6 +46,7 @@ config.keys = {
 	{ key = "-", mods = "LEADER", action = act.SplitPane({ direction = "Down", size = { Percent = 50 } }) },
 	{ key = "x", mods = "LEADER", action = act.CloseCurrentPane({ confirm = true }) },
 	{ key = "s", mods = "LEADER", action = act.PaneSelect({ mode = "SwapWithActiveKeepFocus" }) },
+  { key = ',', mods = 'LEADER',      action = SetActiveTabTitle },
 }
 smart_splits.apply_to_config(config, {
 	direction_keys = { "h", "j", "k", "l" },

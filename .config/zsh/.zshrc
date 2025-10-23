@@ -9,6 +9,7 @@ export VISUAL=nvim
 # PATH
 ################################################################################
 export PATH="$HOME"/.local/share/../bin:$PATH
+export PATH="$HOME"/go/bin:$PATH
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
@@ -74,6 +75,7 @@ alias vz="nvim ~/.config/zsh/.zshrc"
 ################################################################################
 alias gcam="git commit -am"
 alias gd="git diff"
+alias gb="git branch"
 alias gp="git push"
 alias ga="git add ."
 alias gs="git status"
