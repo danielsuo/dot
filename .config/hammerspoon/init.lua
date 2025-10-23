@@ -52,7 +52,7 @@ screenPositions.left        = { x = 0, y = 0, w = HALF_GRID_SIZE, h = GRID_SIZE 
 screenPositions.right       = { x = HALF_GRID_SIZE, y = 0, w = HALF_GRID_SIZE, h = GRID_SIZE }
 screenPositions.middle      = { x = GRID_SIZE / 3, y = 0, w = HALF_GRID_SIZE, h = GRID_SIZE }
 
-local moveWindowToPosition = function(cell, window)
+local moveWindowToPosition  = function(cell, window)
   if window == nil then
     window = hs.window.focusedWindow()
   end
@@ -63,7 +63,7 @@ local moveWindowToPosition = function(cell, window)
 end
 
 -- Multimedia
-local change_volume = function(diff)
+local change_volume         = function(diff)
   return function()
     local current = hs.audiodevice.defaultOutputDevice():volume()
     local new = math.min(100, math.max(0, math.floor(current + diff)))
@@ -76,7 +76,7 @@ local change_volume = function(diff)
   end
 end
 
-local toggle_mute = function()
+local toggle_mute           = function()
   local mute = not hs.audiodevice.defaultOutputDevice():muted()
   hs.audiodevice.defaultOutputDevice():setMuted(mute)
   hs.alert.closeAll(0.0)
@@ -105,14 +105,14 @@ end
 -- Headspace, it'll block launching apps that are currently on the blocked
 -- lists via hs.settings.
 
-local hyper = hs.hotkey.modal.new({}, nil)
+local hyper                 = hs.hotkey.modal.new({}, nil)
 
-hyper.pressed = function()
+hyper.pressed               = function()
   hyper.key_pressed_in_modal = false
   hyper:enter()
 end
 
-hyper.released = function()
+hyper.released              = function()
   hyper:exit()
   if not hyper.key_pressed_in_modal then
     hs.eventtap.keyStroke({}, 'escape')
@@ -208,7 +208,7 @@ hyper:bind({}, 'E', dispatch_url('goto2.corp.google.com/sknow'))
 hyper:bind({}, 'F', launch_app('Finder'))
 hyper:bind({}, 'G', dispatch_url('github.com/jax-ml/jax'))
 hyper:bind({ 'cmd' }, 'H', nil, launch_app('Google Chat'))
-hyper:bind({ 'alt' }, 'H', launch_app('Messenger' ))
+hyper:bind({ 'alt' }, 'H', nil, launch_app('Messenger'))
 hyper:bind({}, 'I', launch_app('Messages'))
 hyper:bind({ 'cmd' }, 'J', nil, dispatch_url('goto2.corp.google.com/jaxplorations'))
 hyper:bind({ 'cmd' }, 'L', nil, dispatch_url('calendar.google.com/calendar/u/0'))
@@ -241,4 +241,3 @@ hs.hotkey.bind({ 'ctrl' }, 'down', function() hs.eventtap.keyStroke({ 'ctrl' }, 
 hs.hotkey.bind({ 'ctrl', 'shift' }, 'down', function() hs.eventtap.keyStroke({ 'ctrl', 'shift' }, 'n') end)
 hs.hotkey.bind({ 'ctrl' }, 'up', function() hs.eventtap.keyStroke({ 'ctrl' }, 'p') end)
 hs.hotkey.bind({ 'ctrl', 'shift' }, 'up', function() hs.eventtap.keyStroke({ 'ctrl', 'shift' }, 'p') end)
-
