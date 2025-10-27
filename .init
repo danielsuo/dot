@@ -37,6 +37,8 @@ export BREW="$BREW_DIR"/bin/brew
   tpm \
   uv \
   wezterm \
+  wireguard-tools \
+  wireshark-app \
   zsh
 
 # Set up github.

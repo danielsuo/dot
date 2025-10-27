@@ -25,6 +25,7 @@ config.scrollback_lines = 5000
 config.window_padding = { left = 0, right = 0, top = 0, bottom = 0, }
 config.colors = { tab_bar = { active_tab = { fg_color = '#073642', bg_color = '#2aa198' } } }
 config.use_ime = false
+config.enable_scroll_bar = true
 config.debug_key_events = true
 config.disable_default_key_bindings = true
 
@@ -36,6 +37,7 @@ config.keys = {
   { key = "q",  mods = "SUPER",       action = act.QuitApplication },
   { key = "t",  mods = "SUPER",       action = act.SpawnTab("CurrentPaneDomain") },
   { key = "v",  mods = "SUPER",       action = act.PasteFrom("Clipboard") },
+  { key = "f",  mods = "SUPER",       action = act.Search{ CaseInSensitiveString = "" } },
   { key = "w",  mods = "SUPER",       action = act.CloseCurrentTab({ confirm = true }) },
   { key = "[",  mods = "SUPER|SHIFT", action = act.ActivateTabRelative(-1) },
   { key = "]",  mods = "SUPER|SHIFT", action = act.ActivateTabRelative(1) },
