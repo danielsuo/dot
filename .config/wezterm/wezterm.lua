@@ -42,6 +42,8 @@ config.keys = {
   { key = "[",  mods = "SUPER|SHIFT", action = act.ActivateTabRelative(-1) },
   { key = "]",  mods = "SUPER|SHIFT", action = act.ActivateTabRelative(1) },
   { key = "r",  mods = "SUPER",       action = act.ReloadConfiguration },
+  { key = "=",  mods = "SUPER",       action = act.IncreaseFontSize },
+  { key = "-",  mods = "SUPER",       action = act.DecreaseFontSize },
   { key = "f",  mods = "LEADER",      action = act.TogglePaneZoomState },
   { key = "\\", mods = "LEADER",      action = act.SplitPane({ direction = "Right", size = { Percent = 50 } }) },
   { key = "-",  mods = "LEADER",      action = act.SplitPane({ direction = "Down", size = { Percent = 50 } }) },
