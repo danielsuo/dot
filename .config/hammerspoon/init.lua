@@ -233,11 +233,38 @@ hyper:bind({ 'cmd' }, ']', function() move_window_to_next_screen() end)
 hyper:bind({}, '=', function() moveWindowToPosition(screenPositions.full) end)
 hyper:bind({}, '\\', function() moveWindowToPosition(screenPositions.middle) end)
 
-hs.hotkey.bind({ 'alt' }, 'f', function() hs.eventtap.keyStroke({ 'alt' }, 'right') end)
-hs.hotkey.bind({ 'alt', 'shift' }, 'f', function() hs.eventtap.keyStroke({ 'alt', 'shift' }, 'right') end)
-hs.hotkey.bind({ 'alt' }, 'b', function() hs.eventtap.keyStroke({ 'alt' }, 'left') end)
-hs.hotkey.bind({ 'alt', 'shift' }, 'b', function() hs.eventtap.keyStroke({ 'alt', 'shift' }, 'left') end)
-hs.hotkey.bind({ 'ctrl' }, 'down', function() hs.eventtap.keyStroke({ 'ctrl' }, 'n') end)
-hs.hotkey.bind({ 'ctrl', 'shift' }, 'down', function() hs.eventtap.keyStroke({ 'ctrl', 'shift' }, 'n') end)
-hs.hotkey.bind({ 'ctrl' }, 'up', function() hs.eventtap.keyStroke({ 'ctrl' }, 'p') end)
-hs.hotkey.bind({ 'ctrl', 'shift' }, 'up', function() hs.eventtap.keyStroke({ 'ctrl', 'shift' }, 'p') end)
+local readline_hotkeys = {}
+readline_hotkeys.forward_word = hs.hotkey.new({ 'alt' }, 'f', function() hs.eventtap.keyStroke({ 'alt' }, 'right') end)
+readline_hotkeys.forward_select_word = hs.hotkey.new({ 'alt', 'shift' }, 'f', function() hs.eventtap.keyStroke({ 'alt', 'shift' }, 'right') end)
+readline_hotkeys.back_word = hs.hotkey.new({ 'alt' }, 'b', function() hs.eventtap.keyStroke({ 'alt' }, 'left') end)
+readline_hotkeys.back_select_word = hs.hotkey.new({ 'alt', 'shift' }, 'b', function() hs.eventtap.keyStroke({ 'alt', 'shift' }, 'left') end)
+readline_hotkeys.down_line = hs.hotkey.new({ 'ctrl' }, 'down', function() hs.eventtap.keyStroke({ 'ctrl' }, 'n') end)
+readline_hotkeys.down_select_line =hs.hotkey.new({ 'ctrl', 'shift' }, 'down', function() hs.eventtap.keyStroke({ 'ctrl', 'shift' }, 'n') end)
+readline_hotkeys.up_line = hs.hotkey.new({ 'ctrl' }, 'up', function() hs.eventtap.keyStroke({ 'ctrl' }, 'p') end)
+readline_hotkeys.up_select_line = hs.hotkey.new({ 'ctrl', 'shift' }, 'up', function() hs.eventtap.keyStroke({ 'ctrl', 'shift' }, 'p') end)
+
+local function disable_readline_hotkeys()
+  for _, hotkey in pairs(readline_hotkeys) do
+    hotkey:disable()
+  end
+end
+
+local function enable_readline_hotkeys()
+  for _, hotkey in pairs(readline_hotkeys) do
+    hotkey:enable()
+  end
+end
+
+-- Create the application watcher
+hs.application.watcher.new(function(appName, eventType, appObject)
+  if eventType == hs.application.watcher.activated then
+    -- When a new app is activated
+    if appName == 'WezTerm' then
+      -- If it's WezTerm, disable your global hotkeys
+      disable_readline_hotkeys()
+    else
+      -- Otherwise, enable them
+      enable_readline_hotkeys()
+    end
+  end
+end):start()

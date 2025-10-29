@@ -26,6 +26,8 @@ eval "$(oh-my-posh init zsh --config $XDG_CONFIG_HOME/oh-my-posh/config.toml)"
 setopt autocd extendedglob nomatch notify
 unsetopt beep
 bindkey -e
+bindkey '\ef' forward-word
+bindkey '\eb' backward-word
 
 autoload -Uz compinit
 compinit
