@@ -37,9 +37,16 @@ vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup {
   { -- Default LSP configurations
+    'mason-org/mason.nvim',
+    'mason-org/mason-lspconfig.nvim',
+    opts = {},
+    dependencies = {
+      { 'mason-org/mason.nvim', opts = {} },
+      'neovim/nvim-lspconfig',
+    },
     'neovim/nvim-lspconfig',
     config = function()
-      vim.lsp.enable 'lua_ls'
+      vim.lsp.enable { 'lua_ls', 'pylsp' }
       vim.lsp.config('lua_ls', {
         settings = {
           Lua = {
@@ -56,10 +63,6 @@ require('lazy').setup {
           },
         },
       })
-      vim.lsp.config('ruff', {})
-      vim.lsp.enable 'ruff'
-      vim.lsp.config('pylsp', {})
-      vim.lsp.enable 'pylsp'
     end,
   },
   'mrjones2014/smart-splits.nvim',
@@ -305,6 +308,11 @@ require('lazy').setup {
     },
     cmd = 'Trouble',
   },
+}
+
+require('mason').setup()
+require('mason-lspconfig').setup {
+  ensure_installed = { 'lua_ls', 'pylsp' },
 }
 
 vim.g.have_nerd_font = true

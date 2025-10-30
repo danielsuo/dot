@@ -135,6 +135,7 @@ function a() {
     opt-einsum \
     pandas \
     pillow \
+    'python-lsp-server[all]' \
     pytest \
     pytest-watcher \
     pytest-xdist \
