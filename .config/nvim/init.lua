@@ -56,7 +56,9 @@ require('lazy').setup {
           },
         },
       })
+      vim.lsp.config 'ruff'
       vim.lsp.enable 'ruff'
+      vim.lsp.config 'pylsp'
       vim.lsp.enable 'pylsp'
     end,
   },
