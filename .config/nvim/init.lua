@@ -36,17 +36,66 @@ end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup {
-  { -- Default LSP configurations
-    'mason-org/mason.nvim',
+  -- Default LSP configurations
+  'mason-org/mason.nvim',
+  {
+    'WhoIsSethDaniel/mason-tool-installer.nvim',
+    dependencies = {
+      'mason-org/mason.nvim',
+      'mason-org/mason-lspconfig.nvim',
+    },
+    config = function()
+      require('mason-tool-installer').setup {
+        ensure_installed = { 'ruff' }, -- Tool name from the Mason registry
+      }
+    end,
+  },
+  {
     'mason-org/mason-lspconfig.nvim',
-    opts = {},
+    opts = {
+      ensure_installed = { 'lua_ls', 'pylsp' },
+    },
     dependencies = {
       { 'mason-org/mason.nvim', opts = {} },
       'neovim/nvim-lspconfig',
     },
+  },
+  {
     'neovim/nvim-lspconfig',
     config = function()
-      vim.lsp.enable { 'lua_ls', 'pylsp' }
+      -- Setup pylsp directly with settings
+      vim.lsp.config('pylsp', {
+        settings = {
+          pylsp = {
+            plugins = {
+              -- Formatter options
+              black = { enabled = false },
+              autopep8 = { enabled = false },
+              yapf = { enabled = false },
+              ruff = { enabled = true },
+
+              -- Linter options (optional, good to be explicit)
+              pylint = { enabled = false, executable = 'pylint' },
+              pyflakes = { enabled = false },
+              pycodestyle = { enabled = false },
+
+              -- Type checker
+              pylsp_mypy = { enabled = true },
+
+              -- Auto-completion options
+              jedi_completion = { fuzzy = true },
+
+              -- Import sorting
+              pyls_isort = { enabled = true },
+            },
+          },
+        },
+        on_attach = function(client, bufnr)
+          -- Explicitly disable formatting capability for pylsp
+          client.server_capabilities.documentFormattingProvider = false
+          client.server_capabilities.documentRangeFormattingProvider = false
+        end,
+      })
       vim.lsp.config('lua_ls', {
         settings = {
           Lua = {
@@ -311,9 +360,6 @@ require('lazy').setup {
 }
 
 require('mason').setup()
-require('mason-lspconfig').setup {
-  ensure_installed = { 'lua_ls', 'pylsp' },
-}
 
 vim.g.have_nerd_font = true
 vim.opt.number = true

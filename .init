@@ -22,17 +22,13 @@ export BREW="$BREW_DIR"/bin/brew
   karabiner-elements \
   llvm \
   lua \
-  lua-language-server \
   luarocks \
   ripgrep \
   miniforge \
   neovim \
   node \
   oh-my-posh \
-  python-lsp-server \
-  ruff \
   stow \
-  stylua \
   tmux \
   tpm \
   uv \

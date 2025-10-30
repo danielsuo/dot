@@ -135,7 +135,6 @@ function a() {
     opt-einsum \
     pandas \
     pillow \
-    'python-lsp-server[all]' \
     pytest \
     pytest-watcher \
     pytest-xdist \
@@ -173,7 +172,7 @@ weather() {
 # JAX
 ################################################################################
 function jd() {
-  cd ~/src/jax && a "$1"
+  cd ~/src/jax && a "$1" && pip install -e .
 }
 
 export JAX_TRACEBACK_FILTERING=off
