@@ -72,21 +72,21 @@ require('lazy').setup {
               black = { enabled = false },
               autopep8 = { enabled = false },
               yapf = { enabled = false },
-              ruff = { enabled = true },
+              ruff = { enabled = false },
 
               -- Linter options (optional, good to be explicit)
-              pylint = { enabled = false, executable = 'pylint' },
+              pylint = { enabled = false },
               pyflakes = { enabled = false },
               pycodestyle = { enabled = false },
 
               -- Type checker
-              pylsp_mypy = { enabled = true },
+              pylsp_mypy = { enabled = false },
 
               -- Auto-completion options
-              jedi_completion = { fuzzy = true },
+              jedi_completion = { fuzzy = false },
 
               -- Import sorting
-              pyls_isort = { enabled = true },
+              pyls_isort = { enabled = false },
             },
           },
         },
