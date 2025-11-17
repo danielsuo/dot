@@ -11,6 +11,7 @@ export BREW="$BREW_DIR"/bin/brew
 # Install bottles and casks.
 "$BREW" shellenv
 "$BREW" install --force \
+  1password \
   bazelisk \
   coreutils \
   fzf \
