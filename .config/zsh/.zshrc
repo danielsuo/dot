@@ -206,6 +206,65 @@ function jn() {
   fi
   pip install dist/*.whl --force-reinstall
 }
+################################################################################
+# UTILS
+################################################################################
+sync_dirs() {
+    # Check if two arguments (source and destination directories) were provided
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: sync_new_files <source_directory> <destination_directory>"
+        return 1
+    fi
+
+    local SOURCE_DIR="$1"
+    local DEST_DIR="$2"
+
+    # Ensure source directory exists
+    if [ ! -d "$SOURCE_DIR" ]; then
+        echo "Error: Source directory '$SOURCE_DIR' not found."
+        return 1
+    fi
+
+    # Create destination directory if it doesn't exist
+    if [ ! -d "$DEST_DIR" ]; then
+        echo "Destination directory '$DEST_DIR' not found. Creating it..."
+        mkdir -p "$DEST_DIR"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to create destination directory."
+            return 1
+        fi
+    fi
+
+    echo "Starting synchronization from $SOURCE_DIR to $DEST_DIR..."
+
+    # Iterate through all files in the source directory (including subdirectories)
+    # The find command helps process all files recursively
+    find "$SOURCE_DIR" -type f -print0 | while IFS= read -r -d '' SOURCE_FILE; do
+        # Calculate the relative path of the file
+        RELATIVE_PATH="${SOURCE_FILE#"$SOURCE_DIR/"}"
+        # Construct the full path in the destination directory
+        DEST_FILE="$DEST_DIR/$RELATIVE_PATH"
+        # Check if the file exists in the destination
+        if [ ! -f "$DEST_FILE" ]; then
+            echo "Copying new file: $RELATIVE_PATH"
+            # Ensure the destination directory structure exists before copying
+            DEST_DIR_PATH=$(dirname "$DEST_FILE")
+            if [ ! -d "$DEST_DIR_PATH" ]; then
+                mkdir -p "$DEST_DIR_PATH"
+            fi
+            # Copy the file, preserving metadata (p)
+            cp -p "$SOURCE_FILE" "$DEST_FILE"
+        # else
+        #     echo "File already exists, skipping: $RELATIVE_PATH"
+        fi
+    done
+
+    echo "Synchronization complete."
+}
+
+sync_date() {
+  sync_dirs "/Users/dsuo/Pictures/$1" "/Volumes/homes/dsuo/Photos/$1"
+}
 
 ################################################################################
 # GOOGLE
