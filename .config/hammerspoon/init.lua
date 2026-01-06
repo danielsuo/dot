@@ -223,6 +223,15 @@ hyper:bind({}, 'U', hs.reload)
 hyper:bind({}, 'V', launch_app('Jetski'))
 hyper:bind({ 'cmd' }, 'V', nil, launch_app('Cider'))
 hyper:bind({}, 'Y', hs.toggleConsole)
+hyper.bind({}, 'Z', function()
+    local win = hs.window.find('Agent Manager')
+
+    if win then
+        win:focus()
+    else
+        hs.alert.show('Agent Manager not found.')
+    end
+end)
 hyper:bind({}, 'UP', change_volume(5))
 hyper:bind({}, 'DOWN', change_volume(-5))
 hyper:bind({}, 'LEFT', toggle_mute)

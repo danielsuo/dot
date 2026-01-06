@@ -52,6 +52,14 @@ export HISTSIZE=1000
 export SAVEHIST=1000
 
 ################################################################################
+# Agentic
+################################################################################
+j() {
+  blaze run --nocheck_visibility --norun_validations  //learning/gemini/gemax/experimental/unagi/demos:jarvis -- --logtostderr --prompt "$*"
+}
+alias g='/google/bin/releases/gemini-cli/tools/gemini'
+
+################################################################################
 # LLVM
 ################################################################################
 export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
