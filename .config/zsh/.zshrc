@@ -58,6 +58,7 @@ j() {
   blaze run --nocheck_visibility --norun_validations  //learning/gemini/gemax/experimental/unagi/demos:jarvis -- --logtostderr --prompt "$*"
 }
 alias g='/google/bin/releases/gemini-cli/tools/gemini'
+alias gemini='/google/bin/releases/gemini-cli/tools/gemini'
 
 ################################################################################
 # LLVM
