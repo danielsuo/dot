@@ -40,7 +40,22 @@ function M.statuscolumn()
   vim.b.statuscolumn_relnum_width = math.max(#tostring(math.floor(vim.fn.winheight(0) / 2) + 1), 2)
   local lnum_width = vim.b.statuscolumn_lnum_width or 4
   local relnum_width = vim.b.statuscolumn_relnum_width or 2
-  return string.format("%" .. lnum_width .. "d %" .. relnum_width .. "d│", lnum, relnum)
+  return "%s" .. string.format("%" .. lnum_width .. "d %" .. relnum_width .. "d│", lnum, relnum)
+end
+
+function M.toggle_quickfix()
+  local qf_exists = false
+  for _, win in pairs(vim.fn.getwininfo()) do
+    if win.quickfix == 1 then
+      qf_exists = true
+      break
+    end
+  end
+  if qf_exists then
+    vim.cmd("cclose")
+  else
+    vim.cmd("copen")
+  end
 end
 
 return M

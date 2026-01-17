@@ -26,7 +26,7 @@ util.map("n", "<leader>lh", vim.lsp.buf.hover, "Hover")
 util.map("n", "<leader>la", vim.lsp.buf.code_action, "Code Action")
 util.map("n", "<leader>ln", vim.lsp.buf.rename, "Rename")
 util.map("n", "<leader>le", vim.diagnostic.open_float, "Diagnostics")
-util.map("n", "<leader>lq", "<cmd>cclose<cr>", "Close Quickfix")
+util.map("n", "<leader>lq", util.toggle_quickfix, "Toggle Quickfix")
 util.map("n", "<leader>ll", vim.diagnostic.setqflist, "List All Diagnostics")
 
 -- mini.clue
@@ -108,6 +108,7 @@ require("lazy").setup({
   { "neovim/nvim-lspconfig", config = config_lsp },
   { "navarasu/onedark.nvim" },
   { "lewis6991/satellite.nvim", config = function() require("satellite").setup() end },
+  { "lewis6991/gitsigns.nvim", config = function() require("gitsigns").setup() end },
 })
 
 -- Theme
