@@ -233,7 +233,7 @@ hyper:bind({ "cmd" }, "M", nil, dispatch_url("mail.google.com/mail/u/1"))
 hyper:bind({}, "Q", dispatch_url("critique.corp.google.com"))
 hyper:bind({}, "R", launch_app("Reminders"))
 hyper:bind({}, "S", launch_app("Settings"))
-hyper:bind({}, "T", launch_app("WezTerm"))
+hyper:bind({}, "T", launch_app("Wezterm"))
 hyper:bind({}, "U", hs.reload)
 hyper:bind({}, "V", launch_app("Jetski"))
 hyper:bind({ "cmd" }, "V", nil, launch_app("Cider"))
@@ -315,3 +315,6 @@ hs.application.watcher
 		end
 	end)
 	:start()
+
+hs.alert.show("Secure Input: " .. tostring(hs.eventtap.isSecureInputEnabled()))
+

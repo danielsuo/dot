@@ -80,6 +80,7 @@ alias vt="nvim ~/.config/tmux/tmux.conf"
 alias vv="nvim ~/.config/nvim/init.lua"
 alias vw="nvim ~/.config/wezterm/wezterm.lua"
 alias vz="nvim ~/.config/zsh/.zshrc"
+alias vg="nvim ~/.config/ghostty/config"
 
 ################################################################################
 # Git

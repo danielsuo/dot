@@ -1,0 +1,20 @@
+# TUI App Configuration
+
+[appearance]
+dark_mode = true
+
+[behavior]
+show_header = true
+show_footer = true
+
+[notifications]
+enabled = true
+sound = false
+duration_seconds = 5
+
+[layout]
+sidebar_width = 30
+default_focus = "sidebar"
+
+[tabs]
+visible = ['agents', 'thinking', 'context']
