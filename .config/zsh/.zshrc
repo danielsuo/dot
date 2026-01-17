@@ -83,6 +83,21 @@ alias vz="nvim ~/.config/zsh/.zshrc"
 alias vg="nvim ~/.config/ghostty/config"
 
 ################################################################################
+# Tmux
+################################################################################
+alias tls="tmux list-sessions"
+ta() {
+    local session_name="${1:-main}"
+
+    # Check if session exists (suppress error output)
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        tmux attach-session -t "$session_name"
+    else
+        tmux new-session -s "$session_name"
+    fi
+}
+
+################################################################################
 # Git
 ################################################################################
 alias gcam="git commit -am"
