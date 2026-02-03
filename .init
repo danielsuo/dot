@@ -24,6 +24,7 @@ export BREW="$BREW_DIR"/bin/brew
   llvm \
   lua \
   luarocks \
+  google-chrome \
   ripgrep \
   miniforge \
   neovim \
