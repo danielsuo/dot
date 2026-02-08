@@ -51,13 +51,13 @@ for DEST in "${DESTINATIONS[@]}"; do
         --buffer-size 128M \
         --multi-thread-streams 4 \
         --size-only \
-        --metadata \
         --low-level-retries 10 \
         --stats 10s \
         --inplace \
+        --fix-backslashes \
+        --no-unicode-normalization \
         --exclude "**.lrdata/**" \
         --exclude "**.DS_Store" \
-        --exclude "**/Icon?" \
         --ignore-errors
 
     echo "Finished backup to $DEST at $(date)"
