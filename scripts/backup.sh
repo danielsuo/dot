@@ -54,7 +54,6 @@ for DEST in "${DESTINATIONS[@]}"; do
         --low-level-retries 10 \
         --stats 10s \
         --inplace \
-        --fix-backslashes \
         --no-unicode-normalization \
         --exclude "**.lrdata/**" \
         --exclude "**.DS_Store" \
