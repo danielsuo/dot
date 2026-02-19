@@ -7,3 +7,4 @@ export ZSH_CACHE_DIR="$XDG_CACHE_HOME/zsh"
 
 skip_global_compinit=1
 
+. "$HOME/.cargo/env"
