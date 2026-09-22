@@ -293,3 +293,33 @@ sync_date() {
 
 [[ -f ~/.google.zshrc ]] && source ~/.google.zshrc
 
+
+################################################################################
+# Herdr
+################################################################################
+# Herdr GUI Launcher (Local or Remote SSH via native herdr --remote)
+h() {
+  if [ -n "$1" ]; then
+    open -na Ghostty.app --args --config-file="$HOME/.config/herdr/ghostty.config" -e "$HOME/.local/bin/herdr" --remote "$@"
+  else
+    open -na Ghostty.app --args --config-file="$HOME/.config/herdr/ghostty.config"
+  fi
+}
+
+# Word Navigation & Deletion Shortcuts
+bindkey '^[b' backward-word
+bindkey '^[f' forward-word
+bindkey '^[[1;3D' backward-word
+bindkey '^[[1;3C' forward-word
+bindkey '^[^[[D' backward-word
+bindkey '^[^[[C' forward-word
+bindkey '^[^?' backward-kill-word
+bindkey '^\x17' backward-kill-word
+
+# Jetski CLI wrapper for Herdr session restore & detection
+if [[ -x /google/bin/releases/jetski-devs/tools/cli ]]; then
+  jetski() {
+    jetski-herdr-record launch -- "$@"
+    HERDR_AGENT=agy /google/bin/releases/jetski-devs/tools/cli "$@"
+  }
+fi
