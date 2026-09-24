@@ -96,17 +96,19 @@ description = "open file from agent output"
 key = "prefix+o"
 type = "plugin_action"
 command = "herdr-navigator.open"
-description = "jump to anything"
+description = "herdr-navigator"
 
 [[keys.command]]
 key = "prefix+a"
 type = "plugin_action"
 command = "hhdebb.herdr-radar.view-flip"       # order: active <-> recent
+description = "toggler active/recent order"
 
 [[keys.command]]
 key = "prefix+comma"
 type = "plugin_action"
 command = "hhdebb.herdr-radar.settings"        # settings popup
+descriptions = "herdr-radar settings"
 
 # Prefix-mode actions
 # help = "prefix+?"

@@ -4,32 +4,48 @@
     {
       "id": "w2",
       "custom_name": null,
-      "identity_cwd": "/Users/dsuo",
+      "identity_cwd": "/usr/local/google/home/dsuo",
       "public_pane_numbers": {
-        "2": 1
+        "1": 1,
+        "4": 4
       },
-      "next_public_pane_number": 2,
+      "next_public_pane_number": 5,
       "public_tab_numbers": [
-        1
+        1,
+        2
       ],
-      "next_public_tab_number": 2,
+      "next_public_tab_number": 3,
       "tabs": [
         {
           "custom_name": null,
           "layout": {
-            "Pane": 2
+            "Pane": 1
           },
           "panes": {
-            "2": {
-              "cwd": "/Users/dsuo"
+            "1": {
+              "cwd": "/usr/local/google/home/dsuo"
             }
           },
           "zoomed": false,
-          "focused": 2,
-          "root_pane": 2
+          "focused": 1,
+          "root_pane": 1
+        },
+        {
+          "custom_name": null,
+          "layout": {
+            "Pane": 4
+          },
+          "panes": {
+            "4": {
+              "cwd": "/usr/local/google/home/dsuo"
+            }
+          },
+          "zoomed": false,
+          "focused": 4,
+          "root_pane": 4
         }
       ],
-      "active_tab": 0
+      "active_tab": 1
     }
   ],
   "active": 0,
