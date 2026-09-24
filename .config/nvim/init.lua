@@ -109,6 +109,13 @@ require("lazy").setup({
   { "navarasu/onedark.nvim" },
   { "lewis6991/satellite.nvim", config = function() require("satellite").setup() end },
   { "lewis6991/gitsigns.nvim", config = function() require("gitsigns").setup() end },
+  {
+    "ChmaraX/herdr-nvim",
+    lazy = false,
+    config = function()
+      -- Optional: Add your herdr-nvim setup configuration here if needed
+    end,
+  },
 })
 
 -- Theme

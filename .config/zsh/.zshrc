@@ -74,13 +74,20 @@ alias v=nvim
 alias vim=nvim
 alias vd="nvim ~/dot"
 alias vinit="nvim ~/dot/.init"
-alias vh="nvim ~/.config/hammerspoon/init.lua"
+alias vs="nvim ~/.config/hammerspoon/init.lua"
 alias vo="nvim ~/.config/oh-my-posh/config.toml"
 alias vt="nvim ~/.config/tmux/tmux.conf"
+alias vh="nvim ~/.config/herdr/config.toml"
 alias vv="nvim ~/.config/nvim/init.lua"
 alias vw="nvim ~/.config/wezterm/wezterm.lua"
 alias vz="nvim ~/.config/zsh/.zshrc"
 alias vg="nvim ~/.config/ghostty/config"
+
+################################################################################
+# herdr
+################################################################################
+alias hl="herder plugin log"
+alias hr="herdr server reload-config"
 
 ################################################################################
 # Tmux
@@ -110,6 +117,7 @@ alias gf="git commit -am 'Update' && gp"
 alias gu="git pull"
 alias gn="git checkout -b"
 alias go="git checkout"
+alias grc="git rebase --continue"
 alias gl="git log --graph --pretty='format:%C(auto)%h %d %s %C(green)%an%C(bold blue) %ad' --all --date=relative"
 alias dgf="pushd ~/dot && gf && popd"
 alias dgu="pushd ~/dot && gu && popd"
