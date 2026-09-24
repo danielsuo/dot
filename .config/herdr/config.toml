@@ -1,20 +1,4 @@
 onboarding = false
-[ui.toast]
-delivery = "system"
-
-[ui]
-show_agent_labels_on_pane_borders = false
-confirm_close = true
-agent_panel_sort = "spaces"
-
-[keys]
-switch_workspace = "prefix+shift+1..9"
-next_workspace = "prefix+shift+j"
-previous_workspace = "prefix+shift+k"
-
-[theme]
-name = "terminal"
-auto_switch = false
 
 # herdr configuration
 # Place this file at ~/.config/herdr/config.toml
@@ -212,6 +196,9 @@ command = "hhdebb.herdr-radar.settings"        # settings popup
 # directory = "~/.herdr/worktrees"
 
 [ui]
+show_agent_labels_on_pane_borders = false
+confirm_close = true
+agent_panel_sort = "spaces"
 
 # >>> herdr-radar tab-bar block
 tab_bar_right_separator = " · "
@@ -352,6 +339,7 @@ tab_bar_right = [
 
 # Background notification popup delivery
 [ui.toast]
+delivery = "system"
 # off = disable pop-up notifications
 # herdr = show in-app toasts
 # terminal = ask the outer terminal to show a desktop notification
