@@ -300,7 +300,7 @@ sync_date() {
 # Herdr GUI Launcher (Local or Remote SSH via native herdr --remote)
 h() {
   if [ -n "$1" ]; then
-    open -na Ghostty.app --args --config-file="$HOME/.config/herdr/ghostty.config" -e "$HOME/.local/bin/herdr" --remote "$@"
+    open -na Ghostty.app --args --config-file="$HOME/.config/herdr/ghostty.config" -e "$HOME/.local/bin/herdr-remote-launch" "$@"
   else
     open -na Ghostty.app --args --config-file="$HOME/.config/herdr/ghostty.config"
   fi
