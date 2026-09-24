@@ -108,7 +108,7 @@ description = "toggler active/recent order"
 key = "prefix+comma"
 type = "plugin_action"
 command = "hhdebb.herdr-radar.settings"        # settings popup
-descriptions = "herdr-radar settings"
+description = "herdr-radar settings"
 
 # Prefix-mode actions
 # help = "prefix+?"
