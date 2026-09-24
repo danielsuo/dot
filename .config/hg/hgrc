@@ -1,0 +1,5 @@
+[alias]
+lola = log -G -T lola
+
+[templates]
+lola = '{label("log.changeset", rev)}:{label("log.node", node|short)} {label("log.branch", if(branches, "({branches}) "))}{label("log.bookmark", if(bookmarks, "[{bookmarks}] "))}{label("log.description", desc|firstline)} {label("log.date", "({date|age})")} {label("log.user", "<{author|person}>")}\n'
