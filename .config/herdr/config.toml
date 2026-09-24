@@ -201,6 +201,7 @@ description = "herdr-radar settings"
 show_agent_labels_on_pane_borders = false
 confirm_close = true
 agent_panel_sort = "spaces"
+prompt_new_tab_name = false
 
 # >>> herdr-radar tab-bar block
 tab_bar_right_separator = " · "
