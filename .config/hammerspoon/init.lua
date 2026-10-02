@@ -147,22 +147,6 @@ hyper.launch = function(app)
 	end
 end
 
-local focus_agent_manager = function()
-	hyper.key_pressed_in_modal = true
-	local app = hs.application.get("Jetski")
-
-	if app then
-		local win = app:allWindows()[1]
-		if win then
-			win:focus()
-		else
-			hs.alert.show("App found, but no window open")
-		end
-	else
-		hs.alert.show("Application 'Agent Manager' not running")
-	end
-end
-
 -- Expects a configuration table with an applications key that has the
 -- following form:
 -- config_table.applications = {
@@ -225,7 +209,6 @@ hyper:bind({}, "G", dispatch_url("github.com/jax-ml/jax"))
 hyper:bind({ "cmd" }, "H", nil, launch_app("Google Chat"))
 hyper:bind({ "alt" }, "H", nil, launch_app("Messenger"))
 hyper:bind({}, "I", launch_app("Messages"))
-hyper:bind({}, "J", launch_app("Jetski Web"))
 hyper:bind({ "cmd" }, "J", nil, dispatch_url("goto2.corp.google.com/jaxplorations"))
 hyper:bind({ "cmd" }, "L", nil, dispatch_url("calendar.google.com/calendar/u/0"))
 hyper:bind({ "alt" }, "L", nil, dispatch_url("calendar.google.com/calendar/u/1"))
@@ -238,7 +221,7 @@ hyper:bind({}, "T", launch_app("Ghostty"))
 hyper:bind({}, "U", hs.reload)
 hyper:bind({}, "V", launch_app("Jetski"))
 hyper:bind({ "cmd" }, "V", nil, launch_app("Cider"))
-hyper:bind({}, "X", focus_agent_manager)
+hyper:bind({}, "X", launch_app("Jetski Web"))
 hyper:bind({}, "Y", hs.toggleConsole)
 hyper:bind({}, "UP", change_volume(5))
 hyper:bind({}, "DOWN", change_volume(-5))
