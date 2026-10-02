@@ -331,3 +331,17 @@ if [[ -x /google/bin/releases/jetski-devs/tools/cli ]]; then
     HERDR_AGENT=agy /google/bin/releases/jetski-devs/tools/cli "$@"
   }
 fi
+# === JETSTART CONFIG START ===
+# JetStart Alias for Jetski/Cloudtop
+function j() {
+  # 1. Run Roadwarrior to handle gcert locally and remotely without leaving you in SSH
+  echo "🔑 Running Roadwarrior to refresh certificates..."
+  rw --nossh_interactively dsuo.c.googlers.com
+
+  # 2. Ensure Jetski Web is running/updated AND drop into the Cloudtop terminal
+  echo "🚀 Ensuring Jetski Web is running and starting session..."
+  ssh -t dsuo.c.googlers.com "/google/bin/releases/jetski-devs/tools/cli web install; exec bash -l"
+}
+
+# Backward compatibility alias
+# === JETSTART CONFIG END ===
