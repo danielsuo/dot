@@ -54,7 +54,7 @@ for DEST in "${DESTINATIONS[@]}"; do
         --low-level-retries 10 \
         --stats 10s \
         --inplace \
-	--local-encoding "Slash,Dot,Ctl,InvalidUtf8,LtGt,Pipe,BackSlash,Question,Colon,Asterisk" \
+	--local-encoding "Raw,Slash,Dot,Ctl,InvalidUtf8,LtGt,Pipe,BackSlash,Question,Colon,Asterisk" \
         --exclude "**.lrdata/**" \
         --exclude "**.DS_Store" \
         --ignore-errors
