@@ -36,10 +36,16 @@ compinit
 # SSH
 ################################################################################
 if [[ $(command -v gcert) ]]; then
+  export AUTH_HOST="dsuo.c.googlers.com"
+  alias rw="command rw --remote_gcert_args \"--lifetime=168h --nocorpssh --noprodssh\""
+
   alias s="ssh dsuo.c.googlers.com"
   alias sw="rw dsuo.c.googlers.com"
   alias sg="gcloud compute ssh --zone us-central1-f dsuo-a100 --project jax-dev"
   alias sc="gcloud compute ssh --zone us-central1-a dsuo-cpu --project jax-dev"
+  alias gcert='command gcert --lifetime=168h --nocorpssh --noprodssh && command gcert --reuse_sso_cookie --noloas2'
+  alias gcert_refresh='gcertstatus --nocheck_ssh --check_remaining=18h --quiet || { gcert; }'
+  gcert_refresh 
 fi
 
 ################################################################################
@@ -302,46 +308,3 @@ sync_date() {
 [[ -f ~/.google.zshrc ]] && source ~/.google.zshrc
 
 
-################################################################################
-# Herdr
-################################################################################
-# Herdr GUI Launcher (Local or Remote SSH via native herdr --remote)
-h() {
-  if [ -n "$1" ]; then
-    open -na Ghostty.app --args --config-file="$HOME/.config/herdr/ghostty.config" -e "$HOME/.local/bin/herdr-remote-launch" "$@"
-  else
-    open -na Ghostty.app --args --config-file="$HOME/.config/herdr/ghostty.config"
-  fi
-}
-
-# Word Navigation & Deletion Shortcuts
-bindkey '^[b' backward-word
-bindkey '^[f' forward-word
-bindkey '^[[1;3D' backward-word
-bindkey '^[[1;3C' forward-word
-bindkey '^[^[[D' backward-word
-bindkey '^[^[[C' forward-word
-bindkey '^[^?' backward-kill-word
-bindkey '^\x17' backward-kill-word
-
-# Jetski CLI wrapper for Herdr session restore & detection
-if [[ -x /google/bin/releases/jetski-devs/tools/cli ]]; then
-  jetski() {
-    jetski-herdr-record launch -- "$@"
-    HERDR_AGENT=agy /google/bin/releases/jetski-devs/tools/cli "$@"
-  }
-fi
-# === JETSTART CONFIG START ===
-# JetStart Alias for Jetski/Cloudtop
-function j() {
-  # 1. Run Roadwarrior to handle gcert locally and remotely without leaving you in SSH
-  echo "🔑 Running Roadwarrior to refresh certificates..."
-  rw --nossh_interactively dsuo.c.googlers.com
-
-  # 2. Ensure Jetski Web is running/updated AND drop into the Cloudtop terminal
-  echo "🚀 Ensuring Jetski Web is running and starting session..."
-  ssh -t dsuo.c.googlers.com "/google/bin/releases/jetski-devs/tools/cli web install; exec bash -l"
-}
-
-# Backward compatibility alias
-# === JETSTART CONFIG END ===
