@@ -201,7 +201,7 @@ config.applications = {
 hyper.start(config)
 
 hyper:bind({}, "A", launch_app("Activity Monitor"))
-hyper:bind({}, "B", dispatch_url("b.corp.google.com/home"))
+hyper:bind({}, "B", launch_app("Beekeeper"))
 hyper:bind({}, "C", launch_app("Google Chrome"))
 hyper:bind({}, "E", dispatch_url("goto2.corp.google.com/sknow"))
 hyper:bind({}, "F", launch_app("Finder"))
