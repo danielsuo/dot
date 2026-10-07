@@ -227,6 +227,42 @@ hyper:bind({}, "UP", change_volume(5))
 hyper:bind({}, "DOWN", change_volume(-5))
 hyper:bind({}, "LEFT", toggle_mute)
 
+local ASSISTANT_ID = "35f2f29b-84d5-4dec-ac96-0a22cfb34880"
+local function pressAssistantLink(el, depth)
+  if not el or depth > 18 then return false end
+  if el:attributeValue("AXRole") == "AXLink" then
+    local desc = el:attributeValue("AXDescription") or el:attributeValue("AXTitle") or ""
+    local urlObj = el:attributeValue("AXURL")
+    local urlStr = type(urlObj) == "table" and (urlObj.url or "") or tostring(urlObj or "")
+    if desc == "Assistant" or string.find(urlStr, ASSISTANT_ID, 1, true) then
+      el:performAction("AXPress")
+      return true
+    end
+  end
+  local children = el:attributeValue("AXChildren")
+  if children then
+    for _, child in ipairs(children) do
+      if pressAssistantLink(child, depth + 1) then
+        return true
+      end
+    end
+  end
+  return false
+end
+hyper:bind({}, "Z", function()
+  hs.application.launchOrFocus("Jetski Web") -- use the exact app name from your Hyper+X
+  hs.timer.doAfter(0.08, function()
+    local app = hs.application.frontmostApplication()
+    if not app then return end
+    local axApp = hs.axuielement.applicationElement(app)
+    axApp:setAttributeValue("AXEnhancedUserInterface", true)
+    local win = app:focusedWindow()
+    if win then
+      pressAssistantLink(hs.axuielement.windowElement(win), 0)
+    end
+  end)
+end)
+
 hyper:bind({}, "[", function()
 	moveWindowToPosition(screenPositions.left)
 end)

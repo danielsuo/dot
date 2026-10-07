@@ -36,7 +36,7 @@ compinit
 # SSH
 ################################################################################
 if [[ $(command -v gcert) ]]; then
-  export AUTH_HOST="dsuo.c.googlers.com"
+  export AUTH_HOST=dsuo.c.googlers.com
   alias rw="command rw --remote_gcert_args \"--lifetime=168h --nocorpssh --noprodssh\""
 
   alias s="ssh dsuo.c.googlers.com"
