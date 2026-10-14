@@ -214,7 +214,6 @@ hyper:bind({ "cmd" }, "L", nil, dispatch_url("calendar.google.com/calendar/u/0")
 hyper:bind({ "alt" }, "L", nil, dispatch_url("calendar.google.com/calendar/u/1"))
 hyper:bind({}, "M", launch_app("Muse"))
 hyper:bind({ "cmd" }, "M", nil, dispatch_url("mail.google.com"))
-hyper:bind({}, "P", launch_app("Impromptu"))
 hyper:bind({}, "Q", dispatch_url("critique.corp.google.com"))
 hyper:bind({}, "R", launch_app("Reminders"))
 hyper:bind({}, "S", launch_app("Settings"))
@@ -223,6 +222,7 @@ hyper:bind({}, "U", hs.reload)
 hyper:bind({}, "V", launch_app("Cider"))
 hyper:bind({ "cmd" }, "V", nil, launch_app("Cider"))
 hyper:bind({}, "X", launch_app("Jetski Web"))
+hyper:bind({}, "Z", launch_app("Impromptu"))
 hyper:bind({}, "Y", hs.toggleConsole)
 hyper:bind({}, "UP", change_volume(5))
 hyper:bind({}, "DOWN", change_volume(-5))
@@ -250,19 +250,6 @@ local function pressAssistantLink(el, depth)
   end
   return false
 end
-hyper:bind({}, "Z", function()
-  hs.application.launchOrFocus("Jetski Web") -- use the exact app name from your Hyper+X
-  hs.timer.doAfter(0.08, function()
-    local app = hs.application.frontmostApplication()
-    if not app then return end
-    local axApp = hs.axuielement.applicationElement(app)
-    axApp:setAttributeValue("AXEnhancedUserInterface", true)
-    local win = app:focusedWindow()
-    if win then
-      pressAssistantLink(hs.axuielement.windowElement(win), 0)
-    end
-  end)
-end)
 
 hyper:bind({}, "[", function()
 	moveWindowToPosition(screenPositions.left)
