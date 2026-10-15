@@ -44,6 +44,7 @@ if [[ $(command -v gcert) ]]; then
   alias sg="gcloud compute ssh --zone us-central1-f dsuo-a100 --project jax-dev"
   alias sc="gcloud compute ssh --zone us-central1-a dsuo-cpu --project jax-dev"
   alias gcert='command gcert --lifetime=168h --nocorpssh --noprodssh && command gcert --reuse_sso_cookie --noloas2'
+  alias gcert-all='for host in dsuo.c.googlers.com jaxbot.googlers.com; do echo "=== $host ==="; ssh "$host" "gcert --lifetime=168h --nocorpssh --noprodssh"; done'
   alias gcert_refresh='gcertstatus --nocheck_ssh --check_remaining=18h --quiet || { gcert; }'
   gcert_refresh 
 fi
