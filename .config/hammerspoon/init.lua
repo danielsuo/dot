@@ -106,6 +106,19 @@ end
 
 local hyper = hs.hotkey.modal.new({}, nil)
 
+local raw_hyper_bind = hyper.bind
+function hyper:bind(mods, key, pressedfn, releasedfn, repeatfn)
+	local wrapped_pressed = pressedfn and function()
+		self.key_pressed_in_modal = true
+		pressedfn()
+	end or nil
+	local wrapped_released = releasedfn and function()
+		self.key_pressed_in_modal = true
+		releasedfn()
+	end or nil
+	return raw_hyper_bind(self, mods, key, wrapped_pressed, wrapped_released, repeatfn)
+end
+
 hyper.pressed = function()
 	hyper.key_pressed_in_modal = false
 	hyper:enter()
@@ -200,6 +213,69 @@ config.applications = {
 }
 hyper.start(config)
 
+local ASSISTANT_CONV_ID = "35f2f29b-84d5-4dec-ac96-0a22cfb34880"
+
+local open_jetski_assistant = function()
+	hyper.key_pressed_in_modal = true
+	hs.application.launchOrFocus("Jetski Web")
+
+	local script = string.format([[
+		tell application "Google Chrome"
+			repeat with w in windows
+				repeat with i from 1 to (count of tabs of w)
+					set t to tab i of w
+					set tabUrl to URL of t
+					if tabUrl contains "jetski.corp.google.com" then
+						set active tab index of w to i
+						set index of w to 1
+						if tabUrl contains "%s" then
+							return "already_active"
+						end if
+						try
+							execute t javascript "
+								(function() {
+									var m = location.pathname.match(/^(\\/(?:box|roles)\\/[^/]+)/);
+									var base = m ? m[1] : '';
+									var target = base + '/c/%s';
+									if (location.pathname !== target) {
+										history.pushState(null, '', target);
+										window.dispatchEvent(new PopStateEvent('popstate'));
+									}
+								})();
+							"
+							return "switched_js"
+						on error
+							return "need_url:" & tabUrl
+						end try
+					end if
+				end repeat
+			end repeat
+		end tell
+		return "not_found"
+	]], ASSISTANT_CONV_ID, ASSISTANT_CONV_ID)
+
+	local ok, result = hs.osascript.applescript(script)
+	if ok and type(result) == "string" and result:sub(1, 9) == "need_url:" then
+		local current_url = result:sub(10)
+		local base = current_url:match("^(https://jetski%.corp%.google%.com/[^/]+/[^/]+)")
+			or "https://jetski.corp.google.com"
+		local target_url = base .. "/c/" .. ASSISTANT_CONV_ID
+		hs.osascript.applescript(string.format([[
+			tell application "Google Chrome"
+				repeat with w in windows
+					repeat with i from 1 to (count of tabs of w)
+						set t to tab i of w
+						if URL of t contains "jetski.corp.google.com" then
+							set URL of t to "%s"
+							return "switched_url"
+						end if
+					end repeat
+				end repeat
+			end tell
+		]], target_url))
+	end
+end
+
 hyper:bind({}, "A", launch_app("Activity Monitor"))
 hyper:bind({}, "B", launch_app("Beekeeper"))
 hyper:bind({}, "C", launch_app("Google Chrome"))
@@ -283,41 +359,47 @@ end)
 readline_hotkeys.back_select_word = hs.hotkey.new({ "alt", "shift" }, "b", function()
 	hs.eventtap.keyStroke({ "alt", "shift" }, "left")
 end)
-readline_hotkeys.down_line = hs.hotkey.new({ "ctrl" }, "down", function()
-	hs.eventtap.keyStroke({ "ctrl" }, "n")
-end)
+-- Note: ctrl+down (keycode 125) and ctrl+up (keycode 126) conflict with macOS
+-- Mission Control / Application Windows shortcuts (RegisterEventHotKey -9878)
+-- unless disabled in System Settings -> Keyboard -> Keyboard Shortcuts -> Mission Control.
 readline_hotkeys.down_select_line = hs.hotkey.new({ "ctrl", "shift" }, "down", function()
 	hs.eventtap.keyStroke({ "ctrl", "shift" }, "n")
-end)
-readline_hotkeys.up_line = hs.hotkey.new({ "ctrl" }, "up", function()
-	hs.eventtap.keyStroke({ "ctrl" }, "p")
 end)
 readline_hotkeys.up_select_line = hs.hotkey.new({ "ctrl", "shift" }, "up", function()
 	hs.eventtap.keyStroke({ "ctrl", "shift" }, "p")
 end)
 
+local readline_enabled = false
+
 local function disable_readline_hotkeys()
+	if not readline_enabled then
+		return
+	end
 	for _, hotkey in pairs(readline_hotkeys) do
 		hotkey:disable()
 	end
+	readline_enabled = false
 end
 
 local function enable_readline_hotkeys()
+	if readline_enabled then
+		return
+	end
 	for _, hotkey in pairs(readline_hotkeys) do
 		hotkey:enable()
 	end
+	readline_enabled = true
 end
 
--- Create the application watcher
-hs.application.watcher
+enable_readline_hotkeys()
+
+-- Keep a global reference to prevent garbage collection of the watcher
+readline_app_watcher = hs.application.watcher
 	.new(function(appName, eventType, appObject)
 		if eventType == hs.application.watcher.activated then
-			-- When a new app is activated
 			if appName == "WezTerm" then
-				-- If it's WezTerm, disable your global hotkeys
 				disable_readline_hotkeys()
 			else
-				-- Otherwise, enable them
 				enable_readline_hotkeys()
 			end
 		end

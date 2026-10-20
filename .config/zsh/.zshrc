@@ -10,6 +10,8 @@ export VISUAL=nvim
 ################################################################################
 export PATH="$HOME"/.local/share/../bin:$PATH
 export PATH="$HOME"/go/bin:$PATH
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.elan/bin:$PATH"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:"$PATH"
