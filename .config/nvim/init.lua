@@ -28,6 +28,7 @@ util.map("n", "<leader>ln", vim.lsp.buf.rename, "Rename")
 util.map("n", "<leader>le", vim.diagnostic.open_float, "Diagnostics")
 util.map("n", "<leader>lq", util.toggle_quickfix, "Toggle Quickfix")
 util.map("n", "<leader>ll", vim.diagnostic.setqflist, "List All Diagnostics")
+util.map("n", "<leader>lf", function() vim.lsp.buf.format({ async = true }) end, "Format")
 
 -- mini.clue
 util.triggers_for("n", { "<Leader>", "g", "z", "'", "`", '"', "<C-w>", "[", "]" })
@@ -64,7 +65,7 @@ end
 -- treesitter
 local function config_treesitter()
   require("nvim-treesitter").setup({
-    ensure_installed = { "lua", "python", "vim", "vimdoc", "query" },
+    ensure_installed = { "lua", "python", "vim", "vimdoc", "query", "rust" },
   })
 end
 
@@ -73,7 +74,7 @@ end
 local function config_lsp()
   require("mason").setup()
   require("mason-lspconfig").setup({
-    ensure_installed = { "lua_ls", "pyright", "ruff" },
+    ensure_installed = { "lua_ls", "pyright", "ruff", "rust_analyzer" },
   })
 
   -- Neovim 0.11+ native LSP config
@@ -91,8 +92,15 @@ local function config_lsp()
       referencesProvider = false,
     },
   }
+  vim.lsp.config.rust_analyzer = {
+    settings = {
+      ["rust-analyzer"] = {
+        check = { command = "check" },
+      },
+    },
+  }
 
-  vim.lsp.enable({ "lua_ls", "pyright", "ruff" })
+  vim.lsp.enable({ "lua_ls", "pyright", "ruff", "rust_analyzer" })
 end
 
 -- Plugins
