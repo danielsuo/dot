@@ -23,7 +23,8 @@ fi
 ################################################################################
 # Terminal
 ################################################################################
-eval "$(oh-my-posh init zsh --config $XDG_CONFIG_HOME/oh-my-posh/config.toml)"
+# Native Santa-safe Zsh prompt (cross-platform macOS & Cloudtop drop-in for oh-my-posh)
+source "${${(%):-%x}:A:h}/prompt.zsh"
 
 setopt autocd extendedglob nomatch notify
 unsetopt beep
