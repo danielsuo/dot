@@ -7,4 +7,4 @@ export ZSH_CACHE_DIR="$XDG_CACHE_HOME/zsh"
 
 skip_global_compinit=1
 
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/dot/bin:$HOME/.local/bin:$PATH"
