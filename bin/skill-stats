@@ -7,6 +7,10 @@ Provides robust, verifiable skill usage statistics across:
 
 Distinguishes between REAL TOOL EXECUTIONS vs CONVERSATIONAL MENTIONS.
 Tracks Takt time (recency drift), execution latencies, and caller agents.
+
+STATUS LEGEND:
+  [✓] Verified Active : Real tool/harness execution recorded & proven live in workspace.
+  [·] Discussion Only : Mentioned in context/prompts, but 0 real tool executions.
 """
 
 import argparse
@@ -35,6 +39,58 @@ SKILL_NAME_RE = re.compile(
 
 def canonicalize(name):
     return CANONICAL_ALIASES.get(name, name)
+
+class Palette:
+    def __init__(self, enabled=True):
+        self.enabled = enabled
+        ESC = chr(27)
+        if enabled:
+            self.RESET = f"{ESC}[0m"
+            self.BOLD = f"{ESC}[1m"
+            self.DIM = f"{ESC}[2m"
+            self.EMERALD = f"{ESC}[38;5;48m"
+            self.CYAN = f"{ESC}[38;5;51m"
+            self.AMBER = f"{ESC}[38;5;214m"
+            self.PURPLE = f"{ESC}[38;5;141m"
+            self.SLATE = f"{ESC}[38;5;245m"
+            self.BORDER = f"{ESC}[38;5;239m"
+            self.WHITE = f"{ESC}[97m"
+            self.RED = f"{ESC}[38;5;196m"
+            self.BADGE_GREEN = f"{ESC}[48;5;22m{ESC}[38;5;48m{ESC}[1m"
+            self.BADGE_GRAY = f"{ESC}[48;5;236m{ESC}[38;5;248m"
+        else:
+            self.RESET = ""
+            self.BOLD = ""
+            self.DIM = ""
+            self.EMERALD = ""
+            self.CYAN = ""
+            self.AMBER = ""
+            self.PURPLE = ""
+            self.SLATE = ""
+            self.BORDER = ""
+            self.WHITE = ""
+            self.RED = ""
+            self.BADGE_GREEN = ""
+            self.BADGE_GRAY = ""
+
+ANSI_RE = re.compile(rf"{chr(27)}\[[0-9;]*m")
+
+def visible_len(s):
+    return len(ANSI_RE.sub("", s))
+
+def pad_str(s, width, align="left"):
+    v = visible_len(s)
+    diff = max(0, width - v)
+    if align == "right":
+        return " " * diff + s
+    elif align == "center":
+        left = diff // 2
+        right = diff - left
+        return " " * left + s + " " * right
+    return s + " " * diff
+
+def box_line(content, inner_width, pal):
+    return f"{pal.BORDER}│{pal.RESET} {pad_str(content, inner_width)} {pal.BORDER}│{pal.RESET}"
 
 def scan_skills_usage_file(log_path):
     """Parses structured entries from ~/.config/skills/usage.jsonl."""
@@ -140,11 +196,10 @@ def log_skill_invocation(skill_name, action="run", agent="user", harness="cli", 
     with open(log_file, "a") as fh:
         fh.write(json.dumps(record) + "\n")
 
-def print_dashboard(stats, usage_records):
+def print_dashboard(stats, usage_records, color=True):
+    pal = Palette(enabled=color)
     now = datetime.now(timezone.utc)
-    print("=" * 86)
-    print(f"  Skill Usage Telemetry & Analytics ({now.strftime('%Y-%m-%d %H:%M UTC')})")
-    print("=" * 86)
+    inner_w = 95
 
     # Ingest structured usage records
     for r in usage_records:
@@ -169,13 +224,111 @@ def print_dashboard(stats, usage_records):
             stats[s]["failures"] += 1
 
     sorted_skills = sorted(stats.items(), key=lambda x: (-x[1]["real_execs"], -x[1]["mentions"]))
-    if not sorted_skills:
-        print("  No skill activity recorded yet.")
-        print("=" * 86)
-        return
 
-    print(f"{'SKILL':<28} {'REAL RUNS':<10} {'DISCUSSIONS':<12} {'TAKT RECENCY':<16} {'CALLER AGENTS'}")
-    print("-" * 86)
+    top_border = f"{pal.BORDER}╭{'─' * (inner_w + 2)}╮{pal.RESET}"
+    mid_border = f"{pal.BORDER}├{'─' * (inner_w + 2)}┤{pal.RESET}"
+    bot_border = f"{pal.BORDER}╰{'─' * (inner_w + 2)}╯{pal.RESET}"
+
+    print(top_border)
+    title_left = f"{pal.EMERALD}⚡{pal.RESET} {pal.BOLD}{pal.WHITE}Skill Usage Telemetry & Analytics{pal.RESET}"
+    title_right = f"{pal.SLATE}{now.strftime('%Y-%m-%d %H:%M UTC')}{pal.RESET}"
+    header_content = pad_str(title_left, inner_w - visible_len(title_right)) + title_right
+    print(box_line(header_content, inner_w, pal))
+    print(mid_border)
+
+    col_hdr = (
+        f"  {pal.BOLD}{pal.SLATE}{'STATUS':<7}{pal.RESET} "
+        f"{pal.BOLD}{pal.WHITE}{'SKILL':<27}{pal.RESET} "
+        f"{pal.BOLD}{pal.CYAN}{'REAL RUNS':<11}{pal.RESET} "
+        f"{pal.BOLD}{pal.PURPLE}{'DISCUSSIONS':<13}{pal.RESET} "
+        f"{pal.BOLD}{pal.AMBER}{'TAKT RECENCY':<15}{pal.RESET} "
+        f"{pal.BOLD}{pal.SLATE}{'CALLERS':<17}{pal.RESET}"
+    )
+    print(box_line(col_hdr, inner_w, pal))
+    print(mid_border)
+
+    if not sorted_skills:
+        print(box_line(f"  {pal.SLATE}No skill telemetry recorded yet.{pal.RESET}", inner_w, pal))
+    else:
+        for skill, data in sorted_skills:
+            real_cnt = data["real_execs"]
+            mention_cnt = data["mentions"]
+            agents_str = ", ".join(sorted(data["agents"])) if data["agents"] else "none"
+            if len(agents_str) > 17:
+                agents_str = agents_str[:14] + "..."
+
+            if data["last_exec_ts"]:
+                delta = now - data["last_exec_ts"]
+                hours = delta.total_seconds() / 3600.0
+                if hours < 1:
+                    mins = int(delta.total_seconds() / 60)
+                    takt_raw = f"{mins}m ago"
+                    takt_styled = f"{pal.EMERALD}{takt_raw}{pal.RESET}"
+                elif hours < 24:
+                    takt_raw = f"{hours:.1f}h ago"
+                    takt_styled = f"{pal.CYAN}{takt_raw}{pal.RESET}"
+                else:
+                    days = int(hours / 24)
+                    takt_raw = f"{days}d ago [DRIFT]"
+                    takt_styled = f"{pal.AMBER}{pal.BOLD}{takt_raw}{pal.RESET}"
+            else:
+                takt_raw = "Never Run"
+                takt_styled = f"{pal.SLATE}{takt_raw}{pal.RESET}"
+
+            if real_cnt > 0:
+                badge = f"{pal.EMERALD}{pal.BOLD}[✓]{pal.RESET}"
+                skill_styled = f"{pal.BOLD}{pal.WHITE}{skill:<27}{pal.RESET}"
+                runs_styled = f"{pal.EMERALD}{pal.BOLD}[ {real_cnt:>2} ]{pal.RESET}     "
+            else:
+                badge = f"{pal.SLATE}[·]{pal.RESET}"
+                skill_styled = f"{pal.SLATE}{skill:<27}{pal.RESET}"
+                runs_styled = f"{pal.SLATE}[  0 ]     {pal.RESET}"
+
+            mentions_styled = f"{pal.PURPLE}{mention_cnt:>4} mentions{pal.RESET}"
+            callers_styled = f"{pal.CYAN}{agents_str:<17}{pal.RESET}" if real_cnt > 0 else f"{pal.SLATE}{agents_str:<17}{pal.RESET}"
+
+            row = (
+                f"  {badge}  "
+                f"{skill_styled} "
+                f"{runs_styled} "
+                f"{mentions_styled} "
+                f"{pad_str(takt_styled, 15)} "
+                f"{callers_styled}"
+            )
+            print(box_line(row, inner_w, pal))
+
+    print(mid_border)
+    print(box_line(f"  {pal.BOLD}{pal.WHITE}STATUS LEGEND:{pal.RESET}", inner_w, pal))
+    print(box_line(f"   {pal.EMERALD}[✓] Verified Active{pal.RESET} : Real tool/harness execution recorded & proven live in workspace.", inner_w, pal))
+    print(box_line(f"   {pal.SLATE}[·] Discussion Only{pal.RESET} : Mentioned in context/prompts, but {pal.BOLD}0 real tool executions{pal.RESET}.", inner_w, pal))
+    print(box_line("", inner_w, pal))
+    print(box_line(f"  {pal.BOLD}{pal.WHITE}METRICS DEFINITION:{pal.RESET}", inner_w, pal))
+    print(box_line(f"   • {pal.BOLD}REAL RUNS{pal.RESET}   : Confirmed CLI & subagent executions (bash commands, scripts, doctor, verify).", inner_w, pal))
+    print(box_line(f"   • {pal.BOLD}DISCUSSIONS{pal.RESET} : Frequency of appearance across prompts, system tools, and chat threads.", inner_w, pal))
+    print(box_line(f"   • {pal.BOLD}TAKT RECENCY{pal.RESET}: Elapsed time since last run. Warns {pal.AMBER}[DRIFT RISK]{pal.RESET} if >24 hours stale.", inner_w, pal))
+    print(bot_border)
+
+def render_html_widget(stats, usage_records):
+    now = datetime.now(timezone.utc)
+    for r in usage_records:
+        s = canonicalize(r.get("skill", ""))
+        if not s:
+            continue
+        stats[s]["real_execs"] += 1
+        agent = r.get("agent", "unknown")
+        stats[s]["agents"].add(agent)
+        ts_str = r.get("timestamp")
+        if ts_str:
+            try:
+                dt = datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                if not stats[s]["last_exec_ts"] or dt > stats[s]["last_exec_ts"]:
+                    stats[s]["last_exec_ts"] = dt
+            except Exception:
+                pass
+
+    sorted_skills = sorted(stats.items(), key=lambda x: (-x[1]["real_execs"], -x[1]["mentions"]))
+
+    rows_html = []
     for skill, data in sorted_skills:
         real_cnt = data["real_execs"]
         mention_cnt = data["mentions"]
@@ -187,32 +340,91 @@ def print_dashboard(stats, usage_records):
             delta = now - data["last_exec_ts"]
             hours = delta.total_seconds() / 3600.0
             if hours < 1:
-                mins = int(delta.total_seconds() / 60)
-                takt_str = f"{mins}m ago"
+                takt_str = f"{int(delta.total_seconds() / 60)}m ago"
+                takt_badge = f'<span style="color: var(--sd-working, #10b981);">{takt_str}</span>'
             elif hours < 24:
                 takt_str = f"{hours:.1f}h ago"
+                takt_badge = f'<span style="color: var(--sd-accent, #38bdf8);">{takt_str}</span>'
             else:
-                days = int(hours / 24)
-                takt_str = f"{days}d ago [DRIFT]"
+                takt_str = f"{int(hours / 24)}d ago"
+                takt_badge = f'<span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{takt_str} [DRIFT]</span>'
         else:
-            takt_str = "Never Run"
+            takt_badge = '<span style="color: var(--sd-muted, #94a3b8);">Never Run</span>'
 
-        status_flag = ""
         if real_cnt > 0:
-            status_flag = "✓"
+            status_badge = '<span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 7px; border-radius: 12px; font-weight: 600; font-size: 11px;">✓ ACTIVE</span>'
+            runs_badge = f'<span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-family: monospace;">{real_cnt}</span>'
+            skill_text = f'<strong style="color: var(--sd-fg, #f8fafc);">{skill}</strong>'
         else:
-            status_flag = "·"
+            status_badge = '<span style="background: rgba(100, 116, 139, 0.15); color: #94a3b8; padding: 2px 7px; border-radius: 12px; font-weight: 500; font-size: 11px;">· IDLE</span>'
+            runs_badge = '<span style="color: var(--sd-muted, #64748b); font-family: monospace;">0</span>'
+            skill_text = f'<span style="color: var(--sd-muted, #94a3b8);">{skill}</span>'
 
-        print(f"{status_flag} {skill:<26} {real_cnt:<10} {mention_cnt:<12} {takt_str:<16} {agents_str}")
+        mentions_text = f'<span style="color: var(--sd-accent, #818cf8);">{mention_cnt}</span>'
+        callers_text = f'<code style="font-size: 11px; color: var(--sd-fg, #cbd5e1);">{agents_str}</code>'
 
-    print("=" * 86)
-    print("  Note: 'REAL RUNS' counts actual shell / harness executions. 'DISCUSSIONS'")
-    print("  tracks conversational context mentions across prompt history and chat.")
-    print("=" * 86)
+        rows_html.append(f"""
+    <tr style="border-bottom: 1px solid var(--sd-bd, rgba(255,255,255,0.06));">
+      <td style="padding: 7px 10px;">{status_badge}</td>
+      <td style="padding: 7px 10px;">{skill_text}</td>
+      <td style="padding: 7px 10px; text-align: center;">{runs_badge}</td>
+      <td style="padding: 7px 10px; text-align: right;">{mentions_text}</td>
+      <td style="padding: 7px 10px;">{takt_badge}</td>
+      <td style="padding: 7px 10px;">{callers_text}</td>
+    </tr>""")
+
+    tbody = "\n".join(rows_html)
+
+    html = f"""<html-inline>
+<div style="font-family: system-ui, -apple-system, sans-serif; font-size: 12.5px; line-height: 1.5; padding: 14px 16px; background: var(--sd-card, #1e293b); border: 1px solid var(--sd-card-bd, #334155); border-radius: 10px; color: var(--sd-fg, #f8fafc); margin: 4px 0;">
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--sd-bd, #334155); padding-bottom: 8px; margin-bottom: 10px;">
+    <span style="font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+      <span style="color: var(--sd-working, #10b981);">⚡</span> Skill Usage Telemetry &amp; Analytics
+    </span>
+    <span style="font-size: 11px; color: var(--sd-muted, #94a3b8);">{now.strftime('%Y-%m-%d %H:%M UTC')}</span>
+  </div>
+
+  <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px;">
+    <thead>
+      <tr style="border-bottom: 1px solid var(--sd-bd, #334155); text-align: left; color: var(--sd-muted, #94a3b8); font-size: 11px; text-transform: uppercase;">
+        <th style="padding: 6px 10px;">Status</th>
+        <th style="padding: 6px 10px;">Skill</th>
+        <th style="padding: 6px 10px; text-align: center;">Real Runs</th>
+        <th style="padding: 6px 10px; text-align: right;">Discussions</th>
+        <th style="padding: 6px 10px;">Takt Recency</th>
+        <th style="padding: 6px 10px;">Callers</th>
+      </tr>
+    </thead>
+    <tbody>
+{tbody}
+    </tbody>
+  </table>
+
+  <div style="background: var(--sd-soft, rgba(0,0,0,0.2)); border-radius: 6px; padding: 9px 12px; font-size: 11.5px; line-height: 1.5; color: var(--sd-muted, #94a3b8);">
+    <div style="font-weight: 600; color: var(--sd-fg, #f8fafc); margin-bottom: 4px;">Status Legend:</div>
+    <div><span style="color: var(--sd-working, #10b981); font-weight: 600;">✓ Active</span> : Real tool/harness execution recorded &amp; proven live in workspace.</div>
+    <div><span style="color: var(--sd-muted, #94a3b8); font-weight: 600;">· Idle</span> : Mentioned in context/prompts, but <strong>0 real tool executions</strong>.</div>
+    <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">
+      • <strong>Real Runs</strong>: Confirmed shell tool executions. • <strong>Discussions</strong>: Context mentions in prompt history.
+    </div>
+  </div>
+</div>
+</html-inline>"""
+    return html
 
 def main():
-    parser = argparse.ArgumentParser(description="Skill Usage Telemetry & Analytics")
+    parser = argparse.ArgumentParser(
+        description="Skill Usage Telemetry & Analytics CLI",
+        epilog="""
+STATUS LEGEND:
+  [✓] Verified Active : Real tool/harness execution recorded & proven live in workspace.
+  [·] Discussion Only : Mentioned in context/prompts, but 0 real tool executions.
+        """
+    )
     parser.add_argument("--json", action="store_true", help="Output in JSON format")
+    parser.add_argument("--html", action="store_true", help="Output rich HTML dashboard card")
+    parser.add_argument("--no-color", action="store_true", help="Disable ANSI color output")
+    parser.add_argument("--color", action="store_true", help="Force ANSI color output")
     parser.add_argument("--all-sessions", action="store_true", help="Scan all historical swarm sessions")
     parser.add_argument("--log-call", type=str, help="Log a skill invocation (e.g. --log-call verify-app)")
     parser.add_argument("--agent", type=str, default="user", help="Caller agent name")
@@ -248,8 +460,16 @@ def main():
                 "last_execution": v["last_exec_ts"].isoformat() if v["last_exec_ts"] else None,
             }
         print(json.dumps(out, indent=2))
+    elif args.html:
+        print(render_html_widget(stats, usage_records))
     else:
-        print_dashboard(stats, usage_records)
+        use_color = True
+        if args.no_color or os.environ.get("NO_COLOR"):
+            use_color = False
+        elif not sys.stdout.isatty() and not args.color:
+            use_color = False
+        print_dashboard(stats, usage_records, color=use_color)
 
 if __name__ == "__main__":
     main()
+
