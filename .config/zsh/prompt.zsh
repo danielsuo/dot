@@ -6,6 +6,7 @@
 # Runs 100% in-process inside Apple-signed /bin/zsh and Linux /bin/zsh with <5ms latency.
 
 zmodload zsh/datetime
+zmodload zsh/mathfunc
 
 typeset -g _prompt_cmd_start=0
 typeset -g _prompt_cmd_elapsed=""
