@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# setup-hooks: One-command installer that wires cross-harness lifecycle hooks.
+# Usage:
+#   setup-hooks                  # Auto-detects active harnesses (Git, Cursor, Beekeeper)
+#   setup-hooks --git-only       # Only install git hooks
+#   setup-hooks --all            # Force configure all harnesses
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+DOT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DISPATCHER="${DOT_BIN}/run-lifecycle-hook"
+
+echo "=================================================="
+echo " Setting up Universal Lifecycle Hooks in: $REPO_ROOT"
+echo "=================================================="
+
+INSTALLED_COUNT=0
+
+# 1. Setup Git Hooks
+if [[ -d "${REPO_ROOT}/.git" ]]; then
+  HOOKS_DIR="${REPO_ROOT}/.git/hooks"
+  mkdir -p "$HOOKS_DIR"
+
+  # Pre-push hook (Tier 2 pre-review verification gate)
+  cat > "${HOOKS_DIR}/pre-push" <<EOF
+#!/usr/bin/env bash
+# [lifecycle] pre-push hook: execute Tier 2 verification gate
+if command -v run-lifecycle-hook >/dev/null 2>&1; then
+  run-lifecycle-hook on_pre_review
+elif [[ -x "${DISPATCHER}" ]]; then
+  "${DISPATCHER}" on_pre_review
+fi
+EOF
+  chmod +x "${HOOKS_DIR}/pre-push"
+
+  # Post-merge hook (on_change_landed upkeep loop)
+  cat > "${HOOKS_DIR}/post-merge" <<EOF
+#!/usr/bin/env bash
+# [lifecycle] post-merge hook: execute post-landing verification upkeep
+if command -v run-lifecycle-hook >/dev/null 2>&1; then
+  run-lifecycle-hook on_change_landed
+elif [[ -x "${DISPATCHER}" ]]; then
+  "${DISPATCHER}" on_change_landed
+fi
+EOF
+  chmod +x "${HOOKS_DIR}/post-merge"
+
+  echo "[✔] Git Hooks configured (.git/hooks/pre-push, .git/hooks/post-merge)"
+  INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+else
+  echo "[-] Not a standard git repo (.git not found); skipping git hooks."
+fi
+
+# 2. Setup Cursor Rules Hook
+CURSOR_DIR="${REPO_ROOT}/.cursor"
+if [[ -d "$CURSOR_DIR" ]] || [[ -f "${REPO_ROOT}/.cursorrules" ]]; then
+  RULES_DIR="${CURSOR_DIR}/rules"
+  mkdir -p "$RULES_DIR"
+  cat > "${RULES_DIR}/verification-hooks.mdc" <<EOF
+---
+description: "Universal Lifecycle Hooks for project verification"
+globs: ["*"]
+alwaysApply: true
+---
+
+# Universal Lifecycle Hooks
+- Before requesting review or opening a PR: Run \`run-lifecycle-hook on_pre_review\`
+- When user gives feedback or makes a correction: Run \`run-lifecycle-hook on_user_correction "<feedback>"\`
+- After code lands in main: Run \`run-lifecycle-hook on_change_landed\`
+EOF
+  echo "[✔] Cursor Lifecycle Rules configured (.cursor/rules/verification-hooks.mdc)"
+  INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+fi
+
+# 3. Setup Beekeeper Swarm Supervisor Integration
+if [[ -d "${REPO_ROOT}/prototypes/gdm/beekeeper" ]] || [[ -f "${REPO_ROOT}/config.toml" ]]; then
+  echo "[✔] Beekeeper Swarm detected: Task followups dispatch via task_update_followups"
+  INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+fi
+
+echo "=================================================="
+echo " Setup complete! Wired $INSTALLED_COUNT harness integrations."
+echo " Dispatcher: $DISPATCHER"
+echo "=================================================="
