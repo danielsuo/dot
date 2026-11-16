@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """skill-stats: Multi-harness Skill Usage Telemetry & Analytics CLI.
 
-Aggregates skill usage statistics across:
+Provides robust, verifiable skill usage statistics across:
 1. Universal Skill Usage Log (~/.config/skills/usage.jsonl)
-2. Beekeeper Swarm Logs (~/.config/swarm/logs/<session>/*.json)
+2. Beekeeper Swarm Tool Executions (~/.config/swarm/logs/<session>/*.json)
+
+Distinguishes between REAL TOOL EXECUTIONS vs CONVERSATIONAL MENTIONS.
+Tracks Takt time (recency drift), execution latencies, and caller agents.
 """
 
 import argparse
@@ -15,9 +18,23 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 
+# Canonical alias mapping (merging variants into single canonical name)
+CANONICAL_ALIASES = {
+    "verify-jax-dashboard": "verify-jax-observatory",
+    "verify-jax-observ": "verify-jax-observatory",
+    "verify-jax-observato": "verify-jax-observatory",
+    "verify-jax-ob": "verify-jax-observatory",
+    "verify-jax": "verify-jax-observatory",
+    "verify-jax-dashbo": "verify-jax-observatory",
+    "verify-j": "verify-jax-observatory",
+}
+
 SKILL_NAME_RE = re.compile(
     r'\b(verify-[a-zA-Z0-9_-]+|maintain-verification-skill|create-verification-skill|find-skills-root)\b'
 )
+
+def canonicalize(name):
+    return CANONICAL_ALIASES.get(name, name)
 
 def scan_skills_usage_file(log_path):
     """Parses structured entries from ~/.config/skills/usage.jsonl."""
@@ -31,18 +48,26 @@ def scan_skills_usage_file(log_path):
                 continue
             try:
                 record = json.loads(line)
+                record["skill"] = canonicalize(record.get("skill", ""))
                 records.append(record)
             except Exception:
                 continue
     return records
 
 def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
-    """Scans Beekeeper swarm agent session histories for skill invocations."""
-    skills_map = defaultdict(lambda: {"count": 0, "agents": set(), "last_seen": None})
-    if not os.path.exists(swarm_logs_dir):
-        return skills_map
+    """Scans Beekeeper swarm sessions separating real tool calls from text mentions."""
+    stats = defaultdict(lambda: {
+        "real_execs": 0,
+        "mentions": 0,
+        "agents": set(),
+        "last_exec_ts": None,
+        "latencies_ms": [],
+        "failures": 0,
+    })
 
-    # Find session directories
+    if not os.path.exists(swarm_logs_dir):
+        return stats
+
     session_dirs = sorted(
         [d for d in glob.glob(os.path.join(swarm_logs_dir, "2026*")) if os.path.isdir(d)],
         reverse=True
@@ -61,22 +86,42 @@ def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
                     data = json.load(fh)
                 history = data.get("history", [])
                 mtime = os.path.getmtime(fpath)
-                last_dt = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
+                mtime_dt = datetime.fromtimestamp(mtime, tz=timezone.utc)
 
                 for item in history:
+                    # 1. Conversational mentions
                     text = str(item)
                     for match in set(SKILL_NAME_RE.findall(text)):
-                        entry = skills_map[match]
-                        entry["count"] += 1
-                        entry["agents"].add(agent_name)
-                        if not entry["last_seen"] or last_dt > entry["last_seen"]:
-                            entry["last_seen"] = last_dt
+                        cname = canonicalize(match)
+                        stats[cname]["mentions"] += 1
+
+                    # 2. Real functionCall executions
+                    parts = item.get("parts", []) if isinstance(item, dict) else []
+                    for part in parts:
+                        if isinstance(part, dict) and "functionCall" in part:
+                            fc = part["functionCall"]
+                            if fc.get("name") == "run_shell_command":
+                                cmd = fc.get("args", {}).get("command", "")
+                                matched_skill = None
+                                if "find-skills-root" in cmd:
+                                    matched_skill = "find-skills-root"
+                                elif "verify-jax-observatory" in cmd or "verify-jax-dashboard" in cmd or "scripts/verify.py" in cmd:
+                                    matched_skill = "verify-jax-observatory"
+                                elif "scripts/doctor.sh" in cmd:
+                                    matched_skill = "verify-jax-observatory"
+
+                                if matched_skill:
+                                    cname = canonicalize(matched_skill)
+                                    stats[cname]["real_execs"] += 1
+                                    stats[cname]["agents"].add(agent_name)
+                                    if not stats[cname]["last_exec_ts"] or mtime_dt > stats[cname]["last_exec_ts"]:
+                                        stats[cname]["last_exec_ts"] = mtime_dt
             except Exception:
                 continue
 
-    return skills_map
+    return stats
 
-def log_skill_invocation(skill_name, action="run", agent="user", harness="cli", status="ok", duration_ms=0):
+def log_skill_invocation(skill_name, action="run", agent="user", harness="cli", status="ok", duration_ms=0, tier=2):
     """Appends an atomic usage record to ~/.config/skills/usage.jsonl."""
     config_dir = os.path.expanduser("~/.config/skills")
     os.makedirs(config_dir, exist_ok=True)
@@ -84,48 +129,86 @@ def log_skill_invocation(skill_name, action="run", agent="user", harness="cli", 
 
     record = {
         "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "skill": skill_name,
+        "skill": canonicalize(skill_name),
         "action": action,
         "agent": agent,
         "harness": harness,
         "status": status,
         "duration_ms": duration_ms,
+        "tier": tier,
     }
     with open(log_file, "a") as fh:
         fh.write(json.dumps(record) + "\n")
 
-def print_table(skills_map, usage_records):
-    print("=" * 80)
-    print(f"  Skill Usage Telemetry & Analytics ({datetime.now().strftime('%Y-%m-%d %H:%M PT')})")
-    print("=" * 80)
+def print_dashboard(stats, usage_records):
+    now = datetime.now(timezone.utc)
+    print("=" * 86)
+    print(f"  Skill Usage Telemetry & Analytics ({now.strftime('%Y-%m-%d %H:%M UTC')})")
+    print("=" * 86)
 
-    # Merge stats from usage file if present
+    # Ingest structured usage records
     for r in usage_records:
-        s = r.get("skill")
+        s = canonicalize(r.get("skill", ""))
         if not s:
             continue
-        skills_map[s]["count"] += 1
+        stats[s]["real_execs"] += 1
         agent = r.get("agent", "unknown")
-        skills_map[s]["agents"].add(agent)
-        ts = r.get("timestamp")
-        if ts and (not skills_map[s]["last_seen"] or ts > skills_map[s]["last_seen"]):
-            skills_map[s]["last_seen"] = ts
+        stats[s]["agents"].add(agent)
+        ts_str = r.get("timestamp")
+        if ts_str:
+            try:
+                dt = datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                if not stats[s]["last_exec_ts"] or dt > stats[s]["last_exec_ts"]:
+                    stats[s]["last_exec_ts"] = dt
+            except Exception:
+                pass
+        dur = r.get("duration_ms", 0)
+        if dur > 0:
+            stats[s]["latencies_ms"].append(dur)
+        if r.get("status") not in ("ok", "pass", "success"):
+            stats[s]["failures"] += 1
 
-    sorted_skills = sorted(skills_map.items(), key=lambda x: -x[1]["count"])
+    sorted_skills = sorted(stats.items(), key=lambda x: (-x[1]["real_execs"], -x[1]["mentions"]))
     if not sorted_skills:
-        print("  No skill invocations recorded yet.")
-        print("=" * 80)
+        print("  No skill activity recorded yet.")
+        print("=" * 86)
         return
 
-    print(f"{'SKILL':<32} {'CALLS':<8} {'LAST ACTIVE':<20} {'CALLER AGENTS'}")
-    print("-" * 80)
-    for skill, stats in sorted_skills:
-        agents_str = ", ".join(sorted(stats["agents"]))
-        if len(agents_str) > 30:
-            agents_str = agents_str[:27] + "..."
-        last_str = stats["last_seen"] or "N/A"
-        print(f"{skill:<32} {stats['count']:<8} {last_str:<20} {agents_str}")
-    print("=" * 80)
+    print(f"{'SKILL':<28} {'REAL RUNS':<10} {'DISCUSSIONS':<12} {'TAKT RECENCY':<16} {'CALLER AGENTS'}")
+    print("-" * 86)
+    for skill, data in sorted_skills:
+        real_cnt = data["real_execs"]
+        mention_cnt = data["mentions"]
+        agents_str = ", ".join(sorted(data["agents"])) if data["agents"] else "none"
+        if len(agents_str) > 22:
+            agents_str = agents_str[:19] + "..."
+
+        if data["last_exec_ts"]:
+            delta = now - data["last_exec_ts"]
+            hours = delta.total_seconds() / 3600.0
+            if hours < 1:
+                mins = int(delta.total_seconds() / 60)
+                takt_str = f"{mins}m ago"
+            elif hours < 24:
+                takt_str = f"{hours:.1f}h ago"
+            else:
+                days = int(hours / 24)
+                takt_str = f"{days}d ago [DRIFT]"
+        else:
+            takt_str = "Never Run"
+
+        status_flag = ""
+        if real_cnt > 0:
+            status_flag = "✓"
+        else:
+            status_flag = "·"
+
+        print(f"{status_flag} {skill:<26} {real_cnt:<10} {mention_cnt:<12} {takt_str:<16} {agents_str}")
+
+    print("=" * 86)
+    print("  Note: 'REAL RUNS' counts actual shell / harness executions. 'DISCUSSIONS'")
+    print("  tracks conversational context mentions across prompt history and chat.")
+    print("=" * 86)
 
 def main():
     parser = argparse.ArgumentParser(description="Skill Usage Telemetry & Analytics")
@@ -134,24 +217,39 @@ def main():
     parser.add_argument("--log-call", type=str, help="Log a skill invocation (e.g. --log-call verify-app)")
     parser.add_argument("--agent", type=str, default="user", help="Caller agent name")
     parser.add_argument("--harness", type=str, default="cli", help="Harness environment (cursor, beekeeper, cli)")
+    parser.add_argument("--duration-ms", type=int, default=0, help="Execution duration in milliseconds")
+    parser.add_argument("--tier", type=int, default=2, help="Execution tier (1, 2, or 3)")
     args = parser.parse_args()
 
     if args.log_call:
-        log_skill_invocation(args.log_call, agent=args.agent, harness=args.harness)
-        print(f"Logged skill invocation: {args.log_call} (agent={args.agent}, harness={args.harness})")
+        log_skill_invocation(
+            args.log_call,
+            agent=args.agent,
+            harness=args.harness,
+            duration_ms=args.duration_ms,
+            tier=args.tier
+        )
+        print(f"Logged skill execution: {canonicalize(args.log_call)} (agent={args.agent}, tier={args.tier})")
         return
 
     usage_log = os.path.expanduser("~/.config/skills/usage.jsonl")
     swarm_logs = os.path.expanduser("~/.config/swarm/logs")
 
     usage_records = scan_skills_usage_file(usage_log)
-    skills_map = scan_swarm_sessions(swarm_logs, latest_only=not args.all_sessions)
+    stats = scan_swarm_sessions(swarm_logs, latest_only=not args.all_sessions)
 
     if args.json:
-        out = {k: {"count": v["count"], "agents": list(v["agents"]), "last_seen": v["last_seen"]} for k, v in skills_map.items()}
+        out = {}
+        for k, v in stats.items():
+            out[k] = {
+                "real_executions": v["real_execs"],
+                "conversational_mentions": v["mentions"],
+                "agents": list(v["agents"]),
+                "last_execution": v["last_exec_ts"].isoformat() if v["last_exec_ts"] else None,
+            }
         print(json.dumps(out, indent=2))
     else:
-        print_table(skills_map, usage_records)
+        print_dashboard(stats, usage_records)
 
 if __name__ == "__main__":
     main()
