@@ -21,14 +21,19 @@ Only edit the verification skill's own directory (its SKILL.md, features/, and a
 
 ## Pass
 
-0. **Pre-flight context harvesting & user grounding.** Never run a maintenance audit blind or in a vacuum. Before inspecting files, harvest what the user has actually been working on:
-   - **Ambient Context Mining:**
+0. **Pre-flight context harvesting & mandatory user confirmation gate.** Never run a maintenance audit blind or in a vacuum. Before inspecting files, harvest what the user has actually been working on and align with the user:
+   - **Step 0A: Ambient Context Mining:**
      1. *Session History:* Check current conversation turns, user instructions, and recently discussed pain points or bug reports.
      2. *Git History & Diffs:* Run `git log -n 10 --oneline` and `git diff HEAD~5 --stat` to discover recent commits, touched endpoints, and active modules.
      3. *Task & Issue State:* Read the active task card description or recent issue tickets.
-   - **User Fallback Prompt:** If ambient context is missing, empty, or ambiguous, pause and prompt the user:
-     > *"What recent features, bug fixes, or key user journeys have you been working on that should be prioritized during this verification maintenance pass?"*
-   - Ensure all newly touched surfaces and recent user bug reports are prioritized in the audit pass.
+   - **Step 0B: Mandatory User Confirmation (Always Executed):**
+     Step 0B is **explicit and mandatory on every single run**, not an optional fallback. Even when ambient context is found, the agent is **strictly prohibited from proceeding without explicit user confirmation**.
+     The agent MUST present its findings and prompt the user:
+     > *"Here is what I gathered from your recent activity:
+     > - Recent commits & touched files: [summary]
+     > - Discovered changes & bug fixes: [summary]
+     > What specific features, bug fixes, or edge cases from your recent work should we ensure are verified during this maintenance pass?"*
+     The agent MUST wait for user confirmation before running the source wave or editing feature recipes. Ensures all newly touched surfaces and recent user bug reports are prioritized in the audit pass.
 
 1. **Locate the target.** Resolve the skills directory using `SKILLS_ROOT=$(find-skills-root)`. Find the verification skill to maintain: the project-local skill whose body has launch/drive sections and a feature map (usually `${SKILLS_ROOT}/verify-*/`). Several candidates → ask which one; none → stop and point at `/create-verification-skill` instead of inventing a target.
 

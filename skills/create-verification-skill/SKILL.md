@@ -73,23 +73,28 @@ A page that renders on initial load ("first paint") can still freeze or drop sta
 
 ---
 
-## 2. Step 0: Pre-Flight Context Harvesting & User Grounding Gate
+## 2. Step 0: Pre-Flight Context Harvesting & Mandatory User Confirmation Gate
 
-Never scaffold a verification harness in a vacuum. Before inspecting static source files, the agent MUST harvest what the user has actually been working on, their recent pain points, and current failure modes.
+Never scaffold a verification harness in a vacuum. Before inspecting static source files, the agent MUST harvest what the user has actually been working on and obtain explicit user alignment.
 
 ### Step 0A: Automatic Ambient Context Harvesting
-Silently mine these three ambient sources to understand recent user activity:
+Silently mine these three ambient sources to gather initial context:
 1. **Active Conversation & Session Turns**: Inspect recent prompts, user instructions, discussed error messages, and reported UI/CLI quirks in the current session.
 2. **Git History & Working Copy Diffs**: Run:
    - `git log -n 10 --oneline` to see recently landed commits and work-in-progress topics.
    - `git diff HEAD~5 --stat` and `git status` to identify modified files, active modules, and touched endpoints.
 3. **Task Board & Issue Context**: Read the current task card description, recent channel threads, or open issue tickets to identify stated acceptance criteria and user goals.
 
-### Step 0B: User Prompt Fallback (Human-in-the-Loop)
-If ambient context is missing, empty, or ambiguous (e.g. running in a fresh workspace, a new repo with no commits, or an unadorned slash command `/create-verification-skill`), the agent **MUST PAUSE AND ASK THE USER**:
-> *"Before scaffolding the verification harness, what recent features, bug fixes, or key user journeys have you been working on that we must ensure are verified?"*
+### Step 0B: Mandatory User Confirmation Gate (Always Executed)
+Step 0B is **explicit and mandatory on every single run**, not an optional fallback. Even when ambient context is successfully discovered in Step 0A, the agent is **strictly prohibited from proceeding without explicit user confirmation**.
 
-Never proceed with generic assumptions if the user's focus is unclear. Grounding the harness in the user's active work prevents building irrelevant or superficial tests.
+The agent MUST present the harvested summary and prompt the user:
+> *"Here is what I gathered from your recent activity:
+> - Recent commits & touched files: [summary]
+> - Discovered features & fixes: [summary]
+> What specific features, bug fixes, or edge cases from your recent work should we ensure are verified?"*
+
+The agent MUST wait for the user's response or confirmation before scaffolding the feature map or writing assertions. This guarantees the verification harness is directly grounded in the user's priorities rather than autonomous assumptions.
 
 ---
 
