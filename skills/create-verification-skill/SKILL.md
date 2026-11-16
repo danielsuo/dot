@@ -73,9 +73,29 @@ A page that renders on initial load ("first paint") can still freeze or drop sta
 
 ---
 
-## 2. Interview the Repo and its Incident History
+## 2. Step 0: Pre-Flight Context Harvesting & User Grounding Gate
 
-Answer these from the codebase, bug history, and communication channels:
+Never scaffold a verification harness in a vacuum. Before inspecting static source files, the agent MUST harvest what the user has actually been working on, their recent pain points, and current failure modes.
+
+### Step 0A: Automatic Ambient Context Harvesting
+Silently mine these three ambient sources to understand recent user activity:
+1. **Active Conversation & Session Turns**: Inspect recent prompts, user instructions, discussed error messages, and reported UI/CLI quirks in the current session.
+2. **Git History & Working Copy Diffs**: Run:
+   - `git log -n 10 --oneline` to see recently landed commits and work-in-progress topics.
+   - `git diff HEAD~5 --stat` and `git status` to identify modified files, active modules, and touched endpoints.
+3. **Task Board & Issue Context**: Read the current task card description, recent channel threads, or open issue tickets to identify stated acceptance criteria and user goals.
+
+### Step 0B: User Prompt Fallback (Human-in-the-Loop)
+If ambient context is missing, empty, or ambiguous (e.g. running in a fresh workspace, a new repo with no commits, or an unadorned slash command `/create-verification-skill`), the agent **MUST PAUSE AND ASK THE USER**:
+> *"Before scaffolding the verification harness, what recent features, bug fixes, or key user journeys have you been working on that we must ensure are verified?"*
+
+Never proceed with generic assumptions if the user's focus is unclear. Grounding the harness in the user's active work prevents building irrelevant or superficial tests.
+
+---
+
+## 3. Interview the Repo and its Incident History
+
+Answer these from the harvested context, codebase, bug history, and communication channels:
 
 1. **Surface:** What does a user actually touch? Web UI, CLI/TUI, desktop app, API, mobile app, or library?
 2. **Run:** How does the app start locally? Note commands, ports, env vars, seed data, and auth.
@@ -87,7 +107,7 @@ Answer these from the codebase, bug history, and communication channels:
 
 ---
 
-## 3. Generate the Verification Skill Layout
+## 4. Generate the Verification Skill Layout
 
 Run `SKILLS_ROOT=$(find-skills-root)` to determine the target directory. Create `${SKILLS_ROOT}/verify-<app>/` with this structure:
 
@@ -120,7 +140,7 @@ Write `${SKILLS_ROOT}/verify-<app>/SKILL.md` with YAML frontmatter (`name: verif
 
 ---
 
-## 4. Seed the Feature Map & Adversarial Tests
+## 5. Seed the Feature Map & Adversarial Tests
 
 Create `${SKILLS_ROOT}/verify-<app>/features/README.md` plus one file per user-facing feature.
 Each feature file answers:
@@ -131,7 +151,7 @@ Each feature file answers:
 
 ---
 
-## 5. Prove the Generated Skill End-to-End
+## 6. Prove the Generated Skill End-to-End
 
 Before delivering:
 1. Run `scripts/doctor.sh` and confirm it passes (compiler, native unit tests, process/port up).
