@@ -1,7 +1,6 @@
 ---
 name: create-verification-skill
-description: "Generate an adversarial, regression-resistant verification skill that drives your app like a real user and proves correctness. Mandates bug mining, ground-truth parity, zero fake data linting, and dynamic interaction tests. Use for /create-verification-skill, 'make a control skill for this repo', or when establishing proof of correctness."
-disable-model-invocation: true
+description: "Generate an adversarial, regression-resistant verification skill that drives your app like a real user and proves correctness. Mandates hermetic unit test integration, bug mining, ground-truth parity, zero fake data linting, and dynamic interaction tests. Use for /create-verification-skill, 'make a control skill for this repo', or when establishing proof of correctness."
 ---
 
 # Create an Adversarial Verification Skill
