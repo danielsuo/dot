@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""skill-stats: Multi-harness Skill Usage Telemetry & Analytics CLI.
+
+Aggregates skill usage statistics across:
+1. Universal Skill Usage Log (~/.config/skills/usage.jsonl)
+2. Beekeeper Swarm Logs (~/.config/swarm/logs/<session>/*.json)
+"""
+
+import argparse
+import glob
+import json
+import os
+import re
+import sys
+from collections import defaultdict
+from datetime import datetime, timezone
+
+SKILL_NAME_RE = re.compile(
+    r'\b(verify-[a-zA-Z0-9_-]+|maintain-verification-skill|create-verification-skill|find-skills-root)\b'
+)
+
+def scan_skills_usage_file(log_path):
+    """Parses structured entries from ~/.config/skills/usage.jsonl."""
+    records = []
+    if not os.path.exists(log_path):
+        return records
+    with open(log_path, "r", errors="ignore") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+                records.append(record)
+            except Exception:
+                continue
+    return records
+
+def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
+    """Scans Beekeeper swarm agent session histories for skill invocations."""
+    skills_map = defaultdict(lambda: {"count": 0, "agents": set(), "last_seen": None})
+    if not os.path.exists(swarm_logs_dir):
+        return skills_map
+
+    # Find session directories
+    session_dirs = sorted(
+        [d for d in glob.glob(os.path.join(swarm_logs_dir, "2026*")) if os.path.isdir(d)],
+        reverse=True
+    )
+    if latest_only and session_dirs:
+        session_dirs = session_dirs[:1]
+
+    for sdir in session_dirs:
+        for fpath in glob.glob(os.path.join(sdir, "*.json")):
+            fname = os.path.basename(fpath)
+            if fname.endswith((".hseq", ".lineage")) or "tool_journal" in fname:
+                continue
+            agent_name = fname.replace(".json", "")
+            try:
+                with open(fpath, "r", errors="ignore") as fh:
+                    data = json.load(fh)
+                history = data.get("history", [])
+                mtime = os.path.getmtime(fpath)
+                last_dt = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+                for item in history:
+                    text = str(item)
+                    for match in set(SKILL_NAME_RE.findall(text)):
+                        entry = skills_map[match]
+                        entry["count"] += 1
+                        entry["agents"].add(agent_name)
+                        if not entry["last_seen"] or last_dt > entry["last_seen"]:
+                            entry["last_seen"] = last_dt
+            except Exception:
+                continue
+
+    return skills_map
+
+def log_skill_invocation(skill_name, action="run", agent="user", harness="cli", status="ok", duration_ms=0):
+    """Appends an atomic usage record to ~/.config/skills/usage.jsonl."""
+    config_dir = os.path.expanduser("~/.config/skills")
+    os.makedirs(config_dir, exist_ok=True)
+    log_file = os.path.join(config_dir, "usage.jsonl")
+
+    record = {
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "skill": skill_name,
+        "action": action,
+        "agent": agent,
+        "harness": harness,
+        "status": status,
+        "duration_ms": duration_ms,
+    }
+    with open(log_file, "a") as fh:
+        fh.write(json.dumps(record) + "\n")
+
+def print_table(skills_map, usage_records):
+    print("=" * 80)
+    print(f"  Skill Usage Telemetry & Analytics ({datetime.now().strftime('%Y-%m-%d %H:%M PT')})")
+    print("=" * 80)
+
+    # Merge stats from usage file if present
+    for r in usage_records:
+        s = r.get("skill")
+        if not s:
+            continue
+        skills_map[s]["count"] += 1
+        agent = r.get("agent", "unknown")
+        skills_map[s]["agents"].add(agent)
+        ts = r.get("timestamp")
+        if ts and (not skills_map[s]["last_seen"] or ts > skills_map[s]["last_seen"]):
+            skills_map[s]["last_seen"] = ts
+
+    sorted_skills = sorted(skills_map.items(), key=lambda x: -x[1]["count"])
+    if not sorted_skills:
+        print("  No skill invocations recorded yet.")
+        print("=" * 80)
+        return
+
+    print(f"{'SKILL':<32} {'CALLS':<8} {'LAST ACTIVE':<20} {'CALLER AGENTS'}")
+    print("-" * 80)
+    for skill, stats in sorted_skills:
+        agents_str = ", ".join(sorted(stats["agents"]))
+        if len(agents_str) > 30:
+            agents_str = agents_str[:27] + "..."
+        last_str = stats["last_seen"] or "N/A"
+        print(f"{skill:<32} {stats['count']:<8} {last_str:<20} {agents_str}")
+    print("=" * 80)
+
+def main():
+    parser = argparse.ArgumentParser(description="Skill Usage Telemetry & Analytics")
+    parser.add_argument("--json", action="store_true", help="Output in JSON format")
+    parser.add_argument("--all-sessions", action="store_true", help="Scan all historical swarm sessions")
+    parser.add_argument("--log-call", type=str, help="Log a skill invocation (e.g. --log-call verify-app)")
+    parser.add_argument("--agent", type=str, default="user", help="Caller agent name")
+    parser.add_argument("--harness", type=str, default="cli", help="Harness environment (cursor, beekeeper, cli)")
+    args = parser.parse_args()
+
+    if args.log_call:
+        log_skill_invocation(args.log_call, agent=args.agent, harness=args.harness)
+        print(f"Logged skill invocation: {args.log_call} (agent={args.agent}, harness={args.harness})")
+        return
+
+    usage_log = os.path.expanduser("~/.config/skills/usage.jsonl")
+    swarm_logs = os.path.expanduser("~/.config/swarm/logs")
+
+    usage_records = scan_skills_usage_file(usage_log)
+    skills_map = scan_swarm_sessions(swarm_logs, latest_only=not args.all_sessions)
+
+    if args.json:
+        out = {k: {"count": v["count"], "agents": list(v["agents"]), "last_seen": v["last_seen"]} for k, v in skills_map.items()}
+        print(json.dumps(out, indent=2))
+    else:
+        print_table(skills_map, usage_records)
+
+if __name__ == "__main__":
+    main()
