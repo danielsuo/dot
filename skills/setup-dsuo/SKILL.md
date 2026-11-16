@@ -196,38 +196,16 @@ Whenever custom hooks are defined in `hooks.json`, `setup-dsuo` dynamically atta
 
 ---
 
-## 7. Continuous Synchronization: Background Watcher & Auto-Sync on Edit
+## 7. How `setup-dsuo` is Triggered (Agent Skill, Not a Shell Script)
 
-To ensure configuration never drifts when `hooks.json` is modified:
+`setup-dsuo` is strictly an **agent skill and procedural playbook**, not an executable binary or shell script. It is invoked and executed by the AI agent in two ways:
 
-### A. Auto-Sync on Agent Edit (Self-Enforcing Rule)
-Whenever an agent modifies `~/dot/hooks.json` or `~/dot/AGENTS.md`, the agent is **mandated to immediately execute `setup-dsuo`** as part of the same turn, ensuring all local VCS and harness hooks are refreshed without manual human intervention.
+1. **Agent Self-Sync (On Configuration Changes)**:
+   - Whenever an agent modifies `~/dot/hooks.json` or `~/dot/AGENTS.md`, the agent is **mandated to immediately execute the `setup-dsuo` procedure** as the conclusion of that turn, ensuring all local VCS hooks and IDE symlinks remain synchronized without human intervention.
 
-### B. Continuous Synchronization Options
-For hands-off synchronization when `hooks.json` is modified:
-1. **Agent Self-Sync (Default & Recommended)**: Zero daemon overhead. Whenever an agent edits `hooks.json`, it re-runs `setup-dsuo` as the final step of the turn.
-2. **Zero-Dependency Python Watcher**: Works anywhere standard Python 3 is installed:
-   ```bash
-   python3 -c '
-   import os, time, subprocess
-   target = os.path.expanduser("~/dot/hooks.json")
-   last_mtime = os.stat(target).st_mtime
-   while True:
-       time.sleep(1)
-       mtime = os.stat(target).st_mtime
-       if mtime != last_mtime:
-           last_mtime = mtime
-           print("==> hooks.json changed; re-running setup-dsuo...")
-           subprocess.run(["setup-dsuo"])
-   '
-   ```
-3. **UNIX File Watchers (`entr` / `inotifywait`)**:
-   - `entr` (Event Notify Test Runner, common on macOS via `brew install entr` or Linux via `apt install entr`):
-     ```bash
-     echo ~/dot/hooks.json | entr -p setup-dsuo
-     ```
-4. **Systemd User Path Unit (`~/.config/systemd/user/dsuo-hooks.path`)**:
-   - On Linux systems with systemd, uses kernel inotify to trigger `dsuo-hooks.service` on writes to `hooks.json`.
+2. **Explicit User Request / Slash Command**:
+   - The user asks an agent to run `/setup-dsuo`, *"set up my agent environment"*, or *"sync my hooks"*.
+   - The agent reads `~/dot/hooks.json`, inspects the current repository, and performs the idempotent mappings.
 
 ---
 
