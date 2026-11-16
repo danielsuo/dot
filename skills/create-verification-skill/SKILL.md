@@ -14,9 +14,20 @@ Resolve `<skills-root>` dynamically using `SKILLS_ROOT=$(find-skills-root)` (or 
 
 ---
 
-## 1. The Four Adversarial Verification Pillars
+## 1. The Adversarial Verification Pillars
 
-Every generated verification harness MUST implement and enforce the **Four Adversarial Verification Pillars**:
+Every generated verification harness MUST implement and enforce the **Adversarial Verification Pillars**, structured as a **Two-Tier Verification Gate**:
+
+### Tier 1: Fast Hermetic Checks (Native Test Suite Gate)
+Never launch live servers or browser sessions against code that fails basic unit tests or type checks.
+- **Discover Native Test Runner**: Identify the project's native test and build commands (`cargo test`, `npm test`, `pytest`, `go test`, `make test`).
+- **Execute Native Suite First**: The verification harness (`scripts/verify.py` or `scripts/doctor.sh`) MUST execute the project's native test suite as Phase 1 (< 5-10s).
+- **Fail Fast**: If any native unit test fails or code does not compile, abort immediately. Do not waste time spinning up background servers, binding ports, or driving browser UI against broken code.
+- **Why Not Rely on Remote CI?**: Remote CI takes 15–30 minutes to give feedback. The local verification harness must catch syntax, typing, and unit failures in seconds before code is ever pushed or mailed.
+
+---
+
+### Tier 2: End-to-End Live System Checks (The Four Pillars)
 
 ### Pillar 1: Mandatory Bug & Complaint Mining
 Never generate tests purely from raw source code. Real failure modes are discovered by users, reviewers, and past incidents.
@@ -81,8 +92,8 @@ ${SKILLS_ROOT}/verify-<app>/
 │   ├── README.md
 │   └── <feature>.md
 └── scripts/
-    ├── doctor.sh         # Fast readiness & health check (< 3s)
-    ├── verify.py         # Full automated adversarial test suite (4 pillars)
+    ├── doctor.sh         # Fast readiness check (< 3s): compiler, unit tests, port
+    ├── verify.py         # Complete two-tier verification runner (unit + live)
     ├── parity_check.py   # Upstream DB vs API parity validator
     └── lint_fake_data.py # Static scanner for mock/fake data in source code
 ```
@@ -92,11 +103,13 @@ Write `${SKILLS_ROOT}/verify-<app>/SKILL.md` with YAML frontmatter (`name: verif
 
 - **Launch:** Exact command that starts the app into a usable state from an empty data dir.
 - **Doctor:** Fast read-only check (`scripts/doctor.sh`) answering "is this instance healthy and worth driving?" (process up, port bound, database reachable).
-- **Adversarial Verification Suite:** How to run the automated runner (`scripts/verify.py`):
-  - Pillar 1: Historical bug regression tests.
-  - Pillar 2: Live ground-truth parity assertions.
-  - Pillar 3: Zero fake data code linting.
-  - Pillar 4: Dynamic interaction stress tests (clicks, scrubbers, sorting).
+- **Verification Suite:** How to run the automated runner (`scripts/verify.py`), executing across both tiers:
+  - **Tier 1 (Hermetic Native Suite)**: Runs project native tests (`cargo test`, `pytest`, `npm test`, etc.) to fail fast before touching live instances.
+  - **Tier 2 (Adversarial Live Verification)**:
+    - Pillar 1: Historical bug regression tests.
+    - Pillar 2: Live ground-truth parity assertions against upstream databases.
+    - Pillar 3: Zero fake data code linting.
+    - Pillar 4: Dynamic interaction stress tests (clicks, scrubbers, sorting).
 - **Drive:** Step-by-step instructions for driving the real user journey.
 - **Evidence:** Concrete evidence to capture (test outputs, execution logs, side-by-side screenshots).
 - **Cleanup:** Clean teardown of all spawned processes without deleting captured proof artifacts.
@@ -118,11 +131,13 @@ Each feature file answers:
 ## 5. Prove the Generated Skill End-to-End
 
 Before delivering:
-1. Run `scripts/doctor.sh` and confirm it passes.
-2. Run `scripts/verify.py` and confirm all 4 Adversarial Verification Pillars pass:
-   - Parity against ground truth: PASS
-   - Fake data static linter: PASS
-   - Historical regressions: PASS
-   - Dynamic interaction stress: PASS
+1. Run `scripts/doctor.sh` and confirm it passes (compiler, native unit tests, process/port up).
+2. Run `scripts/verify.py` and confirm both tiers pass:
+   - **Tier 1 (Native Test Suite)**: `cargo test` / `pytest` / `npm test` passes cleanly.
+   - **Tier 2 (Adversarial Live Suite)**:
+     - Parity against ground truth: PASS
+     - Fake data static linter: PASS
+     - Historical regressions: PASS
+     - Dynamic interaction stress: PASS
 3. Verify evidence artifacts (logs, screenshots) exist at their designated paths.
 4. Clean up running instances and confirm evidence survives teardown.
