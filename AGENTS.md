@@ -32,6 +32,22 @@ A feature map and verification harness rot as the codebase evolves. The maintena
 
 - **Strict Edit Scope**: The maintenance pass ONLY updates the verification skill itself (its `SKILL.md`, `features/`, and harness scripts). It NEVER alters product code. Genuine product bugs discovered during maintenance must be reported as issues, never papered over by weakening verification assertions.
 
+### 1C. Tiered Verification for Nested Developer Loops
+To balance rapid developer velocity with absolute release correctness, verification operates across **Three Nested Tiers**:
+
+- **Tier 1: Inner Loop (Per-Edit / Tightest Loop — Target ~1–5s)**:
+  - **Feature-Scoped Slice**: Run only the specific unit test or targeted feature recipe for the code currently being touched (e.g. `scripts/verify.py --feature=<name>` or native test runner for that module).
+  - Provides instant feedback during active coding. Catches syntax, type, and unit regressions in seconds without launching the entire system.
+
+- **Tier 2: Mid Loop (Pre-Review / Task Completion — Target ~15–30s)**:
+  - **Local Project Suite**: Run the local application verification harness (`verify-<app>` / `scripts/verify.py --tier=2` or `scripts/doctor.sh`).
+  - Executes native hermetic unit tests + live server port health + core critical user journeys (CUJs) + static zero-fake-data linter.
+  - Mandatory gate before requesting code review or declaring an implementation task complete.
+
+- **Tier 3: Outer Loop (Pre-Submit / Landing Gate — Full Rigor)**:
+  - **Comprehensive Verification Gate**: Full matrix pass across all feature files in `features/`, live ground-truth database parity checks, full historical horizon queries, multi-viewport layout validation, and remote CI presubmits.
+  - Mandatory gate before merging into `main` or cutting a release.
+
 ## 2. Zero Fake / Mock / Synthetic Data Policy
 - **ZERO fake, mock, synthetic, interpolated, hardcoded, placeholder, or otherwise non-real data** is permitted in any dashboard, report, benchmark, data file, backend, or UI.
 - Every metric, time series, table row, and chart must come 100% from real, verifiable data sources with reproducible query provenance.

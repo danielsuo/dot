@@ -13,20 +13,27 @@ Resolve `<skills-root>` dynamically using `SKILLS_ROOT=$(find-skills-root)` (or 
 
 ---
 
-## 1. The Adversarial Verification Pillars
+## 1. The Adversarial Verification Pillars & Nested Tiers
 
-Every generated verification harness MUST implement and enforce the **Adversarial Verification Pillars**, structured as a **Two-Tier Verification Gate**:
+Every generated verification harness MUST implement and enforce the **Adversarial Verification Pillars**, executed across **Three Nested Tiers**:
 
-### Tier 1: Fast Hermetic Checks (Native Test Suite Gate)
-Never launch live servers or browser sessions against code that fails basic unit tests or type checks.
-- **Discover Native Test Runner**: Identify the project's native test and build commands (`cargo test`, `npm test`, `pytest`, `go test`, `make test`).
-- **Execute Native Suite First**: The verification harness (`scripts/verify.py` or `scripts/doctor.sh`) MUST execute the project's native test suite as Phase 1 (< 5-10s).
-- **Fail Fast**: If any native unit test fails or code does not compile, abort immediately. Do not waste time spinning up background servers, binding ports, or driving browser UI against broken code.
-- **Why Not Rely on Remote CI?**: Remote CI takes 15–30 minutes to give feedback. The local verification harness must catch syntax, typing, and unit failures in seconds before code is ever pushed or mailed.
+### The Three Nested Developer Loops:
+1. **Tier 1: Inner Loop (Per-Edit / Tightest Loop — Target ~1–5s)**:
+   - Run via `python3 scripts/verify.py --feature=<name>` or `python3 scripts/verify.py --tier=1`.
+   - Executes only the targeted unit test or isolated feature check for the module being modified.
+   - Provides instant feedback during active development.
+2. **Tier 2: Mid Loop (Pre-Review / Task Completion — Target ~15–30s)**:
+   - Run via `python3 scripts/verify.py --tier=2` (default).
+   - Executes native hermetic unit tests + live port/process doctor + core critical user journeys (CUJs) + static zero-fake-data linter.
+   - Mandatory gate before requesting review or declaring a task complete.
+3. **Tier 3: Outer Loop (Pre-Submit / Landing Gate — Full Rigor)**:
+   - Run via `python3 scripts/verify.py --tier=3`.
+   - Full matrix pass: exercises all feature recipes in `features/`, asserts live upstream database parity, tests multi-viewport layouts, and verifies CI presubmits.
+   - Mandatory gate before merging to `main` or releasing.
 
 ---
 
-### Tier 2: End-to-End Live System Checks (The Four Pillars)
+### The Four Verification Pillars:
 
 ### Pillar 1: Mandatory Bug & Complaint Mining
 Never generate tests purely from raw source code. Real failure modes are discovered by users, reviewers, and past incidents.
@@ -92,7 +99,7 @@ ${SKILLS_ROOT}/verify-<app>/
 │   └── <feature>.md
 └── scripts/
     ├── doctor.sh         # Fast readiness check (< 3s): compiler, unit tests, port
-    ├── verify.py         # Complete two-tier verification runner (unit + live)
+    ├── verify.py         # Multi-tiered verification runner (--tier=1|2|3, --feature=X)
     ├── parity_check.py   # Upstream DB vs API parity validator
     └── lint_fake_data.py # Static scanner for mock/fake data in source code
 ```
@@ -102,13 +109,10 @@ Write `${SKILLS_ROOT}/verify-<app>/SKILL.md` with YAML frontmatter (`name: verif
 
 - **Launch:** Exact command that starts the app into a usable state from an empty data dir.
 - **Doctor:** Fast read-only check (`scripts/doctor.sh`) answering "is this instance healthy and worth driving?" (process up, port bound, database reachable).
-- **Verification Suite:** How to run the automated runner (`scripts/verify.py`), executing across both tiers:
-  - **Tier 1 (Hermetic Native Suite)**: Runs project native tests (`cargo test`, `pytest`, `npm test`, etc.) to fail fast before touching live instances.
-  - **Tier 2 (Adversarial Live Verification)**:
-    - Pillar 1: Historical bug regression tests.
-    - Pillar 2: Live ground-truth parity assertions against upstream databases.
-    - Pillar 3: Zero fake data code linting.
-    - Pillar 4: Dynamic interaction stress tests (clicks, scrubbers, sorting).
+- **Verification Suite:** How to run the automated runner (`scripts/verify.py`), supporting nested loops:
+  - `python3 scripts/verify.py --feature=<name>`: Tier 1 inner loop (~1-5s).
+  - `python3 scripts/verify.py --tier=2`: Tier 2 mid loop (~15-30s) running native unit tests + live port doctor + core CUJs + zero-fake-data linter.
+  - `python3 scripts/verify.py --tier=3`: Tier 3 outer loop (full rigor) running all features + live upstream parity checks.
 - **Drive:** Step-by-step instructions for driving the real user journey.
 - **Evidence:** Concrete evidence to capture (test outputs, execution logs, side-by-side screenshots).
 - **Cleanup:** Clean teardown of all spawned processes without deleting captured proof artifacts.
