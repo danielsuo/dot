@@ -203,15 +203,31 @@ To ensure configuration never drifts when `hooks.json` is modified:
 ### A. Auto-Sync on Agent Edit (Self-Enforcing Rule)
 Whenever an agent modifies `~/dot/hooks.json` or `~/dot/AGENTS.md`, the agent is **mandated to immediately execute `setup-dsuo`** as part of the same turn, ensuring all local VCS and harness hooks are refreshed without manual human intervention.
 
-### B. Background Watcher Process (`setup-dsuo --watch`)
-For continuous hands-off synchronization on developer workstations, a lightweight file watcher monitors `~/dot/hooks.json`:
-- **Watcher Command**:
-  ```bash
-  # Using standard inotifywait / fswatch / entr:
-  echo ~/dot/hooks.json | entr -p setup-dsuo
-  ```
-- **Systemd User Unit (`~/.config/systemd/user/dsuo-hooks-watcher.service`)**:
-  On Linux workstations, an optional user service monitors `~/dot/hooks.json` and runs `setup-dsuo` automatically upon file writes.
+### B. Continuous Synchronization Options
+For hands-off synchronization when `hooks.json` is modified:
+1. **Agent Self-Sync (Default & Recommended)**: Zero daemon overhead. Whenever an agent edits `hooks.json`, it re-runs `setup-dsuo` as the final step of the turn.
+2. **Zero-Dependency Python Watcher**: Works anywhere standard Python 3 is installed:
+   ```bash
+   python3 -c '
+   import os, time, subprocess
+   target = os.path.expanduser("~/dot/hooks.json")
+   last_mtime = os.stat(target).st_mtime
+   while True:
+       time.sleep(1)
+       mtime = os.stat(target).st_mtime
+       if mtime != last_mtime:
+           last_mtime = mtime
+           print("==> hooks.json changed; re-running setup-dsuo...")
+           subprocess.run(["setup-dsuo"])
+   '
+   ```
+3. **UNIX File Watchers (`entr` / `inotifywait`)**:
+   - `entr` (Event Notify Test Runner, common on macOS via `brew install entr` or Linux via `apt install entr`):
+     ```bash
+     echo ~/dot/hooks.json | entr -p setup-dsuo
+     ```
+4. **Systemd User Path Unit (`~/.config/systemd/user/dsuo-hooks.path`)**:
+   - On Linux systems with systemd, uses kernel inotify to trigger `dsuo-hooks.service` on writes to `hooks.json`.
 
 ---
 
