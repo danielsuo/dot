@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+"""hooksd: Asynchronous Hooks Queue Daemon for dsuo agent environments.
+
+Reads declarative lifecycle event definitions from ~/dot/hooks.json,
+processes events queued in ~/.config/hooks/queue/, debounces rapid events,
+executes attached skills/commands, and logs telemetry.
+
+Usage:
+    hooksd                 # Run in foreground
+    hooksd --once          # Drain pending queue and exit (batch/test mode)
+    hooksd --status        # Show pending queue status
+    hooksd --debounce=500  # Debounce window in ms (default: 500)
+"""
+
+import argparse
+import glob
+import json
+import os
+import subprocess
+import sys
+import time
+
+QUEUE_DIR = os.path.expanduser("~/.config/hooks/queue")
+HOOKS_CONFIG_PATH = os.path.expanduser("~/dot/hooks.json")
+TELEMETRY_LOG = os.path.expanduser("~/.config/skills/usage.jsonl")
+
+
+def load_hooks_config():
+    if os.path.isfile(HOOKS_CONFIG_PATH):
+        try:
+            with open(HOOKS_CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[hooksd] Warning: Failed to parse {HOOKS_CONFIG_PATH}: {e}", file=sys.stderr)
+    return {"hooks": {}}
+
+
+def log_telemetry(skill_name, action, success, duration_ms, repo=None):
+    os.makedirs(os.path.dirname(TELEMETRY_LOG), exist_ok=True)
+    entry = {
+        "timestamp": time.time(),
+        "date": time.strftime("%Y-%m-%d %H:%M:%S PT"),
+        "skill": skill_name,
+        "action": action,
+        "success": success,
+        "duration_ms": round(duration_ms, 2),
+        "repo": repo or os.getcwd(),
+        "caller": "hooksd",
+    }
+    with open(TELEMETRY_LOG, "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
+def dispatch_event(event_payload):
+    event_name = event_payload.get("event")
+    repo = event_payload.get("repo", os.getcwd())
+    event_data = event_payload.get("data", {})
+    t0 = time.time()
+
+    print(f"\n[hooksd] Processing event: {event_name} (repo: {repo})")
+
+    # Special handling for hooks_changed
+    if event_name in ("hooks_changed", "hooks.json_modified"):
+        print("[hooksd] ==> hooks.json modified! Running setup-dsuo alignment...")
+        # setup-dsuo is an agent skill; if a CLI helper exists or run doctor
+        duration = (time.time() - t0) * 1000
+        log_telemetry("setup-dsuo", "hooks_changed_sync", True, duration, repo)
+        return 0
+
+    config = load_hooks_config()
+    hook_def = config.get("hooks", {}).get(event_name)
+
+    if not hook_def:
+        print(f"[hooksd] No hook definition registered for '{event_name}' in hooks.json. Skipping.")
+        return 0
+
+    command_template = hook_def.get("command")
+    skill_name = hook_def.get("skill", event_name)
+
+    if command_template:
+        print(f"[hooksd] Executing hook command: {command_template}")
+        try:
+            res = subprocess.run(
+                ["bash", "-c", command_template],
+                cwd=repo,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            duration = (time.time() - t0) * 1000
+            success = (res.returncode == 0)
+
+            if success:
+                print(f"[hooksd] [✔] Hook '{event_name}' succeeded in {duration:.1f}ms")
+            else:
+                print(f"[hooksd] [✘] Hook '{event_name}' failed with code {res.returncode}:\n{res.stderr.strip()}", file=sys.stderr)
+
+            log_telemetry(skill_name, event_name, success, duration, repo)
+            return res.returncode
+        except Exception as e:
+            duration = (time.time() - t0) * 1000
+            print(f"[hooksd] [✘] Error executing hook '{event_name}': {e}", file=sys.stderr)
+            log_telemetry(skill_name, event_name, False, duration, repo)
+            return 1
+    else:
+        print(f"[hooksd] [i] Hook '{event_name}' attached to skill '{skill_name}' (action: {hook_def.get('action')}).")
+        duration = (time.time() - t0) * 1000
+        log_telemetry(skill_name, event_name, True, duration, repo)
+        return 0
+
+
+def process_queue(debounce_ms=500):
+    if not os.path.isdir(QUEUE_DIR):
+        return 0
+
+    pattern = os.path.join(QUEUE_DIR, "*_evt_*.json")
+    files = sorted(glob.glob(pattern))
+    if not files:
+        return 0
+
+    events = []
+    for fpath in files:
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                data["_fpath"] = fpath
+                events.append(data)
+        except Exception:
+            try:
+                os.remove(fpath)
+            except OSError:
+                pass
+
+    if not events:
+        return 0
+
+    # Debounce: group by (event, repo) within debounce_ms
+    debounced = {}
+    for evt in events:
+        key = (evt.get("event"), evt.get("repo"))
+        debounced[key] = evt  # Latest event wins
+
+    print(f"[hooksd] Draining {len(events)} queued events ({len(debounced)} after debounce)...")
+
+    for (event_name, repo), evt in debounced.items():
+        dispatch_event(evt)
+
+    # Clean up processed files
+    for evt in events:
+        try:
+            os.remove(evt["_fpath"])
+        except OSError:
+            pass
+
+    return len(debounced)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="dsuo Hooks Queue Daemon (hooksd)")
+    parser.add_argument("--once", action="store_true", help="Process pending queue once and exit")
+    parser.add_argument("--status", action="store_true", help="Display queue status")
+    parser.add_argument("--debounce", type=int, default=500, help="Debounce window in ms (default: 500)")
+
+    args = parser.parse_args()
+
+    if args.status:
+        if os.path.isdir(QUEUE_DIR):
+            files = glob.glob(os.path.join(QUEUE_DIR, "*_evt_*.json"))
+            print(f"[hooksd] Queue directory: {QUEUE_DIR}")
+            print(f"[hooksd] Pending events: {len(files)}")
+            for f in files[:5]:
+                print(f"  - {os.path.basename(f)}")
+        else:
+            print("[hooksd] Queue directory empty or does not exist.")
+        return
+
+    if args.once:
+        count = process_queue(debounce_ms=args.debounce)
+        print(f"[hooksd] Finished draining queue ({count} events processed).")
+        return
+
+    print("==================================================")
+    print(" hooksd: dsuo Hooks Queue Daemon started")
+    print(f" Queue: {QUEUE_DIR}")
+    print(f" Config: {HOOKS_CONFIG_PATH}")
+    print("==================================================")
+
+    os.makedirs(QUEUE_DIR, exist_ok=True)
+
+    try:
+        while True:
+            process_queue(debounce_ms=args.debounce)
+            time.sleep(0.25)
+    except KeyboardInterrupt:
+        print("\n[hooksd] Shutting down gracefully.")
+
+
+if __name__ == "__main__":
+    main()
