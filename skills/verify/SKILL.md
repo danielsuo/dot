@@ -5,14 +5,14 @@ description: "Universal verification playbook orchestrator dispatching determini
 
 # Verify
 
-Universal verification playbook orchestrator for any project. Dispatches deterministic stages via `verify-cmd` (`compile`, `test`, `doctor`, `mutants`) paired with agentic markdown test specs (`features/*.md`), architectural principles, and expert panel reviews. Verifier suites live centrally or out-of-tree (resolved via `verify-cmd path`) for zero repository clutter.
+Universal verification playbook orchestrator for any project. Dispatches deterministic stages via `verify-cmd` (`compile`, `test`, `doctor`, `mutants`) paired with agentic markdown test specs (`features/*.md`), architectural principles, and expert panel reviews. Verifier suites live centrally or out-of-tree (configured in `~/.config/impromptu/projects.toml` and resolved via `verify-cmd path`) for zero repository clutter.
 
 ---
 
 ## 1. Pre-flight lifecycle & upkeep
 
 - **Locate verifier suite**: run `verify-cmd path` (or `verify-cmd edit [script]`) to inspect or edit the active project's verifier scripts and `features/*.md`.
-- **IF unconfigured**: run `verify-cmd init [path]` to scaffold `doctor.sh`, `compile.sh`, `test.sh`, `mutants.sh`, and `features/` into a verifiers directory and register in `projects.toml`.
+- **IF unconfigured**: run `verify-cmd init [path]` to scaffold `doctor.sh`, `compile.sh`, `test.sh`, `mutants.sh`, and `features/` into a verifiers directory and register in `~/.config/impromptu/projects.toml`.
 - **ELIF new issue or feature**: expand coverage before editing product code:
   * Deterministic: add targeted regression or CLI contract in `$(verify-cmd edit test)`.
   * Agentic: add user-path specification in `$(verify-cmd path)/features/<feature>.md`.

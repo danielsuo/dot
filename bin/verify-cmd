@@ -107,12 +107,13 @@ def find_projects_config(explicit_config: str | None = None, cwd: Path | None = 
         if cand2.is_file():
             return cand2
 
-    # Standard configuration locations
-    home = Path.home()
+    # Standard configuration locations (XDG_CONFIG_HOME or ~/.config)
+    xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
     for cand in [
-        home / ".config" / "swarm" / "projects.toml",
-        home / ".config" / "verify" / "projects.toml",
-        home / ".config" / "projects.toml",
+        xdg_config / "impromptu" / "projects.toml",
+        xdg_config / "swarm" / "projects.toml",
+        xdg_config / "verify" / "projects.toml",
+        xdg_config / "projects.toml",
     ]:
         if cand.is_file():
             return cand
@@ -303,8 +304,15 @@ def cmd_init(args: argparse.Namespace) -> int:
 
     print(f"[verify-cmd] Verification stage scripts initialized at: {target_path}")
 
-    # Register into projects.toml if config exists
+    # Register into projects.toml if config exists, or create default
     config_path = find_projects_config(args.config, cwd)
+    if not config_path:
+        xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
+        config_path = xdg_config / "impromptu" / "projects.toml"
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        if not config_path.exists():
+            config_path.write_text("# Central Project Verifiers Registry\n")
+
     if config_path and config_path.is_file():
         proj_name = args.name or cwd.name
         rel_root = str(cwd.resolve())
