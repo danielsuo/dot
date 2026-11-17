@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# init-verify: Bootstrap verification scripts and features directory for a project.
+# Usage: init-verify [target_dir] (e.g. init-verify .imp, init-verify scripts, default: scripts)
+
+TARGET_DIR="${1:-scripts}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMPLATES="${SCRIPT_DIR}/../skills/verify/templates"
+
+if [[ ! -d "$TEMPLATES" ]]; then
+  echo "Error: Templates directory not found at $TEMPLATES" >&2
+  exit 1
+fi
+
+mkdir -p "$TARGET_DIR" features
+
+cp "${TEMPLATES}/doctor.template.sh" "${TARGET_DIR}/doctor.sh"
+cp "${TEMPLATES}/verify.template.py" "${TARGET_DIR}/verify.py"
+
+chmod +x "${TARGET_DIR}/doctor.sh" "${TARGET_DIR}/verify.py"
+
+echo "✓ Initialized verification suite in '${TARGET_DIR}/':"
+echo "  - ${TARGET_DIR}/doctor.sh"
+echo "  - ${TARGET_DIR}/verify.py"
+echo "  - features/"

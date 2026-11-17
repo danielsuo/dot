@@ -1,26 +1,26 @@
 ---
-name: ensure-verification-skill
+name: verify
 description: "Universal verification skill to bootstrap and run a project's 5-stage verification pipeline, update feature tests, and enforce engineering principles."
 ---
 
-# Ensure a verification skill
+# Verify
 
-Universal verification runner and maintainer for any project. Verification harnesses live directly in the project as `scripts/verify.py`, `scripts/doctor.sh`, and `features/*.md`.
+Universal verification runner and maintainer for any project. Verification harnesses live directly in the project as `scripts/verify.py` (or `.<app>/verify.py`), `doctor.sh`, and `features/*.md`.
 
 ---
 
 ## 1. Fast detection check
 
-Check if verification files exist in the repository root:
-- `scripts/doctor.sh` and `scripts/verify.py`
+Check if verification files exist in the repository:
+- `scripts/verify.py` or `.<app>/verify.py` (and `doctor.sh`)
 
 Pick one path:
-- **Case 1: Bootstrap new harness (scripts/verify.py missing)**: go to Section 2.
-- **Case 2: Run and maintain verification (scripts/verify.py present)**: go to Section 3.
+- **Case 1: Bootstrap new harness (verify.py missing)**: go to Section 2.
+- **Case 2: Run and maintain verification (verify.py present)**: go to Section 3.
 
 ---
 
-## 2. Case 1: Bootstrap new harness (scripts/verify.py missing)
+## 2. Case 1: Bootstrap new harness (verify.py missing)
 
 Follow these steps when the project has no verification files:
 
@@ -37,23 +37,23 @@ Present findings to the user before writing files:
 Wait for user confirmation before proceeding.
 
 ### Step 2: Bootstrap suite
-Run `init-verification-skill`:
+Run `init-verify`:
 ```bash
-init-verification-skill
+init-verify
 ```
-This copies `scripts/doctor.sh` and `scripts/verify.py` from `templates/`, creates `features/`, and sets execute permissions. Customize compile and test commands for the target project.
+This copies `doctor.sh` and `verify.py` from `templates/`, creates `features/`, and sets execute permissions. Customize compile and test commands for the target project.
 
 ### Step 3: Run initial pass
-Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
+Run preflight and runner to confirm all stages pass.
 
 ---
 
-## 3. Case 2: Run and maintain verification (scripts/verify.py present)
+## 3. Case 2: Run and maintain verification (verify.py present)
 
 Execute verification and keep coverage up to date across four continuous triggers:
 
 ### Trigger 1: On every bug report (before touching product code)
-- Mechanical bug (crash, error, bad flag): add automated test to `scripts/verify.py` or unit tests.
+- Mechanical bug (crash, error, bad flag): add automated test to `verify.py` or unit tests.
 - Visual or subjective bug: add inspection check to Stage 5.
 - Confirm test fails (red), apply fix, and verify test passes (green).
 
@@ -62,12 +62,12 @@ Execute verification and keep coverage up to date across four continuous trigger
 - Add workflow and visual expectations to Stage 5 in `features/<feature>.md`.
 
 ### Trigger 3: On template updates (re-sync framework)
-- When global templates update (flags, telemetry, principles): sync framework logic in `scripts/verify.py` and `scripts/doctor.sh`.
+- When global templates update (flags, telemetry, principles): sync framework logic in `verify.py` and `doctor.sh`.
 - Strictly isolate and preserve project-specific commands, test functions, and `features/*.md` specs.
 
 ### Trigger 4: Post-landing upkeep (every merged change)
 - Audit `features/*.md` against modified routes (`git diff main --stat`).
-- Prune obsolete checks and run `python3 scripts/verify.py` to ensure all stages pass.
+- Prune obsolete checks and run verification to ensure all stages pass.
 
 ### ⚠️ Boundary rule: framework harness vs project specifics
 - **Framework harness**: runner flags (`--tier`), telemetry, principles checklist. Re-syncable from `templates/`.
@@ -78,19 +78,19 @@ Execute verification and keep coverage up to date across four continuous trigger
 
 ## 4. The five verification stages
 
-The verification runner (`scripts/verify.py`) tests the application across five progressive stages:
+The verification runner (`verify.py`) tests the application across five progressive stages:
 
-1. **Stage 1: Compile code (target < 2s)**: `python3 scripts/verify.py --tier=1`
+1. **Stage 1: Compile code (target < 2s)**: `python3 <dir>/verify.py --tier=1`
    Build and type check without running the application (`cargo check`, `tsc`).
-2. **Stage 2: Run unit tests (target < 10s)**: `python3 scripts/verify.py --tier=2`
+2. **Stage 2: Run unit tests (target < 10s)**: `python3 <dir>/verify.py --tier=2`
    Hermetic native unit tests in memory (`cargo test`, `pytest`, `npm test`).
-3. **Stage 3: Run CLI and check flags (target ~10–30s)**: `python3 scripts/verify.py --tier=3`
+3. **Stage 3: Run CLI and check flags (target ~10–30s)**: `python3 <dir>/verify.py --tier=3`
    Run compiled binaries with argument combinations, test flag errors, launch ephemeral server, scan for fake data.
-4. **Stage 4: Architecture and principles audit**: `python3 scripts/verify.py --tier=4`
+4. **Stage 4: Architecture and principles audit**: `python3 <dir>/verify.py --tier=4`
    Run pre-review checklist and consult `references/principles-router.md` (which maps tasks to principles in `$(find-skills-root)/../references/principles/`).
-5. **Stage 5: Test user workflows and features (target ~1–3m)**: `python3 scripts/verify.py --tier=5`
+5. **Stage 5: Test user workflows and features (target ~1–3m)**: `python3 <dir>/verify.py --tier=5`
    Automate user flows with headless scripts (capturing logs and screenshots); agent inspects layout, typography, and semantic correctness.
 
-Running `python3 scripts/verify.py` executes all five stages in sequence, appending a run record to `~/.config/skills/usage.jsonl`.
+Running `python3 <dir>/verify.py` executes all five stages in sequence, appending a run record to `~/.config/skills/usage.jsonl`.
 
 
