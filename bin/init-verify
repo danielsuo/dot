@@ -16,11 +16,15 @@ fi
 mkdir -p "$TARGET_DIR" features
 
 cp "${TEMPLATES}/doctor.template.sh" "${TARGET_DIR}/doctor.sh"
-cp "${TEMPLATES}/verify.template.py" "${TARGET_DIR}/verify.py"
+cp "${TEMPLATES}/compile.template.sh" "${TARGET_DIR}/compile.sh"
+cp "${TEMPLATES}/test.template.sh" "${TARGET_DIR}/test.sh"
+cp "${TEMPLATES}/mutants.template.sh" "${TARGET_DIR}/mutants.sh"
 
-chmod +x "${TARGET_DIR}/doctor.sh" "${TARGET_DIR}/verify.py"
+chmod +x "${TARGET_DIR}/doctor.sh" "${TARGET_DIR}/compile.sh" "${TARGET_DIR}/test.sh" "${TARGET_DIR}/mutants.sh"
 
 echo "✓ Initialized verification suite in '${TARGET_DIR}/':"
 echo "  - ${TARGET_DIR}/doctor.sh"
-echo "  - ${TARGET_DIR}/verify.py"
+echo "  - ${TARGET_DIR}/compile.sh"
+echo "  - ${TARGET_DIR}/test.sh"
+echo "  - ${TARGET_DIR}/mutants.sh"
 echo "  - features/"
