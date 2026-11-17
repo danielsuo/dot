@@ -18,8 +18,8 @@ Check if verification files already exist in this repository:
 - `<skills-root>/verify-<app>/SKILL.md` (or `.skills/verify-<app>/SKILL.md`).
 
 Pick one path:
-- **Case 1: Bootstrap new harness (scripts/verify.py missing)**: go to Section 2.
-- **Case 2: Maintain existing harness (scripts/verify.py present)**: go to Section 3. Do not read scaffolding templates.
+- **Case 1: Bootstrap new harness (scripts/verify.py missing)**: go to Section 2. Copy templates from `templates/`.
+- **Case 2: Maintain existing harness (scripts/verify.py present)**: go to Section 3. Do not read templates.
 
 ---
 
@@ -28,10 +28,7 @@ Pick one path:
 Follow these steps when the project has no verification files:
 
 ### Step 1: Gather context
-Read three sources:
-1. Conversation history: check recent error messages, feature requests, and discussed bugs.
-2. Git history: run `git log -n 10 --oneline` and `git diff HEAD~5 --stat` to find touched modules.
-3. Task board: check the card description and open tickets for acceptance criteria.
+Read conversation history, recent git commits (`git log -n 10 --oneline`), and open card criteria.
 
 ### 🎯 Mandatory user confirmation gate
 Present findings to the user before writing files:
@@ -42,12 +39,17 @@ Present findings to the user before writing files:
 
 Wait for user confirmation before proceeding.
 
-### Step 2: Generate files
-Scaffold directory structure per `references/template.md`:
-- `scripts/doctor.sh`
-- `scripts/verify.py`
-- `<skills-root>/verify-<app>/SKILL.md`
-- `<skills-root>/verify-<app>/features/`
+### Step 2: Copy and customize templates
+1. Copy templates into place:
+   ```bash
+   TEMPLATES="$(find-skills-root)/ensure-verification-skill/templates"
+   cp "${TEMPLATES}/doctor.template.sh" scripts/doctor.sh
+   cp "${TEMPLATES}/verify.template.py" scripts/verify.py
+   mkdir -p "<skills-root>/verify-<app>/features"
+   cp "${TEMPLATES}/SKILL.template.md" "<skills-root>/verify-<app>/SKILL.md"
+   chmod +x scripts/doctor.sh scripts/verify.py
+   ```
+2. Customize `<app>`, `<build_cmd>`, and `<test_cmd>` placeholders for the target project.
 
 ### Step 3: Run initial pass
 Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
