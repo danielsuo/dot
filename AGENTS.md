@@ -11,8 +11,15 @@ Project verification operates on a strict **Two-Tier Lifecycle**: execution duri
 
 ### 1A. Execution: Per-Task / Pre-Review Verification ("Prove It Works")
 - **Mandatory Execution Before Presenting or Reviewing**: Before declaring any work finished, presenting results to the user, or moving a card to `in_review`, the worker MUST execute the project verification skill or harness (e.g. `verify-<app>`, `scripts/verify.py`, or `scripts/doctor.sh`) against the running application instance.
+- **Mandatory Display of Explicit Verification Output**:
+  - The user and reviewers MUST BE SHOWN the explicit results of the verification execution.
+  - Every completion report, task thread update, card transition to `in_review`, pull request description, and review verdict MUST contain the **verbatim or structured execution output**:
+    1. Exact CLI command invoked (e.g. `python3 scripts/verify.py --tier=2`).
+    2. Exit code (e.g. `exit code 0`).
+    3. Verbatim stdout/stderr output lines showing individual test cases passed, assertions checked, and metrics verified.
+  - **Zero Assertion Without Proof**: Bare claims like "tests pass", "verified locally", or "builds green" without the accompanying command invocation and terminal output block are STRICTLY PROHIBITED and invalid.
 - **Inspect Metric Correctness**: The agent must not merely check for a green exit code; the agent MUST inspect the actual output metrics, card values, and UI state to verify they are plausible and correct (e.g. asserting that active fleet views display non-zero experiments, non-zero job counts, and valid dates). Never present a screen showing "0 Experiments" or unpopulated metrics on active fleet views.
-- **Reviewer Blocking Gate**: Reviewers (`@reviewer*`) MUST independently verify that the verification harness was executed, inspect the output logs and screenshots, and confirm metric correctness before casting `approve`. Any task lacking verification execution proof or displaying anomalous metrics must be rejected with `verdict='changes'`.
+- **Reviewer Blocking Gate**: Reviewers (`@reviewer*`) MUST independently verify that the explicit execution output block is present, inspect the output logs and screenshots, and confirm metric correctness before casting `approve`. Any task lacking explicit verification execution proof or displaying anomalous metrics MUST be immediately rejected with `verdict='changes'`.
 
 ### 1B. Maintenance: Upkeep Loop (`maintain-verification-skill`)
 A feature map and verification harness rot as the codebase evolves. The maintenance upkeep loop is governed by **Dual Triggers**:
@@ -56,6 +63,7 @@ To balance rapid developer velocity with absolute release correctness, verificat
 - Never modify code you haven't read.
 - Keep changes minimal, focused, and directly addressing the user's intent. Do not refactor unrelated code, reformat untouched lines, or introduce premature abstractions.
 
-## 4. Evidence-Bearing Communication
-- Always cite concrete line numbers, file paths, and verifiable outputs.
-- Discover answers through codebase research rather than guessing.
+## 4. Evidence-Bearing Communication & Proof of Execution
+- **Show the Execution**: Always paste the exact command executed, exit code, and terminal output. Never state that a command, build, or test "succeeded" without showing the receipt.
+- **Concrete References**: Always cite concrete line numbers, file paths, and verifiable outputs.
+- **Grounded Answers**: Discover answers through codebase research rather than guessing.
