@@ -11,8 +11,8 @@
 - On user feedback or bug reports, encode an automated regression test reproducing the failure before patching product code. The user must never report the same defect twice.
 
 ## 3. Modular references
-- **Verification harness and stages**: see `ensure-verification-skill/SKILL.md`.
-- **Engineering principles and rubrics**: see `references/principles/`.
+- **Verification harness and stages**: see `ensure-verification-skill/SKILL.md` (resolved via `find-skills-root`).
+- **Engineering principles and rubrics**: see `references/principles/` (resolved via `$(find-skills-root)/../references/principles/`).
 
 
 

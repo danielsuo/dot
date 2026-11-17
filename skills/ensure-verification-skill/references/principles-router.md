@@ -1,6 +1,6 @@
 # Engineering principles router
 
-Engineering principles are modular reference manuals in `~/dot/references/principles/`. Use this router during Stage 4 verification and mid-flight development.
+Engineering principles are modular reference manuals located in `$(find-skills-root)/../references/principles/` (or `~/dot/references/principles/`). Use this router during Stage 4 verification and mid-flight development.
 
 ---
 
@@ -18,7 +18,7 @@ Before declaring a task complete or moving code to review, run this 30-second au
 
 ## 2. Situational principles router
 
-When encountering any of these situations during coding or review, read the corresponding principle in `~/dot/references/principles/`:
+When encountering any of these situations during coding or review, read the corresponding principle in `$(find-skills-root)/../references/principles/`:
 
 1. **Questioning task premise or asked to implement a questionable workaround** -> `attack-the-premise.md`
 2. **Exposing cross-module contracts or passing untrusted inputs** -> `boundary-discipline.md`
