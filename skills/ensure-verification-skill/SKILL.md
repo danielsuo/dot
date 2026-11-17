@@ -5,21 +5,19 @@ description: "Idempotently ensure a project has an up-to-date verification skill
 
 # Ensure a verification skill
 
-Every project needs an automated way to test application behavior. Running this skill ensures a working verification skill exists and stays aligned with the current codebase.
-
-Resolve `<skills-root>` by running `SKILLS_ROOT=$(find-skills-root)` (or `find-skills-root --project`).
+Ensure a working verification skill exists and stays aligned with current code. Resolve `<skills-root>` via `SKILLS_ROOT=$(find-skills-root)`.
 
 ---
 
 ## 1. Fast detection check
 
 Check if verification files already exist in this repository:
-- `scripts/doctor.sh` and `scripts/verify.py` in the repository root.
-- `<skills-root>/verify-<app>/SKILL.md` (or `.skills/verify-<app>/SKILL.md`).
+- `scripts/doctor.sh` and `scripts/verify.py` in repository root.
+- `<skills-root>/verify-<app>/SKILL.md`.
 
 Pick one path:
-- **Case 1: Bootstrap new harness (scripts/verify.py missing)**: go to Section 2. Copy templates from `templates/`.
-- **Case 2: Maintain existing harness (scripts/verify.py present)**: go to Section 3. Do not read templates.
+- **Case 1: Bootstrap new harness (scripts/verify.py missing)**: go to Section 2.
+- **Case 2: Maintain existing harness (scripts/verify.py present)**: go to Section 3.
 
 ---
 
@@ -53,7 +51,7 @@ Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
 
 ## 3. Case 2: Maintain existing harness (scripts/verify.py present)
 
-When verification scripts already exist, run `ensure-verification-skill` across three continuous triggers:
+When verification scripts already exist, run `ensure-verification-skill` across four continuous triggers:
 
 ### Trigger 1: On every bug report (before touching product code)
 - Mechanical bug (crash, error, bad flag): add automated test to `scripts/verify.py` or unit tests.
@@ -64,12 +62,18 @@ When verification scripts already exist, run `ensure-verification-skill` across 
 - Add programmatic checks (CLI flags, route responses, schema validation) to Stages 1–3.
 - Add workflow and visual expectations to Stage 5.
 
-### Trigger 3: Post-landing upkeep (every merged change)
+### Trigger 3: On template updates (re-sync framework)
+- When global templates update (flags, telemetry, principles): sync framework logic in `scripts/verify.py` and `scripts/doctor.sh`.
+- Strictly isolate and preserve project-specific commands, test functions, and `features/*.md` specs.
+
+### Trigger 4: Post-landing upkeep (every merged change)
 - Audit `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
 - Prune obsolete checks and run `python3 scripts/verify.py` to ensure all stages pass.
 
-### ⚠️ Blocking rule: maintenance edit scope
-Only edit verification files (`SKILL.md`, `features/`, `scripts/`). Never weaken assertions or alter product code during maintenance. Genuine product bugs found during maintenance are defects, not doc drift.
+### ⚠️ Boundary rule: framework harness vs project specifics
+- **Framework harness**: runner flags (`--tier`), telemetry, principles checklist. Re-syncable from `templates/`.
+- **Project specifics**: build/test commands, CLI flags, feature specs. Preserved across template updates.
+- Only edit verification files (`SKILL.md`, `features/`, `scripts/`). Never alter product code during maintenance.
 
 ---
 
