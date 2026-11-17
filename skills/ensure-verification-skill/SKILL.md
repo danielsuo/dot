@@ -43,14 +43,22 @@ Check whether the project already has:
    Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
 
 ### Path B: Project already has a verification skill (maintain)
-1. **Audit feature coverage**:
-   Compare files in `<skills-root>/verify-<app>/features/` and tests in `scripts/verify.py` against recently modified routes and modules (`git diff main --stat`).
-2. **Add missing scenarios**:
-   Add test assertions for newly added flags, endpoints, or features. If a bug was reported, write an explicit regression test reproducing it.
-3. **Prune dead scenarios**:
-   Remove verification checks for deleted routes or obsolete configuration options.
-4. **Execute and calibrate**:
-   Run `python3 scripts/verify.py` to ensure all five stages pass with zero false alarms.
+Run `ensure-verification-skill` across three continuous triggers:
+
+1. **On every bug report (before fixing product code)**:
+   - If the bug is mechanical (crash, bad exit code, broken flag, wrong payload format, unhandled error): add an automated test to `scripts/verify.py` or native unit tests.
+   - If the bug is visual or subjective (layout shift, misalignment, bad typography, confusing copy): add an inspection check to Stage 5.
+   - Confirm the test fails (red), apply the product fix, and verify the test passes (green).
+
+2. **On every feature addition (alongside implementation)**:
+   - A feature does not exist until its verification recipe exists.
+   - Add programmatic checks (CLI flags, route responses, schema validation) to `scripts/verify.py` (Stages 1 through 3).
+   - Add workflow and visual expectations to Stage 5.
+
+3. **Post-landing upkeep (every merged change)**:
+   - Audit files in `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
+   - Prune verification checks for deleted routes or obsolete configuration options.
+   - Run `python3 scripts/verify.py` to ensure all five stages pass with zero false alarms.
 
 ---
 

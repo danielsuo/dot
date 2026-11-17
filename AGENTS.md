@@ -45,18 +45,21 @@ Project verification operates on a strict **Two-Tier Lifecycle**: execution duri
 - **Reviewer Blocking Gate**: Reviewers (`@reviewer*`) MUST independently verify that the explicit execution output block is present, inspect the output logs and screenshots, and confirm metric correctness before casting `approve`. Any task lacking explicit verification execution proof or displaying anomalous metrics MUST be immediately rejected with `verdict='changes'`.
 
 ### 1B. Idempotent Upkeep Loop (`ensure-verification-skill`)
-A feature map and verification harness rot as the codebase evolves. The maintenance upkeep loop is governed by **Dual Triggers**:
+A feature map and verification harness rot as the codebase evolves. The maintenance upkeep loop is governed by **Three Continuous Triggers**:
 
-- **Trigger 1: Post-Landing Upkeep (Every Landed PR / Merged Change)**:
-  - Run `ensure-verification-skill` whenever code merges into `main` (landed PR / merged change), NOT on intermediate exploratory WIP commits.
-  - **Doc / Feature Map Drift**: Update `verify-<app>/features/` to reflect newly added capabilities, modified route contracts, and changed UI handles.
-  - **Dead Scenario Pruning**: Remove verification recipes for deleted or deprecated features to prevent test rot.
-  - **Harness Calibration**: Execute a live pass across all features to guarantee zero false alarms and 100% pass rate.
+- **Trigger 1: On Every Bug Report (Before Touching Production Code)**:
+  - Whenever a bug, flaw, missing data, or broken behavior is reported, run `ensure-verification-skill` to encode a reproducible test before patching product code.
+  - If the bug is mechanical (crash, bad exit code, broken flag, wrong payload format, unhandled error): add an automated test to `scripts/verify.py` or unit tests.
+  - If the bug is visual or subjective (layout shift, misalignment, bad typography, confusing copy): add an inspection assertion to Stage 5.
+  - Confirm the test reproduces the failure (red), apply the fix, and verify it passes (green). The user must never have to report the same defect twice.
 
-- **Trigger 2: Escaped Defect Upkeep (On Any Strong User Correction or Feedback)**:
-  - Whenever the user points out a flaw, bug, missing data, false positive, or broken behavior (e.g. *"why are there 0 rows?"*, *"that's broken"*, *"you missed X"*), this represents an **escaped defect** that bypassed the existing verification harness.
-  - **Regression Recipe First**: Run `ensure-verification-skill` immediately to translate the user's feedback into a new, reproducible verification recipe in `features/` that captures the failure.
-  - **Prevent Recurrence**: Fix the underlying code and re-run the verification harness to ensure the new recipe passes green, guaranteeing the user never has to correct the same defect twice.
+- **Trigger 2: On Every Feature Addition (Alongside Implementation)**:
+  - A feature does not exist until its verification recipe exists.
+  - Add programmatic checks (CLI flags, route responses, schema validation) to `scripts/verify.py` (Stages 1 through 3).
+  - Add workflow and visual expectations to Stage 5.
+
+- **Trigger 3: Post-Landing Upkeep (Every Merged Change)**:
+  - Run `ensure-verification-skill` whenever code merges into `main` to update documentation, prune deleted scenarios, and calibrate the suite to guarantee zero false alarms.
 
 - **Strict Edit Scope**: The maintenance pass ONLY updates the verification skill itself (its `SKILL.md`, `features/`, and harness scripts). It NEVER alters product code. Genuine product bugs discovered during maintenance must be reported as issues, never papered over by weakening verification assertions.
 
