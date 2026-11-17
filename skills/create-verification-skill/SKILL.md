@@ -13,25 +13,59 @@ Resolve `<skills-root>` dynamically using `SKILLS_ROOT=$(find-skills-root)` (or 
 
 ---
 
-## 1. The Adversarial Verification Pillars & Nested Tiers
+## 1. The MECE 4-Tier Verification Pipeline
 
-Every generated verification harness MUST implement and enforce the **Adversarial Verification Pillars**, executed across **Three Nested Tiers**:
+Every generated verification harness MUST implement and enforce a strictly **Mutually Exclusive, Collectively Exhaustive (MECE)** 4-tier pipeline, ordered by **increasing execution time, complexity, and resource involvement**:
 
-### The Three Nested Developer Loops:
-1. **Tier 1: Inner Loop (Per-Edit / Tightest Loop — Target ~1–5s)**:
-   - Run via `python3 scripts/verify.py --feature=<name>` or `python3 scripts/verify.py --tier=1`.
-   - Executes only the targeted unit test or isolated feature check for the module being modified.
-   - Provides instant feedback during active development.
-2. **Tier 2: Mid Loop (Pre-Review / Task Completion — Target ~15–30s)**:
-   - Run via `python3 scripts/verify.py --tier=2` (default).
-   - Executes native hermetic unit tests + live port/process doctor + core critical user journeys (CUJs) + static zero-fake-data linter.
-   - Mandatory gate before requesting review or declaring a task complete.
-3. **Tier 3: Outer Loop (Pre-Submit / Landing Gate — Full Rigor)**:
-   - Run via `python3 scripts/verify.py --tier=3`.
-   - Full matrix pass: exercises all feature recipes in `features/`, asserts live upstream database parity, tests multi-viewport layouts, and verifies CI presubmits.
-   - Mandatory gate before merging to `main` or releasing.
+```
+                       ▲
+                      / \
+                     /   \
+                    /  4  \    Tier 4: End-to-End User Journey (Agentic & Live UI)
+                   /───────\   (Browser automation, real clicking, form typing, PTY)
+                  /    3    \  Tier 3: Subsystem & Environment Integration
+                 /───────────\ (Process lifecycle, CLI flags, test ports, DB mutations)
+                /      2      \ Tier 2: Deterministic Logic & Unit Tests
+               /───────────────\ (Hermetic in-memory tests, unit suites, cargo test)
+              /        1        \ Tier 1: Static Correctness (Compile & Types)
+             /───────────────────\ (cargo check, blaze build, syntax & type rules)
+```
+
+### The 4 Verification Tiers:
+
+1. **Tier 1: Static Correctness (Compile & Types — Target < 2s)**
+   - **Cost**: Sub-second to 2s | 0 tokens | Zero process execution.
+   - **Scope**: Hermetic build and type checking (`cargo check`, `blaze build //...`, TypeScript/linter checks).
+   - **Failure Mode**: Syntax errors, broken imports, missing types, compiler warnings. Fails immediately before running any tests.
+   - **Invocation**: `python3 scripts/verify.py --tier=1`
+
+2. **Tier 2: Deterministic Logic & Unit Tests (Target < 10s)**
+   - **Cost**: < 10s | 0 tokens | In-memory execution.
+   - **Scope**: Hermetic native unit tests (`cargo test`, `blaze test //...`, `pytest`) testing pure functions, state machines, parsers, and edge cases.
+   - **Failure Mode**: Algorithmic flaws, off-by-one errors, state transition bugs, unit regressions.
+   - **Invocation**: `python3 scripts/verify.py --tier=2`
+
+3. **Tier 3: Subsystem & Environment Integration (Target ~10–30s)**
+   - **Cost**: ~10–30s | 0 tokens | Multi-process OS execution.
+   - **Scope**: Testing compiled binaries, CLI flags (`app --help`, invalid argument exits), launching ephemeral test servers on isolated random ports, testing DB state mutations, and live RPC/WebSocket roundtrips.
+   - **Failure Mode**: Port conflicts, config parsing bugs, missing migrations, broken network contracts, unhandled runtime signals.
+   - **Invocation**: `python3 scripts/verify.py --tier=3`
+
+4. **Tier 4: End-to-End User Journey (Agentic & Live UI — Target ~1–3m)**
+   - **Cost**: ~1–3m | Tokens / Browser execution | Full interface surface.
+   - **Scope**: The actual user experience! Driving the real interface via browser automation (Playwright/Puppeteer/CDP), clicking around buttons, navigating views, verifying responsive viewports, or driving terminal PTY keystrokes.
+   - **Failure Mode**: Stuck UI elements, broken client-side routing, layout overlap, unclickable buttons, missing data on live rendered screens.
+   - **Invocation**: `python3 scripts/verify.py --tier=4`
+
+*(Note: Telemetry logging to `~/.config/skills/usage.jsonl` and `execution_ledger.json` is a passive background receipt recorded automatically on completion, not a tier).*
 
 ---
+
+### Running the Verification Pipeline:
+- **Inner Loop (Active Coding)**: `python3 scripts/verify.py --tier=1` or `--tier=2`
+- **Pre-Review Gate (Task Completion)**: `python3 scripts/verify.py --tier=3` (or full run)
+- **Pre-Submit / Landing Gate (Full Rigor)**: `python3 scripts/verify.py` (runs Tiers 1 through 4 sequentially, halting on first failure)
+
 
 ### The Four Verification Pillars:
 
