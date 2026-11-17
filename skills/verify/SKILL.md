@@ -19,11 +19,17 @@ Universal verification playbook orchestrator for any project. Coordinates determ
 
 ---
 
-## 2. Operational verification loops
+## 2. Operational verification loops & execution gates
 
-Execute verification across two operational loops:
+Execute verification across two operational loops with strict step-gating and proportional scaling:
 - **Inner loop (< 5s, development iteration)**: run targeted tests (`python3 <dir>/verify.py --tier 0 [target]`) or compile/tests (`--fast`) after every sub-step to catch regressions immediately.
-- **Outer loop (~1–3m, verification & review gate)**: run the full suite (`python3 <dir>/verify.py`), audit principles, and convene the expert panel. If issues arise, the agent diagnoses, fixes, and re-verifies in a convergence loop (up to 5 iterations) until green.
+- **Strict step-gating**: never advance to Stage N+1 if Stage N fails (exit code != 0). Stop the line: diagnose, patch, and re-run Stage N in a loop (up to 5 iterations) until green.
+- **Proportional verification scaling**: scope verification depth to the change's blast radius:
+  * *Doc, typo, or comment edits*: Stage 1 only (compile/syntax check).
+  * *Local bug fixes / isolated modules*: Stages 1 & 2 (`--fast` compile + unit/regression tests).
+  * *Features, architectural changes, public APIs*: Full 5-stage pipeline + expert panel review.
+- **Outer loop (~1–3m, verification & review gate)**: run the scoped suite (`python3 <dir>/verify.py`), audit principles, and convene the expert panel.
+- **Final green sweep mandate**: after addressing all fixes, audit findings, and reviewer comments, execute one final uninterrupted run of the scoped suite from top to bottom before presenting work or requesting review. The completion report must display this final clean receipt.
 
 ---
 
