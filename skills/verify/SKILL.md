@@ -13,10 +13,10 @@ Universal verification playbook orchestrator for any project. Dispatches determi
 
 - **Locate verifier suite**: run `verify path` (or `verify <stage> --path` / `verify edit [script]`) to inspect or edit the active project's verifier scripts and `features/*.md`.
 - **IF unconfigured**: run `verify init [path]` to scaffold `doctor.sh`, `compile.sh`, `test.sh`, `mutants.sh`, and `features/` into a verifiers directory and register in `~/.config/impromptu/projects.toml`.
-- **ELIF new issue or feature**: expand coverage before editing product code:
-  * Run `verify path` (or `verify --path`) to locate the project's verifier directory.
-  * Deterministic: update `test.sh` or `compile.sh` for any new targets, flags, or regressions.
-  * Agentic: add or update the feature spec in `$(verify path)/features/<feature>.md` (defining User Path, Preconditions, Actions, Assertions) so Stage 4/5 agentic reviews have authoritative criteria.
+- **ELIF new issue or feature**: MANDATORY PRE-CODE UPKEEP before editing product code:
+  * Locate suite: run `verify --path` (or `verify path`) to get the verifier root (e.g. `experimental/users/dsuo/verifiers/<project>/`).
+  * Deterministic: update `compile.sh` (for new build targets/flags) and `test.sh` (add regression test for bugs, unit/integration targets).
+  * Agentic specs: add or update `features/<feature>.md` in the verifiers directory (defining Capabilities, User Paths, and Assertions) so Stage 4/5 agentic review has authoritative acceptance criteria.
 - **FINALLY**: execute through the progressive stages using `verify`. Run `verify stats` for execution metrics.
 
 ---
