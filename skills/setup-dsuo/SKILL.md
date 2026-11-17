@@ -1,117 +1,48 @@
 ---
 name: setup-dsuo
-description: "Adaptive, idempotent setup skill for bootstrapping dsuo's personal agent environment, AGENTS.md symlinks, and cross-harness lifecycle hooks. Reads declarative ~/dot/hooks.json and maps hooks across detected VCS (Git, Fig/hg, Jujutsu) and agent harnesses (Cursor, Claude Code, Swarm). Safe to run multiple times. Prompts the user when paths or hook locations are ambiguous."
+description: "Adaptive, idempotent setup skill for bootstrapping dsuo's personal agent environment, skills directories, and AGENTS.md symlinks. Detects active agent harnesses (Cursor, Claude Code, Swarm) and configures them to discover and execute personal and project skills seamlessly. Safe to run multiple times."
 ---
 
-# Setup dsuo Personal Agent Environment & Harness Hooks
+# Setup dsuo Personal Agent Environment & Skills
 
-This skill provides an adaptive, interactive, and **strictly idempotent** workflow to bootstrap and configure Daniel Suo's personal agent environment across workstations, project repositories, version control systems (Git, Fig/hg, Jujutsu), and AI agent harnesses (Cursor, Claude Code, Swarm).
+This skill provides an adaptive, interactive, and **strictly idempotent** workflow to bootstrap and configure Daniel Suo's personal agent environment across workstations, project repositories, and AI agent harnesses (Cursor, Claude Code, Swarm, Gemini CLI).
 
-It reads the canonical declarative registry **`~/dot/hooks.json`** and maps those lifecycle events and attached skills into the active systems on the host machine.
+Its primary objective is to **make agent skills work seamlessly and reliably everywhere** by discovering active harnesses, creating necessary skill directory symlinks, configuring `AGENTS.md` behavioral doctrine, and ensuring health check diagnostics pass cleanly.
 
 ---
 
 ## 1. Core Principles: Relevance Gating & Strict Idempotency
 
 ### A. Strict Relevance Gating (Zero Spurious Configurations)
-**Never install configs or hooks for tools that are not active on the host**:
+**Never install configs or rules for tools that are not active on the host**:
 - If Cursor is absent (`~/.cursor` or `cursor` binary not found), **skip Cursor rules completely**; do not create empty `.cursor/` directories.
 - If Claude Code / Gemini CLI is absent, skip their config directories.
-- If Swarm is absent, skip Swarm instructions.
-- If Jujutsu (`jj`) or Fig (`hg`) is absent, skip their respective hook entries.
-Only wire up tools that are installed and verified present.
+- If Swarm / Beekeeper is absent, skip Swarm instructions.
+Only configure tools that are installed and verified present.
 
 ### B. Strict Idempotency (Safe to Re-Run Anytime)
-`setup-dsuo` is designed to be **executed repeatedly** (e.g. when you add new hooks or skills to `hooks.json`):
-- **Managed Delimiter Blocks**: In shared config files (like `~/.hgrc` or `~/.jjconfig.toml`), `setup-dsuo` only modifies sections wrapped in managed comments:
-  ```ini
-  # >>> BEGIN DSUO HOOKS (Managed by setup-dsuo - DO NOT EDIT MANUALLY)
-  ...
-  # <<< END DSUO HOOKS
-  ```
-- **Preserve User Customizations**: Any user aliases, personal config flags, or custom settings outside the managed block are strictly preserved.
-- **Zero Line Duplication**: Re-running `setup-dsuo` updates or replaces the managed block in-place without appending duplicate entries.
+`setup-dsuo` is designed to be **executed repeatedly**:
+- **Preserve User Customizations**: Any user rules, personal config flags, or custom settings are strictly preserved.
+- **Symlink Idempotency**: Creates or refreshes symlinks using `ln -sfn` without creating nested symlinks or duplicating entries.
 
 ---
 
-## 2. Declarative Source of Truth: `~/dot/hooks.json`
+## 2. Step 1: Detect Active Harnesses & Skills Locations
 
-The hooks, lifecycle events, and attached skills are defined in `~/dot/hooks.json`:
-
-```json
-{
-  "version": 1,
-  "description": "Declarative lifecycle event hooks and skill mappings for dsuo agent environments",
-  "hooks": {
-    "on_session_start": {
-      "description": "Fires when an agent begins a task; establishes environment readiness",
-      "action": "run_doctor",
-      "command": "python3 $(find-skills-root)/verify-*/scripts/doctor.sh",
-      "fail_mode": "warn"
-    },
-    "on_pre_review": {
-      "description": "Fires before requesting review, uploading a CL, or pushing a branch; gates on verification",
-      "action": "verify_tier_2",
-      "command": "python3 $(find-skills-root)/verify-*/scripts/verify.py --tier=2",
-      "fail_mode": "block"
-    },
-    "on_user_correction": {
-      "description": "Fires when user provides feedback or points out a defect; converts to red regression test",
-      "action": "maintain_verification_skill_repro",
-      "skill": "maintain-verification-skill",
-      "mode": "correction",
-      "fail_mode": "prompt"
-    },
-    "on_change_landed": {
-      "description": "Fires after code merges into main or task reaches done; harmonizes feature map",
-      "action": "maintain_verification_skill_upkeep",
-      "skill": "maintain-verification-skill",
-      "mode": "upkeep",
-      "fail_mode": "warn"
-    }
-  },
-  "targets": {
-    "git": {
-      "pre-push": "on_pre_review",
-      "post-merge": "on_change_landed"
-    },
-    "fig": {
-      "pre-upload": "on_pre_review",
-      "post-sync": "on_change_landed"
-    },
-    "jujutsu": {
-      "upload": "on_pre_review"
-    },
-    "swarm": {
-      "on_task_done": "on_change_landed",
-      "on_thread_correction": "on_user_correction"
-    },
-    "cursor": {
-      "pre_review_rule": "on_pre_review",
-      "feedback_rule": "on_user_correction"
-    }
-  }
-}
-```
-
----
-
-## 3. Step 1: Detect Active Harnesses & VCS Environments
-
-Inspect the current working directory and host environment:
-1. **Version Control Systems (VCS)**:
-   - **Git**: Check if `git` is installed and if inside a Git repo (`git rev-parse --show-toplevel`).
-   - **Fig / Mercurial (`hg`)**: Check if `hg` or `fig` is installed (`command -v hg`, `~/.hgrc`).
-   - **Jujutsu (`jj`)**: Check if `jj` is installed (`command -v jj`, `.jj` directory, `~/.jjconfig.toml`).
-2. **AI Agent Harnesses**:
-   - **Cursor IDE**: Check for `~/.cursor`, `.cursor/rules/`, or `cursor` binary.
-   - **Claude Code / Coding Assistants**: Check for `~/.claude/`, `~/.gemini/config/`, or `claude` binary.
+Inspect the host environment and current working directory:
+1. **AI Agent Harnesses**:
+   - **Cursor IDE**: Check for `~/.cursor/`, `.cursor/rules/`, or `cursor` binary.
+   - **Claude Code**: Check for `~/.claude/` or `claude` binary.
+   - **Gemini CLI / Jetski**: Check for `~/.gemini/config/` or `gemini` binary.
    - **Swarm / Beekeeper**: Check for `~/.config/swarm/`, `prototypes/gdm/beekeeper/`, or running swarm supervisor.
-3. **Dotfiles Root**: Locate `~/dot/` and read `~/dot/hooks.json`.
+2. **Skills Roots**:
+   - User central skills root: `~/.config/skills/`
+   - Personal dotfiles skills root: `~/dot/skills/`
+   - Project repository skills root: `./skills/`, `._agents/skills/`, or `.cursor/skills/`
 
 ---
 
-## 4. Step 2: Establish Directives & System Prompt Symlinks
+## 3. Step 2: Establish Directives & System Prompt Symlinks
 
 For each **detected** agent harness, ensure that `AGENTS.md` (the supreme behavioral doctrine) is dynamically linked:
 
@@ -122,109 +53,40 @@ For each **detected** agent harness, ensure that `AGENTS.md` (the supreme behavi
    - Target: `.cursor/rules/dsuo-mode.mdc` or `~/.cursor/rules/dsuo-mode.mdc`
    - Action: Create rule file referencing `~/dot/AGENTS.md`.
 3. **Claude Code / Coding Assistants** (if Claude present):
-   - Target: `~/.gemini/config/AGENTS.md` or `.claude/AGENTS.md`
+   - Target: `~/.claude/AGENTS.md` or `~/.gemini/config/AGENTS.md`
    - Action: Symlink to `~/dot/AGENTS.md`.
 
 ---
 
-## 5. Step 3: Map `hooks.json` to Detected Systems
+## 4. Step 3: Wire Skill Discovery Across Harnesses
 
-`setup-dsuo` reads the `targets` block in `~/dot/hooks.json` and generates the corresponding hooks idempotently:
+Ensure that each active harness knows where to discover personal and project skills:
 
-### A. Git Lifecycle Hooks (if Git repo detected)
-- **Local Pre-Push Gate (`.git/hooks/pre-push`)**:
-  - Mapped to `hooks.json` target `git.pre-push` (`on_pre_review`).
-  - Runs Tier 2 local verification (`python3 scripts/verify.py --tier=2` or project native test runner) before pushing code.
-- **Local Post-Merge Upkeep (`.git/hooks/post-merge`)**:
-  - Mapped to `hooks.json` target `git.post-merge` (`on_change_landed`).
-  - Automatically triggers `maintain-verification-skill` whenever upstream changes are merged into `main`.
-
-### B. Fig / Mercurial (`hg`) Hooks (if Fig/hg detected)
-In `~/.hgrc` (using managed delimiter blocks):
-```ini
-# >>> BEGIN DSUO HOOKS (Managed by setup-dsuo - DO NOT EDIT MANUALLY)
-[hooks]
-# Tier 2 pre-review verification gate before uploading a changelist
-pre-upload = python3 $(find-skills-root)/verify-*/scripts/verify.py --tier=2
-
-# Post-sync upkeep when pulling mainline updates
-post-sync = python3 $(find-skills-root)/maintain-verification-skill/scripts/maintain.py --mode=upkeep
-# <<< END DSUO HOOKS
-```
-
-### C. Jujutsu (`jj`) Hooks & Aliases (if jj detected)
-1. **Colocated Git Backend**: In Git-colocated repositories (`jj` with a `.git` store), `jj git push` automatically respects `.git/hooks/pre-push`.
-2. **Alias Wrapper**: In `~/.jjconfig.toml` (using managed delimiter blocks):
-```toml
-# >>> BEGIN DSUO HOOKS (Managed by setup-dsuo - DO NOT EDIT MANUALLY)
-[aliases]
-# Tier 2 verification gate before uploading or pushing
-upload = ["util", "exec", "--", "bash", "-c", "python3 $(find-skills-root)/verify-*/scripts/verify.py --tier=2 && jj piper upload \"$@\"", "--"]
-# <<< END DSUO HOOKS
-```
-
-### D. Cursor & Claude Code Hooks (if detected)
-- Configures rules in `.cursor/rules/` to trigger `verify-<app>` on task completion and `maintain-verification-skill` on user feedback.
-
-### E. Swarm / Beekeeper Supervisor Hooks (if detected)
-- Confirms supervisor follow-up hooks in `task_followups.rs` dispatch maintenance when tasks transition to `done`.
+1. **Personal Skills Symlink**:
+   - Ensure `~/.config/skills/` contains symlinks to `~/dot/skills/*` (`setup-dsuo`, `create-verification-skill`, `maintain-verification-skill`).
+2. **Cursor Integration**:
+   - In Cursor workspaces, ensure `.cursor/rules/` references the active project skills or symlinks `skills/` if the project uses a custom directory.
+3. **Claude Code / Gemini CLI Integration**:
+   - Ensure `~/.claude/skills/` or `~/.gemini/skills/` includes symlinks to personal skills so slash commands and tool lookups resolve instantly.
 
 ---
 
-## 6. Arbitrary Custom Hooks & Dynamic Extensions
-
-`hooks.json` is not constrained to fixed events. Users can register **arbitrary custom lifecycle hooks**:
-
-```json
-{
-  "hooks": {
-    "on_build_failure": {
-      "description": "Fires when local compiler or build action fails",
-      "action": "auto_diagnose",
-      "command": "python3 $(find-skills-root)/diagnose-build/run.py"
-    },
-    "on_schema_migration": {
-      "description": "Fires when database schema or SDL files are modified",
-      "action": "validate_schema_parity",
-      "command": "python3 $(find-skills-root)/verify-*/scripts/parity_check.py"
-    }
-  }
-}
-```
-
-Whenever custom hooks are defined in `hooks.json`, `setup-dsuo` dynamically attaches them to the corresponding tool targets (e.g. build wrappers, git pre-commit, or IDE editor events).
-
----
-
-## 7. How `setup-dsuo` is Triggered (Agent Skill, Not a Shell Script)
-
-`setup-dsuo` is strictly an **agent skill and procedural playbook**, not an executable binary or shell script. It is invoked and executed by the AI agent in two ways:
-
-1. **Agent Self-Sync (On Configuration Changes)**:
-   - Whenever an agent modifies `~/dot/hooks.json` or `~/dot/AGENTS.md`, the agent is **mandated to immediately execute the `setup-dsuo` procedure** as the conclusion of that turn, ensuring all local VCS hooks and IDE symlinks remain synchronized without human intervention.
-
-2. **Explicit User Request / Slash Command**:
-   - The user asks an agent to run `/setup-dsuo`, *"set up my agent environment"*, or *"sync my hooks"*.
-   - The agent reads `~/dot/hooks.json`, inspects the current repository, and performs the idempotent mappings.
-
----
-
-## 8. Step 4: Mandatory User Prompt Gate (When Ambiguous)
+## 5. Step 4: Mandatory User Prompt Gate (When Ambiguous)
 
 Do **NOT** guess or hardcode speculative paths. If any of the following are true, **pause and prompt the user**:
 - Multiple candidate repositories, workspaces, or client roots exist.
-- A tool's configuration directory (e.g. Cursor, Claude, jj, or Swarm) is non-standard.
-- Target hooks or config files already exist with custom human modifications without managed delimiters (ask before editing).
-- The user's preferred skills directory (`_agents/skills` vs `.cursor/skills` vs `.skills`) is ambiguous.
+- A tool's configuration directory (e.g. Cursor, Claude, or Swarm) is non-standard.
+- The user's preferred skills directory (`skills/` vs `_agents/skills` vs `.cursor/skills`) is ambiguous.
 
 ### Prompt Template:
-> *"I am configuring your personal agent environment from ~/dot/hooks.json. I detected [detected harnesses and VCS: e.g. Git, Jujutsu, Swarm], but [ambiguous item, e.g. location of jj config or target repository root] is ambiguous. Where would you like me to install [item]?"*
+> *"I am configuring your personal agent environment. I detected [detected harnesses: e.g. Cursor, Swarm], but [ambiguous item, e.g. target skills directory] is ambiguous. Where would you like me to install [item]?"*
 
 ---
 
-## 9. Step 5: Verification & Health Check
+## 6. Step 5: Verification & Health Check
 
-1. Run `find-skills-root` and confirm the skills directory resolves cleanly.
+1. Run `find-skills-root` and confirm the skills directory resolves cleanly to the intended root.
 2. Verify that `AGENTS.md` is readable from each configured harness location.
-3. Verify that configured Git/Fig/jj hooks are executable and test their dry-run.
-4. Report a clear summary of all configured symlinks, rules, and hooks to the user.
+3. Verify that `skill-stats` runs cleanly and reports telemetry from `~/.config/skills/usage.jsonl`.
+4. Report a clear summary of all configured symlinks and active skills to the user.
+

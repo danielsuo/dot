@@ -10,11 +10,9 @@
 Project verification operates on a strict **Two-Tier Lifecycle**: execution during development, and maintenance upon landing.
 
 ### 1A. Execution: Per-Task / Pre-Review Verification ("Prove It Works")
-- **Execute Before Review**: Before claiming completion, requesting review, or delivering code, the agent MUST locate and execute the project verification harness:
-  1. Locate the project verification skill or harness using `SKILLS_ROOT=$(find-skills-root)` (or the project's native test/control harness).
-  2. If a verification skill exists (e.g. `${SKILLS_ROOT}/verify-<app>/`, `test_smoke.sh`), execute it against the live instance.
-  3. Include concrete execution evidence (verifiable CLI output, test summary, exit code) directly in the deliverable or pull request. Self-reported "unit tests pass" or "it compiles" without execution output is NOT acceptable proof.
-- **Review Gate**: Reject any pull request or task where verification harness execution evidence is missing or inconclusive.
+- **Mandatory Execution Before Presenting or Reviewing**: Before declaring any work finished, presenting results to the user, or moving a card to `in_review`, the worker MUST execute the project verification skill or harness (e.g. `verify-<app>`, `scripts/verify.py`, or `scripts/doctor.sh`) against the running application instance.
+- **Inspect Metric Correctness**: The agent must not merely check for a green exit code; the agent MUST inspect the actual output metrics, card values, and UI state to verify they are plausible and correct (e.g. asserting that active fleet views display non-zero experiments, non-zero job counts, and valid dates). Never present a screen showing "0 Experiments" or unpopulated metrics on active fleet views.
+- **Reviewer Blocking Gate**: Reviewers (`@reviewer*`) MUST independently verify that the verification harness was executed, inspect the output logs and screenshots, and confirm metric correctness before casting `approve`. Any task lacking verification execution proof or displaying anomalous metrics must be rejected with `verdict='changes'`.
 
 ### 1B. Maintenance: Upkeep Loop (`maintain-verification-skill`)
 A feature map and verification harness rot as the codebase evolves. The maintenance upkeep loop is governed by **Dual Triggers**:

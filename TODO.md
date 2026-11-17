@@ -29,3 +29,63 @@ Rather than building an event reactor or watcher from scratch, future iterations
 - **High-Performance Git Hooks**: [`lefthook`](https://github.com/evilmartians/lefthook)
 - **In-Process Async Message Bus**: `tokio::sync::broadcast` / `bus`
 - **Lightweight Local Pub/Sub**: `zenoh` / `rumqttd`
+
+### 5. Declarative Hook Schema (`hooks.json` Specification)
+Archived schema for declarative lifecycle event hooks and skill mappings across VCS and agent harnesses:
+
+```json
+{
+  "version": 1,
+  "description": "Declarative lifecycle event hooks and skill mappings for agent environments",
+  "hooks": {
+    "on_session_start": {
+      "description": "Fires when an agent begins a task or session; establishes environment readiness",
+      "action": "run_doctor",
+      "command": "python3 $(find-skills-root)/verify-*/scripts/doctor.sh",
+      "fail_mode": "warn"
+    },
+    "on_pre_review": {
+      "description": "Fires before requesting review, uploading a CL, or pushing a branch; gates on verification",
+      "action": "verify_tier_2",
+      "command": "python3 $(find-skills-root)/verify-*/scripts/verify.py --tier=2",
+      "fail_mode": "block"
+    },
+    "on_user_correction": {
+      "description": "Fires when user provides feedback or points out a defect; converts to red regression test",
+      "action": "maintain_verification_skill_repro",
+      "skill": "maintain-verification-skill",
+      "mode": "correction",
+      "fail_mode": "prompt"
+    },
+    "on_change_landed": {
+      "description": "Fires after code merges into main or task reaches done; harmonizes feature map",
+      "action": "maintain_verification_skill_upkeep",
+      "skill": "maintain-verification-skill",
+      "mode": "upkeep",
+      "fail_mode": "warn"
+    }
+  },
+  "targets": {
+    "git": {
+      "pre-push": "on_pre_review",
+      "post-merge": "on_change_landed"
+    },
+    "fig": {
+      "pre-upload": "on_pre_review",
+      "post-sync": "on_change_landed"
+    },
+    "jujutsu": {
+      "upload": "on_pre_review"
+    },
+    "swarm": {
+      "on_task_done": "on_change_landed",
+      "on_thread_correction": "on_user_correction"
+    },
+    "cursor": {
+      "pre_review_rule": "on_pre_review",
+      "feedback_rule": "on_user_correction"
+    }
+  }
+}
+```
+
