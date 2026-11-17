@@ -97,7 +97,7 @@ The verification runner (`scripts/verify.py`) tests the application across five 
    Command: `python3 scripts/verify.py --tier=3`
 
 4. **Stage 4: Architecture and principles audit**
-   Self-audit against `references/principles/`:
+   Self-audit against `references/principles-router.md` (`references/principles/`):
    - Canonical naming and layout (`minimize-reader-load.md`).
    - Atomic verifiable units (`sequence-verifiable-units.md`).
    - No premature abstractions (`subtract-before-you-add.md`).
