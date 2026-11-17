@@ -27,7 +27,7 @@ Execute verification across two operational loops with strict step-gating and pr
 - **Proportional verification scaling**: scope verification depth to the change's blast radius:
   * *Doc, typo, or comment edits*: Stage 1 only (compile/syntax check).
   * *Local bug fixes / isolated modules*: Stages 1 & 2 (`--fast` compile + unit/regression tests).
-  * *Features, architectural changes, public APIs*: Full 5-stage pipeline + expert panel review.
+  * *Features, architectural changes, public APIs*: Full 5-stage pipeline + expert panel review + diff-scoped mutation verification (`--mutants`).
 - **Outer loop (~1–3m, verification & review gate)**: run the scoped suite (`python3 <dir>/verify.py`), audit principles, and convene the expert panel.
 - **Final green sweep mandate**: after addressing all fixes, audit findings, and reviewer comments, execute one final uninterrupted run of the scoped suite from top to bottom before presenting work or requesting review. The completion report must display this final clean receipt.
 
@@ -57,8 +57,8 @@ Division of responsibilities: `verify.py` executes programmatic Stages 1–2 det
    Focused test for the specific function, module, or defect under active development (auto-detects modified tests if target omitted).
 1. **Stage 1: Compile code (< 2s)**: `python3 <dir>/verify.py --tier 1`
    Build and type check without running the application (`cargo check`, `tsc`).
-2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier 2` (or `--fast` for Stages 1 & 2)
-   Hermetic unit and integration tests (CLI arguments, flag combinations, regressions, migrations).
+2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier 2` (or `--fast` for Stages 1 & 2; optional `--mutants` for diff-scoped mutation testing)
+   Hermetic unit and integration tests (CLI arguments, flag combinations, regressions, migrations, and diff-scoped mutant kills).
 
 ### Agentic reasoning in review (performed and written by agent)
 3. **Stage 3: Architecture & principles audit** [Agentic]
@@ -72,7 +72,7 @@ Division of responsibilities: `verify.py` executes programmatic Stages 1–2 det
 5. **Stage 5: Skeptical expert panel review** [Agentic Panel]
    Agent dynamically convenes strongly skeptical expert reviewer personas tailored to the specific project and change:
    - Staff Architect: unnecessary complexity, abstraction leaks, future debt, API ergonomics.
-   - Principal SRE: failure modes, edge cases, silent regressions, crash handling, timeouts.
+   - Principal SRE: failure modes, edge cases, silent regressions, crash handling, timeouts, and adversarial fault injection (verifying assertions turn RED on subtle code mutations).
    - Adversarial User / QA: unexpected inputs, broken user expectations, ergonomic traps.
 
 Output an **Actionable Verification Report** in chat spanning concrete line fixes for Stage 1–2 failures up to architectural remedies for Stage 3–5 concerns.

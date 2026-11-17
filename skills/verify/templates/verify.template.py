@@ -44,10 +44,14 @@ def run_stage_1_compile(src_root: str) -> bool:
     print("  ✓ Compile and syntax checks passed")
     return True
 
-def run_stage_2_tests(port: int, src_root: str) -> bool:
+def run_stage_2_tests(port: int, src_root: str, run_mutants: bool = False) -> bool:
     print("\n[Stage 2: Run automated tests (< 10s)] Running unit & CLI tests...")
     # TODO: Run unit tests, CLI flag matrix, and migrations
     print("  ✓ Unit tests, CLI arguments, and regression tests passed")
+    if run_mutants:
+        print("\n[Stage 2b: Diff-scoped mutation testing] Verifying test assertion strength...")
+        # TODO: Run diff-scoped mutation tool (e.g. cargo mutants --in-diff, mutmut) on modified hunks
+        print("  ✓ Diff-scoped mutation testing passed (all mutants killed)")
     return True
 
 def log_receipt(app_name: str, stages: list[int], passed: bool, duration_ms: float) -> None:
@@ -76,6 +80,7 @@ def main() -> None:
     parser.add_argument("target", nargs="?", default="", help="Optional targeted test name or path for Tier 0")
     parser.add_argument("--target", dest="target_flag", default="", help="Optional target specifier for Tier 0")
     parser.add_argument("--fast", action="store_true", help="Inner loop: run compile and tests (< 5s)")
+    parser.add_argument("--mutants", action="store_true", help="Stage 2: run diff-scoped mutation testing on modified lines")
     parser.add_argument("--port", type=int, default=8080, help="Test port for ephemeral servers")
     parser.add_argument("--src-root", type=str, default=".", help="Source root path")
     args = parser.parse_args()
@@ -99,7 +104,7 @@ def main() -> None:
         ok = run_stage_1_compile(args.src_root)
     if 2 in stages and ok:
         executed.append(2)
-        ok = run_stage_2_tests(args.port, args.src_root)
+        ok = run_stage_2_tests(args.port, args.src_root, run_mutants=args.mutants)
 
     duration_ms = round((time.time() - start_time) * 1000, 2)
     log_receipt("verify-app", executed, ok, duration_ms)
