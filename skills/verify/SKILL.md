@@ -51,7 +51,7 @@ Run preflight and runner to confirm all stages pass.
 ## 3. Case 2: Run and maintain verification (verify.py present)
 
 Execute verification across two operational loops:
-- **Inner loop (< 5s, development iteration)**: run targeted tests (`python3 <dir>/verify.py --tier=0`) or compile/tests (`--fast`) after every sub-step to catch regressions immediately.
+- **Inner loop (< 5s, development iteration)**: run targeted tests (`python3 <dir>/verify.py --tier 0 [target]`) or compile/tests (`--fast`) after every sub-step to catch regressions immediately.
 - **Outer loop (~1–3m, verification & review gate)**: run the full suite (`python3 <dir>/verify.py`), audit principles, and convene the expert panel. If issues arise, the agent diagnoses, fixes, and re-verifies in a convergence loop (up to 5 iterations) until green.
 
 Maintain coverage across four continuous triggers:
@@ -71,8 +71,8 @@ Maintain coverage across four continuous triggers:
 
 Couples deterministic execution with agentic reasoning and expert peer review (stages and personas are exemplary and adapt to project needs):
 
-0. **Tier 0: Targeted test (< 2s)**: `python3 <dir>/verify.py --tier=0 [--target=<spec>]` [Deterministic]
-   Focused test for the specific function, module, or defect under active development.
+0. **Tier 0: Targeted test (< 2s)**: `python3 <dir>/verify.py --tier 0 [target]` [Deterministic]
+   Focused test for the specific function, module, or defect under active development (auto-detects modified tests if target omitted).
 1. **Stage 1: Compile code (< 2s)**: `python3 <dir>/verify.py --tier=1` [Deterministic]
    Build and type check without running the application (`cargo check`, `tsc`).
 2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier=2` [Deterministic]
