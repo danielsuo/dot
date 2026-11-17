@@ -15,6 +15,7 @@ STATUS LEGEND:
 
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -110,8 +111,34 @@ def scan_skills_usage_file(log_path):
                 continue
     return records
 
+def load_execution_ledger():
+    """Loads persistent ledger of observed executions to survive context compaction."""
+    ledger_path = os.path.expanduser("~/.config/skills/execution_ledger.json")
+    if os.path.exists(ledger_path):
+        try:
+            with open(ledger_path, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_execution_ledger(ledger):
+    """Saves persistent execution ledger."""
+    ledger_dir = os.path.expanduser("~/.config/skills")
+    os.makedirs(ledger_dir, exist_ok=True)
+    ledger_path = os.path.join(ledger_dir, "execution_ledger.json")
+    try:
+        with open(ledger_path, "w") as f:
+            json.dump(ledger, f, indent=2)
+    except Exception:
+        pass
+
 def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
-    """Scans Beekeeper swarm sessions separating real tool calls from text mentions."""
+    """Scans Beekeeper swarm sessions separating real tool calls from text mentions.
+    
+    Uses an append-only execution ledger (~/.config/skills/execution_ledger.json)
+    so that earlier tool executions are never lost when an agent's context is compacted.
+    """
     stats = defaultdict(lambda: {
         "real_execs": 0,
         "mentions": 0,
@@ -120,6 +147,26 @@ def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
         "latencies_ms": [],
         "failures": 0,
     })
+
+    ledger = load_execution_ledger()
+    ledger_modified = False
+
+    # Seed stats with previously recorded ledger executions
+    for call_key, entry in ledger.items():
+        s = canonicalize(entry.get("skill", ""))
+        if not s:
+            continue
+        stats[s]["real_execs"] += 1
+        agent = entry.get("agent", "unknown")
+        stats[s]["agents"].add(agent)
+        ts_str = entry.get("ts")
+        if ts_str:
+            try:
+                dt = datetime.fromisoformat(ts_str)
+                if not stats[s]["last_exec_ts"] or dt > stats[s]["last_exec_ts"]:
+                    stats[s]["last_exec_ts"] = dt
+            except Exception:
+                pass
 
     if not os.path.exists(swarm_logs_dir):
         return stats
@@ -132,6 +179,7 @@ def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
         session_dirs = session_dirs[:1]
 
     for sdir in session_dirs:
+        sdir_name = os.path.basename(sdir)
         for fpath in glob.glob(os.path.join(sdir, "*.json")):
             fname = os.path.basename(fpath)
             if fname.endswith((".hseq", ".lineage")) or "tool_journal" in fname:
@@ -144,7 +192,7 @@ def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
                 mtime = os.path.getmtime(fpath)
                 mtime_dt = datetime.fromtimestamp(mtime, tz=timezone.utc)
 
-                for item in history:
+                for item_idx, item in enumerate(history):
                     # 1. Conversational mentions
                     text = str(item)
                     for match in set(SKILL_NAME_RE.findall(text)):
@@ -153,7 +201,7 @@ def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
 
                     # 2. Real functionCall executions
                     parts = item.get("parts", []) if isinstance(item, dict) else []
-                    for part in parts:
+                    for part_idx, part in enumerate(parts):
                         if isinstance(part, dict) and "functionCall" in part:
                             fc = part["functionCall"]
                             if fc.get("name") == "run_shell_command":
@@ -168,12 +216,25 @@ def scan_swarm_sessions(swarm_logs_dir, latest_only=True):
 
                                 if matched_skill:
                                     cname = canonicalize(matched_skill)
-                                    stats[cname]["real_execs"] += 1
-                                    stats[cname]["agents"].add(agent_name)
-                                    if not stats[cname]["last_exec_ts"] or mtime_dt > stats[cname]["last_exec_ts"]:
-                                        stats[cname]["last_exec_ts"] = mtime_dt
+                                    cmd_hash = hashlib.sha256(cmd.encode("utf-8")).hexdigest()[:16]
+                                    call_key = f"{sdir_name}:{agent_name}:{cname}:{item_idx}:{part_idx}:{cmd_hash}"
+                                    if call_key not in ledger:
+                                        ledger[call_key] = {
+                                            "skill": cname,
+                                            "agent": agent_name,
+                                            "ts": mtime_dt.isoformat(),
+                                            "command": cmd[:120]
+                                        }
+                                        ledger_modified = True
+                                        stats[cname]["real_execs"] += 1
+                                        stats[cname]["agents"].add(agent_name)
+                                        if not stats[cname]["last_exec_ts"] or mtime_dt > stats[cname]["last_exec_ts"]:
+                                            stats[cname]["last_exec_ts"] = mtime_dt
             except Exception:
                 continue
+
+    if ledger_modified:
+        save_execution_ledger(ledger)
 
     return stats
 
