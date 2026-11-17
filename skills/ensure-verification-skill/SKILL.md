@@ -11,44 +11,21 @@ Resolve `<skills-root>` by running `SKILLS_ROOT=$(find-skills-root)` (or `find-s
 
 ---
 
-## 1. Quick start and detection
+## 1. Fast detection check
 
-Check whether verification files already exist in this repository:
-1. `scripts/doctor.sh` and `scripts/verify.py` in the repository root.
-2. `<skills-root>/verify-<app>/SKILL.md` (or `.skills/verify-<app>/SKILL.md`).
+Check if verification files already exist in this repository:
+- `scripts/doctor.sh` and `scripts/verify.py` in the repository root.
+- `<skills-root>/verify-<app>/SKILL.md` (or `.skills/verify-<app>/SKILL.md`).
 
-- **If files exist**: follow **Section 2: Maintenance and continuous upkeep**. Do not read scaffolding templates.
-- **If files are missing**: follow **Section 3: Initial scaffolding**.
-
----
-
-## 2. Maintenance and continuous upkeep (Fast Path)
-
-When verification scripts already exist, run `ensure-verification-skill` across three continuous triggers:
-
-### Trigger 1: On every bug report (before touching product code)
-- If the bug is mechanical (crash, bad exit code, broken flag, wrong payload format, unhandled error): add an automated test to `scripts/verify.py` or native unit tests.
-- If the bug is visual or subjective (layout shift, misalignment, bad typography, confusing copy): add an inspection check to Stage 5.
-- Confirm the test fails (red), apply the product fix, and verify the test passes (green).
-
-### Trigger 2: On every feature addition (alongside implementation)
-- A feature does not exist until its verification recipe exists.
-- Add programmatic checks (CLI flags, route responses, schema validation) to `scripts/verify.py` (Stages 1 through 3).
-- Add workflow and visual expectations to Stage 5.
-
-### Trigger 3: Post-landing upkeep (every merged change)
-- Audit files in `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
-- Prune verification checks for deleted routes or obsolete configuration options.
-- Run `python3 scripts/verify.py` to ensure all five stages pass with zero false alarms.
-
-### ⚠️ Blocking rule: maintenance edit scope
-Only edit verification files (`SKILL.md`, `features/`, `scripts/`). Never weaken assertions or alter product code during maintenance. Genuine product bugs found during maintenance are defects, not doc drift.
+Pick one path:
+- **Case 1: Bootstrap new harness (scripts/verify.py missing)**: go to Section 2.
+- **Case 2: Maintain existing harness (scripts/verify.py present)**: go to Section 3. Do not read scaffolding templates.
 
 ---
 
-## 3. Initial scaffolding (First-Time Setup)
+## 2. Case 1: Bootstrap new harness (scripts/verify.py missing)
 
-When the project has no verification skill, follow these steps to scaffold one:
+Follow these steps when the project has no verification files:
 
 ### Step 1: Gather context
 Read three sources:
@@ -74,8 +51,32 @@ Scaffold the standard directory structure:
 
 See `references/scaffolding-templates.md` for template code and file layouts.
 
-### Step 3: Run and prove
+### Step 3: Run initial pass
 Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
+
+---
+
+## 3. Case 2: Maintain existing harness (scripts/verify.py present)
+
+When verification scripts already exist, run `ensure-verification-skill` across three continuous triggers:
+
+### Trigger 1: On every bug report (before touching product code)
+- If the bug is mechanical (crash, bad exit code, broken flag, wrong payload format, unhandled error): add an automated test to `scripts/verify.py` or native unit tests.
+- If the bug is visual or subjective (layout shift, misalignment, bad typography, confusing copy): add an inspection check to Stage 5.
+- Confirm the test fails (red), apply the product fix, and verify the test passes (green).
+
+### Trigger 2: On every feature addition (alongside implementation)
+- A feature does not exist until its verification recipe exists.
+- Add programmatic checks (CLI flags, route responses, schema validation) to `scripts/verify.py` (Stages 1 through 3).
+- Add workflow and visual expectations to Stage 5.
+
+### Trigger 3: Post-landing upkeep (every merged change)
+- Audit files in `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
+- Prune verification checks for deleted routes or obsolete configuration options.
+- Run `python3 scripts/verify.py` to ensure all five stages pass with zero false alarms.
+
+### ⚠️ Blocking rule: maintenance edit scope
+Only edit verification files (`SKILL.md`, `features/`, `scripts/`). Never weaken assertions or alter product code during maintenance. Genuine product bugs found during maintenance are defects, not doc drift.
 
 ---
 
@@ -122,4 +123,5 @@ Automate mechanical execution with deterministic code; reserve the agent for sub
   1. Visual layout and typography: does the interface look clean and well-proportioned? Is there text truncation, misalignment, or badge overlap?
   2. Semantic plausibility: are the values, counts, and response texts correct and meaningful in domain context?
   3. User flow: does the interaction feel intuitive, complete, and responsive?
+
 
