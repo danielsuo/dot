@@ -1,11 +1,11 @@
 ---
 name: verify
-description: "Universal verification skill to bootstrap and run a project's 5-stage verification pipeline, update feature tests, and enforce engineering principles."
+description: "Universal verification skill that triggers on ANY project change (new project, feature, bug fix, or refactor) to create, update, and run the 5-stage verification suite."
 ---
 
 # Verify
 
-Universal verification runner and maintainer for any project. Verification harnesses live directly in the project as `scripts/verify.py` (or `.<app>/verify.py`), `doctor.sh`, and `features/*.md`.
+Universal verification runner and maintainer for any project. Triggers on every change to bootstrap missing harnesses, add feature checks, encode bug regressions, and run the 5-stage pipeline. Project specifics live directly in `scripts/verify.py` (or `.<app>/verify.py`), `doctor.sh`, and `features/*.md`.
 
 ---
 
