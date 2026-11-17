@@ -18,6 +18,15 @@ Project verification operates on a strict **Two-Tier Lifecycle**: execution duri
     2. Exit code (e.g. `exit code 0`).
     3. Verbatim stdout/stderr output lines showing individual test cases passed, assertions checked, and metrics verified.
   - **Zero Assertion Without Proof**: Bare claims like "tests pass", "verified locally", or "builds green" without the accompanying command invocation and terminal output block are STRICTLY PROHIBITED and invalid.
+- **Post-Execution Principles Check**:
+  Before moving a card to `in_review` or presenting code as finished, the author must run a 30-second self-audit against `references/principles/`:
+  1. **Canonical naming and layout** (`minimize-reader-load.md`): Is file naming standard? Is package layout canonical for this ecosystem (for example, `src/bin/imp.rs` rather than `src/imp_main.rs`)?
+  2. **Atomic verifiable units** (`sequence-verifiable-units.md`): Are the implementation code and its verification tests in the same change? Can a reviewer verify everything in one step?
+  3. **No premature abstractions** (`subtract-before-you-add.md`): Did I add unused options, dead boilerplate, or unneeded helper scripts?
+  4. **Self-documenting interfaces** (`type-system-discipline.md`): Are CLI flags typed and declarative (for example, using standard libraries like `clap` rather than manual index loops)?
+  5. **Proof of execution** (`prove-it-works.md`): Did I execute the verification runner and include the exact terminal output receipt?
+- **Reviewer Principles Audit**:
+  Reviewers must check submitted code against these principles. If a change introduces non-canonical file layouts, manual index-stepping CLI parsing, unneeded abstractions, or lacks verification receipts, flag it for changes.
 - **Mandatory Verifier Maintenance on User Feedback & Course Corrections**:
   - Whenever the user provides corrective feedback, reports a flaw, or course-corrects agent behavior:
     1. **Never Apply Silent Code Patches**: A user course-correction is definitive proof of an **escaped defect** that slipped past the existing verification harness.
@@ -44,21 +53,13 @@ A feature map and verification harness rot as the codebase evolves. The maintena
 
 - **Strict Edit Scope**: The maintenance pass ONLY updates the verification skill itself (its `SKILL.md`, `features/`, and harness scripts). It NEVER alters product code. Genuine product bugs discovered during maintenance must be reported as issues, never papered over by weakening verification assertions.
 
-### 1C. Tiered Verification for Nested Developer Loops
-To balance rapid developer velocity with absolute release correctness, verification operates across **Three Nested Tiers**:
-
-- **Tier 1: Inner Loop (Per-Edit / Tightest Loop — Target ~1–5s)**:
-  - **Feature-Scoped Slice**: Run only the specific unit test or targeted feature recipe for the code currently being touched (e.g. `scripts/verify.py --feature=<name>` or native test runner for that module).
-  - Provides instant feedback during active coding. Catches syntax, type, and unit regressions in seconds without launching the entire system.
-
-- **Tier 2: Mid Loop (Pre-Review / Task Completion — Target ~15–30s)**:
-  - **Local Project Suite**: Run the local application verification harness (`verify-<app>` / `scripts/verify.py --tier=2` or `scripts/doctor.sh`).
-  - Executes native hermetic unit tests + live server port health + core critical user journeys (CUJs) + static zero-fake-data linter.
-  - Mandatory gate before requesting code review or declaring an implementation task complete.
-
-- **Tier 3: Outer Loop (Pre-Submit / Landing Gate — Full Rigor)**:
-  - **Comprehensive Verification Gate**: Full matrix pass across all feature files in `features/`, live ground-truth database parity checks, full historical horizon queries, multi-viewport layout validation, and remote CI presubmits.
-  - Mandatory gate before merging into `main` or cutting a release.
+### 1C. Five-Stage Verification Pipeline
+The verification runner (`scripts/verify.py`) tests the application in five stages, ordered by time and complexity:
+- **Stage 1: Compile code (< 2s)**: Build and type check without running the application (`cargo check`, `tsc`).
+- **Stage 2: Run unit tests (< 10s)**: Hermetic native unit tests in memory (`cargo test`, `pytest`, `npm test`).
+- **Stage 3: Run CLI and check flags (~10–30s)**: Binary CLI contracts, flag parsing, test port checks, and zero fake data scan.
+- **Stage 4: Architecture and principles audit**: Self-audit against `references/principles/` (canonical naming, atomic verifiable units, no premature abstractions, self-documenting interfaces).
+- **Stage 5: Test user workflows and features (~1–3m)**: End-to-end browser automation or interactive terminal workflows verifying actual feature behavior.
 
 ## 2. Zero Fake / Mock / Synthetic Data Policy
 - **ZERO fake, mock, synthetic, interpolated, hardcoded, placeholder, or otherwise non-real data** is permitted in any dashboard, report, benchmark, data file, backend, or UI.
@@ -112,4 +113,15 @@ When you encounter any of the following situations, read the referenced principl
 22. **Tempted to add flags, options, config keys, or extra parameters** → read `~/dot/references/principles/subtract-before-you-add.md`
 23. **Writing unit tests or mocking internal implementation methods** → read `~/dot/references/principles/test-behavior-not-implementation.md`
 24. **Using untyped primitives, loose strings, or permissive types** → read `~/dot/references/principles/type-system-discipline.md`
+
+### Pre-Review Principles Self-Audit
+Before moving a card to `in_review` or declaring a task complete, run this 30-second checklist:
+1. **Canonical naming and layout** (`minimize-reader-load.md`): Is file naming standard? Is package layout canonical for this ecosystem (for example, `src/bin/imp.rs` rather than `src/imp_main.rs`)?
+2. **Atomic verifiable units** (`sequence-verifiable-units.md`): Are the implementation code and its verification tests in the same change? Can a reviewer verify everything in one step?
+3. **No premature abstractions** (`subtract-before-you-add.md`): Did I add unused options, dead boilerplate, or unneeded helper scripts?
+4. **Self-documenting interfaces** (`type-system-discipline.md`): Are CLI flags typed and declarative (for example, using standard libraries like `clap` rather than manual index loops)?
+5. **Proof of execution** (`prove-it-works.md`): Did I execute the verification runner and include the exact terminal output receipt?
+
+Reviewers (`@reviewer*`) must audit code against these principles during reviews and reject changes that violate them.
+
 

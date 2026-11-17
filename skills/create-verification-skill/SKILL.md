@@ -13,9 +13,9 @@ Resolve `<skills-root>` by running `SKILLS_ROOT=$(find-skills-root)` (or `find-s
 
 ---
 
-## 1. The four verification stages
+## 1. The five verification stages
 
-The verification runner (`scripts/verify.py`) tests the application in four stages, ordered by time and complexity:
+The verification runner (`scripts/verify.py`) tests the application in five stages, ordered by time and complexity:
 
 1. **Stage 1: Compile code (target < 2s)**
    Build and type check without running the application (`cargo check`, `tsc`, or language type checkers). Fails on syntax errors or missing dependencies before tests run.
@@ -29,11 +29,19 @@ The verification runner (`scripts/verify.py`) tests the application in four stag
    Run the compiled binaries with argument combinations. Test `--help`, missing argument errors, and parameter bounds. Launch an ephemeral server on a test port, check database migrations, and scan source files for hardcoded fake data.
    Command: `python3 scripts/verify.py --tier=3`
 
-4. **Stage 4: Test user workflows (target ~1–3m)**
-   Test the user interface directly. For web apps, run browser automation (Playwright, Puppeteer, or Chrome DevTools Protocol), click buttons, fill forms, and check responsive views. For terminal apps, run interactive commands in a pseudo-terminal and assert output.
+4. **Stage 4: Architecture and principles audit**
+   Run self-audit checks against `references/principles/`:
+   - Canonical naming and layout (`minimize-reader-load.md`).
+   - Atomic verifiable units (`sequence-verifiable-units.md`).
+   - No premature abstractions (`subtract-before-you-add.md`).
+   - Self-documenting interfaces (`type-system-discipline.md`).
    Command: `python3 scripts/verify.py --tier=4`
 
-By default, `python3 scripts/verify.py` runs all four stages in sequence and stops on the first failure. On completion, the runner appends a record with status and duration to `~/.config/skills/usage.jsonl`.
+5. **Stage 5: Test user workflows and features (target ~1–3m)**
+   Test the user interface and features directly. For web apps, run browser automation (Playwright, Puppeteer, or Chrome DevTools Protocol), click buttons, fill forms, and check responsive views. For terminal apps, run interactive commands in a pseudo-terminal and assert output.
+   Command: `python3 scripts/verify.py --tier=5`
+
+By default, `python3 scripts/verify.py` runs all five stages in sequence and stops on the first failure. On completion, the runner appends a record with status and duration to `~/.config/skills/usage.jsonl`.
 
 ---
 
@@ -107,7 +115,7 @@ ${SKILLS_ROOT}/verify-<app>/
 │   └── <feature>.md
 └── scripts/
     ├── doctor.sh         # Fast health check (< 3s): compiler, unit tests, port
-    ├── verify.py         # 4-stage runner (--tier=1|2|3|4)
+    ├── verify.py         # 5-stage runner (--tier=1|2|3|4|5)
     ├── parity_check.py   # Upstream database vs API validator
     └── lint_fake_data.py # Source scanner for fake data
 ```
@@ -116,7 +124,7 @@ ${SKILLS_ROOT}/verify-<app>/
 Write `${SKILLS_ROOT}/verify-<app>/SKILL.md` with YAML frontmatter and these sections:
 - Launch: command to start the application from an empty data directory.
 - Doctor: fast read-only check (`scripts/doctor.sh`) to confirm the compiler, process, and port are ready.
-- Verification suite: how to run `scripts/verify.py` across stages 1 through 4.
+- Verification suite: how to run `scripts/verify.py` across stages 1 through 5.
 - Drive: step-by-step instructions for testing the primary user workflows.
 - Evidence: output to collect (terminal logs, command exit codes, screenshots).
 - Cleanup: commands to stop spawned processes without deleting test logs.

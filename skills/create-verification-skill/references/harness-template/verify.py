@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Adversarial Verification Suite Template.
+"""Verification Suite Template.
 
-Implements the MECE 4-Tier Verification Pipeline:
-- Tier 1: Static Correctness (Compile, type check, syntax)
-- Tier 2: Deterministic Logic & Unit Tests (In-memory native unit test suites)
-- Tier 3: Subsystem & Environment Integration (CLI flags, test servers, DB mutations)
-- Tier 4: End-to-End User Journey (Agentic UI / browser automation, live clicking)
+Implements the 5-Stage Verification Pipeline:
+- Stage 1: Compile code (Static correctness: cargo check, tsc)
+- Stage 2: Run unit tests (In-memory unit test suites: cargo test, pytest)
+- Stage 3: Run CLI and check flags (Binary execution, flags, test servers, fake data scan)
+- Stage 4: Architecture and principles audit (Self-audit against references/principles/)
+- Stage 5: Test user workflows and features (End-to-end user workflows, browser / CLI automation)
 
 Post-Execution:
 - Appends immutable execution receipt to ~/.config/skills/usage.jsonl
@@ -18,37 +19,44 @@ import re
 import subprocess
 import sys
 import time
-import urllib.request
 from datetime import datetime, timezone
 
-def run_tier_1_static(src_root: str) -> bool:
-    print("\n[Tier 1: Static Correctness (< 2s)] Checking compile & syntax hygiene...")
-    # Example: cargo check or syntax scanner
-    print("  ✓ Static compile & syntax hygiene passed")
+def run_stage_1_compile(src_root: str) -> bool:
+    print("\n[Stage 1: Compile code (< 2s)] Checking compile and syntax...")
+    # Example: cargo check or tsc
+    print("  ✓ Compile and syntax checks passed")
     return True
 
-def run_tier_2_unit(src_root: str) -> bool:
-    print("\n[Stage 2: Deterministic Logic & Unit (< 10s)] Running in-memory unit tests...")
+def run_stage_2_unit(src_root: str) -> bool:
+    print("\n[Stage 2: Run unit tests (< 10s)] Running in-memory unit tests...")
     # Example: pytest, cargo test, npm test
-    print("  ✓ All hermetic unit test suites passed")
+    print("  ✓ All unit test suites passed")
     return True
 
-def run_tier_3_integration(port: int) -> bool:
-    print(f"\n[Tier 3: Subsystem Integration (~10-30s)] Validating CLI contracts & test port {port}...")
+def run_stage_3_cli(port: int) -> bool:
+    print(f"\n[Stage 3: Run CLI and check flags (~10-30s)] Validating CLI contracts on test port {port}...")
     # 1. Check CLI contracts (flag bounds, help outputs)
-    # 2. Check parity against authoritative DB
-    # 3. Check historical regressions
+    # 2. Check parity against database if applicable
+    # 3. Check for fake data
     print("  ✓ CLI contracts, process lifecycle, and subsystem integration passed")
     return True
 
-def run_tier_4_e2e_ui(port: int) -> bool:
-    print(f"\n[Tier 4: End-to-End User Journey (~1-3m)] Driving live UI & browser interactions on {port}...")
-    # Drives live interface: browser clicking, expanding rows, verifying responsive layouts
-    print("  ✓ Full agentic user journeys and live UI interactions passed")
+def run_stage_4_principles_audit(src_root: str) -> bool:
+    print("\n[Stage 4: Architecture and principles audit] Checking engineering principles...")
+    # 1. Canonical naming and layout (minimize-reader-load.md)
+    # 2. Atomic verifiable units (sequence-verifiable-units.md)
+    # 3. No premature abstractions (subtract-before-you-add.md)
+    # 4. Self-documenting interfaces (type-system-discipline.md)
+    print("  ✓ Engineering principles audit passed")
     return True
 
-def log_receipt(skill_name: str, tiers_run: list, success: bool, duration_ms: float):
-    """Appends immutable execution receipt to ~/.config/skills/usage.jsonl."""
+def run_stage_5_e2e(port: int) -> bool:
+    print(f"\n[Stage 5: Test user workflows and features (~1-3m)] Testing user workflows on {port}...")
+    # Drives live interface: browser clicking, expanding rows, verifying responsive layouts
+    print("  ✓ User workflows and feature verification passed")
+    return True
+
+def log_receipt(skill_name: str, stages_run: list, success: bool, duration_ms: float):
     log_dir = os.path.expanduser("~/.config/skills")
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, "usage.jsonl")
@@ -56,7 +64,7 @@ def log_receipt(skill_name: str, tiers_run: list, success: bool, duration_ms: fl
         "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "skill": skill_name,
         "action": "verify",
-        "tiers": tiers_run,
+        "stages": stages_run,
         "status": "ok" if success else "failed",
         "duration_ms": duration_ms
     }
@@ -67,44 +75,48 @@ def log_receipt(skill_name: str, tiers_run: list, success: bool, duration_ms: fl
         pass
 
 def main():
-    parser = argparse.ArgumentParser(description="Multi-Tier Verification Suite")
-    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4], help="Run a specific tier (1..4)")
+    parser = argparse.ArgumentParser(description="5-Stage Verification Suite")
+    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4, 5], help="Run a specific stage (1..5)")
     parser.add_argument("--port", type=int, default=8080, help="Test port")
     parser.add_argument("--src-root", type=str, default=".", help="Source root")
     args = parser.parse_args()
 
     start_time = time.time()
-    tiers = [args.tier] if args.tier else [1, 2, 3, 4]
-    print(f"=== Starting Multi-Tier Verification Suite (Tiers: {tiers}) ===")
+    stages = [args.tier] if args.tier else [1, 2, 3, 4, 5]
+    print(f"=== Starting Verification Suite (Stages: {stages}) ===")
 
     ok = True
-    executed_tiers = []
+    executed_stages = []
 
-    if 1 in tiers:
-        executed_tiers.append(1)
-        if not run_tier_1_static(args.src_root):
+    if 1 in stages:
+        executed_stages.append(1)
+        if not run_stage_1_compile(args.src_root):
             ok = False
-    if ok and 2 in tiers:
-        executed_tiers.append(2)
-        if not run_tier_2_unit(args.src_root):
+    if ok and 2 in stages:
+        executed_stages.append(2)
+        if not run_stage_2_unit(args.src_root):
             ok = False
-    if ok and 3 in tiers:
-        executed_tiers.append(3)
-        if not run_tier_3_integration(args.port):
+    if ok and 3 in stages:
+        executed_stages.append(3)
+        if not run_stage_3_cli(args.port):
             ok = False
-    if ok and 4 in tiers:
-        executed_tiers.append(4)
-        if not run_tier_4_e2e_ui(args.port):
+    if ok and 4 in stages:
+        executed_stages.append(4)
+        if not run_stage_4_principles_audit(args.src_root):
+            ok = False
+    if ok and 5 in stages:
+        executed_stages.append(5)
+        if not run_stage_5_e2e(args.port):
             ok = False
 
     duration_ms = round((time.time() - start_time) * 1000, 2)
-    log_receipt("verify-template", executed_tiers, ok, duration_ms)
+    log_receipt("verify-template", executed_stages, ok, duration_ms)
 
     if not ok:
         print(f"\n❌ Verification FAILED in {duration_ms}ms")
         sys.exit(1)
 
-    print(f"\n✅ All requested tiers {executed_tiers} PASSED in {duration_ms}ms! Receipt logged.")
+    print(f"\n✅ All requested stages {executed_stages} PASSED in {duration_ms}ms! Receipt logged.")
 
 if __name__ == "__main__":
     main()
