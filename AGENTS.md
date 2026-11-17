@@ -18,6 +18,13 @@ Project verification operates on a strict **Two-Tier Lifecycle**: execution duri
     2. Exit code (e.g. `exit code 0`).
     3. Verbatim stdout/stderr output lines showing individual test cases passed, assertions checked, and metrics verified.
   - **Zero Assertion Without Proof**: Bare claims like "tests pass", "verified locally", or "builds green" without the accompanying command invocation and terminal output block are STRICTLY PROHIBITED and invalid.
+- **Push Determinism into Code, Reserve Agents for Judgment**:
+  Automate mechanical execution with deterministic code; reserve the agent for subjective evaluation and judgment.
+  - **Mechanical testing belongs in code**: Clicking around, checking button states, validating form fields, capturing screenshots, waiting for network responses, asserting DOM properties, and checking event feeds must be written into headless automation scripts (such as Playwright, Puppeteer, Chrome DevTools Protocol, curl, or test runners). Never ask an agent to manually click around when a script can do it deterministically.
+  - **Agents exercise judgment on the output**: The agent runs the script, then reviews the captured evidence:
+    1. Visual layout and typography: does the interface look clean and well-proportioned? Is there text truncation, misalignment, or badge overlap?
+    2. Semantic plausibility: are the values, counts, and response texts correct and meaningful in domain context?
+    3. User flow: does the interaction feel intuitive and complete?
 - **Post-Execution Principles Check**:
   Before moving a card to `in_review` or presenting code as finished, the author must run a 30-second self-audit against `references/principles/`:
   1. **Canonical naming and layout** (`minimize-reader-load.md`): Is file naming standard? Is package layout canonical for this ecosystem (for example, `src/bin/imp.rs` rather than `src/imp_main.rs`)?
@@ -59,7 +66,7 @@ The verification runner (`scripts/verify.py`) tests the application in five stag
 - **Stage 2: Run unit tests (< 10s)**: Hermetic native unit tests in memory (`cargo test`, `pytest`, `npm test`).
 - **Stage 3: Run CLI and check flags (~10–30s)**: Binary CLI contracts, flag parsing, test port checks, and zero fake data scan.
 - **Stage 4: Architecture and principles audit**: Self-audit against `references/principles/` (canonical naming, atomic verifiable units, no premature abstractions, self-documenting interfaces).
-- **Stage 5: Test user workflows and features (~1–3m)**: End-to-end browser automation or interactive terminal workflows verifying actual feature behavior.
+- **Stage 5: Test user workflows and features (~1–3m)**: Automated headless scripts drive user workflows (browser automation, form inputs, CLI triggers). The agent inspects the resulting artifacts (screenshots, output text, network logs) to evaluate visual layout, semantic plausibility, and user experience.
 
 ## 2. Zero Fake / Mock / Synthetic Data Policy
 - **ZERO fake, mock, synthetic, interpolated, hardcoded, placeholder, or otherwise non-real data** is permitted in any dashboard, report, benchmark, data file, backend, or UI.

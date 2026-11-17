@@ -38,7 +38,7 @@ The verification runner (`scripts/verify.py`) tests the application in five stag
    Command: `python3 scripts/verify.py --tier=4`
 
 5. **Stage 5: Test user workflows and features (target ~1–3m)**
-   Test the user interface and features directly. For web apps, run browser automation (Playwright, Puppeteer, or Chrome DevTools Protocol), click buttons, fill forms, and check responsive views. For terminal apps, run interactive commands in a pseudo-terminal and assert output.
+   Automate user workflows with headless scripts (Playwright, Puppeteer, Chrome DevTools Protocol, or CLI automation). The script clicks buttons, navigates views, triggers events, and saves screenshots and logs. The agent then inspects the captured output to verify visual layout, typography, and semantic correctness.
    Command: `python3 scripts/verify.py --tier=5`
 
 By default, `python3 scripts/verify.py` runs all five stages in sequence and stops on the first failure. On completion, the runner appends a record with status and duration to `~/.config/skills/usage.jsonl`.
@@ -79,6 +79,14 @@ For user interfaces, test state updates during user interaction:
 - Type in search bars and toggle filters, then assert row counts change.
 - Click table headers, then assert sort order changes.
 - Check the browser console log and assert zero uncaught errors.
+
+### Push determinism into code, reserve agents for judgment
+Whatever can be tested mechanically must be automated in code. Clicking buttons, waiting for network responses, extracting DOM elements, and capturing screenshots belong in headless automation scripts, not manual agent interaction.
+Reserve the agent for judgment on the captured output:
+1. Visual layout: inspect screenshots for overlapping elements, broken styling, or misaligned cards.
+2. Semantic plausibility: check whether metrics, labels, and text make sense.
+3. User flow: verify that the complete workflow produces the expected user outcome.
+
 
 ---
 
