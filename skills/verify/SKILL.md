@@ -51,8 +51,8 @@ Run preflight and runner to confirm all stages pass.
 ## 3. Case 2: Run and maintain verification (verify.py present)
 
 Execute verification across two operational loops:
-- **Inner loop (< 5s, development iteration)**: run `python3 <dir>/verify.py --fast` (or `--tier=2 --filter=<test>`) after every edit to catch compiler and logic errors immediately.
-- **Outer loop (~1–3m, verification & review gate)**: run all 5 stages before review, iterating up to 5 times (`--loop=5`) until all tests, principles audits, and expert reviews pass.
+- **Inner loop (< 5s, development iteration)**: run targeted tests (`python3 <dir>/verify.py --tier=0`) or compile/tests (`--fast`) after every sub-step to catch regressions immediately.
+- **Outer loop (~1–3m, verification & review gate)**: run the full suite (`python3 <dir>/verify.py`), audit principles, and convene the expert panel. If issues arise, the agent diagnoses, fixes, and re-verifies in a convergence loop (up to 5 iterations) until green.
 
 Maintain coverage across four continuous triggers:
 - **Trigger 1 (Bug reports)**: add automated test to `verify.py` (Stage 2) or inspection check to Stage 4.
@@ -61,16 +61,18 @@ Maintain coverage across four continuous triggers:
 - **Trigger 4 (Upkeep)**: audit `features/*.md` against modified routes and prune obsolete checks.
 
 ### ⚠️ Boundary rule: framework harness vs project specifics
-- **Framework harness**: runner flags (`--tier`, `--fast`, `--loop`), telemetry, principles checklist. Re-syncable from `templates/`.
+- **Framework harness**: runner flags (`--tier`, `--fast`), telemetry, principles checklist. Re-syncable from `templates/`.
 - **Project specifics**: build/test commands, CLI flags, feature specs in `features/`. Preserved across updates.
 - Only edit verification files (`features/`, `scripts/`). Never alter product code during maintenance.
 
 ---
 
-## 4. The five verification stages
+## 4. The progressive verification stages
 
 Couples deterministic execution with agentic reasoning and expert peer review (stages and personas are exemplary and adapt to project needs):
 
+0. **Tier 0: Targeted test (< 2s)**: `python3 <dir>/verify.py --tier=0 [--target=<spec>]` [Deterministic]
+   Focused test for the specific function, module, or defect under active development.
 1. **Stage 1: Compile code (< 2s)**: `python3 <dir>/verify.py --tier=1` [Deterministic]
    Build and type check without running the application (`cargo check`, `tsc`).
 2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier=2` [Deterministic]

@@ -9,6 +9,12 @@ import sys
 import time
 from datetime import datetime, timezone
 
+def run_stage_0_targeted(target: str, src_root: str) -> bool:
+    print(f"\n[Tier 0: Targeted test] Running focused check for '{target or 'active change'}'...")
+    # TODO: Add project targeted test command (e.g. cargo test --test <name>, pytest <file>)
+    print("  ✓ Targeted test passed")
+    return True
+
 def run_stage_1_compile(src_root: str) -> bool:
     print("\n[Stage 1: Compile code (< 2s)] Checking compile and syntax...")
     # TODO: Add project compile command (e.g. cargo check, tsc --noEmit, python3 -m py_compile)
@@ -49,10 +55,9 @@ def log_receipt(app_name: str, stages: list[int], passed: bool, duration_ms: flo
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Progressive verification runner")
-    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4], help="Run specific stage 1..4")
-    parser.add_argument("--fast", action="store_true", help="Inner loop: run stages 1 and 2 (< 5s)")
-    parser.add_argument("--filter", type=str, default="", help="Run targeted tests matching filter")
-    parser.add_argument("--loop", type=int, default=1, help="Retry up to N times until green (max 5)")
+    parser.add_argument("--tier", type=int, choices=[0, 1, 2, 3, 4], help="Run specific stage (0=targeted, 1=compile, 2=tests, 3=audit, 4=workflows)")
+    parser.add_argument("--fast", action="store_true", help="Inner loop: run compile and tests (< 5s)")
+    parser.add_argument("--target", type=str, default="", help="Optional target specifier for Tier 0")
     parser.add_argument("--port", type=int, default=8080, help="Test port for ephemeral servers")
     parser.add_argument("--src-root", type=str, default=".", help="Source root path")
     args = parser.parse_args()
@@ -60,34 +65,30 @@ def main() -> None:
     start_time = time.time()
     if args.fast:
         stages = [1, 2]
-    elif args.tier:
+    elif args.tier is not None:
         stages = [args.tier]
     else:
         stages = [1, 2, 3, 4]
 
-    max_attempts = min(max(1, args.loop), 5)
-    ok = False
-    executed = []
+    print(f"=== Starting verification suite (Stages: {stages}) ===")
 
-    for attempt in range(1, max_attempts + 1):
-        if attempt > 1:
-            print(f"\n--- Retrying verification (Attempt {attempt}/{max_attempts}) ---")
-        ok = True
-        executed = []
-        if 1 in stages and ok:
-            executed.append(1)
-            ok = run_stage_1_compile(args.src_root)
-        if 2 in stages and ok:
-            executed.append(2)
-            ok = run_stage_2_tests(args.port, args.src_root)
-        if 3 in stages and ok:
-            executed.append(3)
-            ok = run_stage_3_principles_audit(args.src_root)
-        if 4 in stages and ok:
-            executed.append(4)
-            ok = run_stage_4_e2e(args.port)
-        if ok:
-            break
+    ok = True
+    executed = []
+    if 0 in stages and ok:
+        executed.append(0)
+        ok = run_stage_0_targeted(args.target, args.src_root)
+    if 1 in stages and ok:
+        executed.append(1)
+        ok = run_stage_1_compile(args.src_root)
+    if 2 in stages and ok:
+        executed.append(2)
+        ok = run_stage_2_tests(args.port, args.src_root)
+    if 3 in stages and ok:
+        executed.append(3)
+        ok = run_stage_3_principles_audit(args.src_root)
+    if 4 in stages and ok:
+        executed.append(4)
+        ok = run_stage_4_e2e(args.port)
 
     duration_ms = round((time.time() - start_time) * 1000, 2)
     log_receipt("verify-app", executed, ok, duration_ms)
