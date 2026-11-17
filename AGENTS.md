@@ -38,24 +38,24 @@ Project verification operates on a strict **Two-Tier Lifecycle**: execution duri
   - Whenever the user provides corrective feedback, reports a flaw, or course-corrects agent behavior:
     1. **Never Apply Silent Code Patches**: A user course-correction is definitive proof of an **escaped defect** that slipped past the existing verification harness.
     2. **Mandatory Verifier Gap Audit**: The agent MUST explicitly ask: *"Why did our verifier fail to catch this? What check or assertion was missing?"*
-    3. **Maintain the Verifier**: Check whether to invoke `maintain-verification-skill` (or update `verify.py` / `features/` recipes directly) to add an explicit regression test reproducing the user's feedback.
+    3. **Maintain the Verifier**: Check whether to invoke `ensure-verification-skill` (or update `verify.py` / `features/` recipes directly) to add an explicit regression test reproducing the user's feedback.
     4. **Prove It Works (Red-to-Green)**: Ensure the verifier reproduces the failure without the fix and passes green with it.
     5. **Report Verifier Status**: The reply to the user MUST explicitly state whether the verification harness was updated with new assertions, or clearly explain why the verifier already possessed coverage.
 - **Inspect Metric Correctness**: The agent must not merely check for a green exit code; the agent MUST inspect the actual output metrics, card values, and UI state to verify they are plausible and correct (e.g. asserting that active fleet views display non-zero experiments, non-zero job counts, and valid dates). Never present a screen showing "0 Experiments" or unpopulated metrics on active fleet views.
 - **Reviewer Blocking Gate**: Reviewers (`@reviewer*`) MUST independently verify that the explicit execution output block is present, inspect the output logs and screenshots, and confirm metric correctness before casting `approve`. Any task lacking explicit verification execution proof or displaying anomalous metrics MUST be immediately rejected with `verdict='changes'`.
 
-### 1B. Maintenance: Upkeep Loop (`maintain-verification-skill`)
+### 1B. Idempotent Upkeep Loop (`ensure-verification-skill`)
 A feature map and verification harness rot as the codebase evolves. The maintenance upkeep loop is governed by **Dual Triggers**:
 
 - **Trigger 1: Post-Landing Upkeep (Every Landed PR / Merged Change)**:
-  - Run `maintain-verification-skill` whenever code merges into `main` (landed PR / merged change), NOT on intermediate exploratory WIP commits.
+  - Run `ensure-verification-skill` whenever code merges into `main` (landed PR / merged change), NOT on intermediate exploratory WIP commits.
   - **Doc / Feature Map Drift**: Update `verify-<app>/features/` to reflect newly added capabilities, modified route contracts, and changed UI handles.
   - **Dead Scenario Pruning**: Remove verification recipes for deleted or deprecated features to prevent test rot.
   - **Harness Calibration**: Execute a live pass across all features to guarantee zero false alarms and 100% pass rate.
 
 - **Trigger 2: Escaped Defect Upkeep (On Any Strong User Correction or Feedback)**:
   - Whenever the user points out a flaw, bug, missing data, false positive, or broken behavior (e.g. *"why are there 0 rows?"*, *"that's broken"*, *"you missed X"*), this represents an **escaped defect** that bypassed the existing verification harness.
-  - **Regression Recipe First**: Run `maintain-verification-skill` immediately to translate the user's feedback into a new, reproducible verification recipe in `features/` that captures the failure.
+  - **Regression Recipe First**: Run `ensure-verification-skill` immediately to translate the user's feedback into a new, reproducible verification recipe in `features/` that captures the failure.
   - **Prevent Recurrence**: Fix the underlying code and re-run the verification harness to ensure the new recipe passes green, guaranteeing the user never has to correct the same defect twice.
 
 - **Strict Edit Scope**: The maintenance pass ONLY updates the verification skill itself (its `SKILL.md`, `features/`, and harness scripts). It NEVER alters product code. Genuine product bugs discovered during maintenance must be reported as issues, never papered over by weakening verification assertions.
