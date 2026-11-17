@@ -11,7 +11,7 @@ Universal verification playbook orchestrator for any project. Coordinates determ
 
 ## 1. Pre-flight lifecycle branching
 
-- **IF nothing exists**: bootstrap suite via `init-verify [target_dir]` (e.g. `init-verify imp`, `init-verify verification`, or default `scripts/` — avoid dot directories like `.imp` which are ignored by Piper). Customize compile and test commands.
+- **IF nothing exists**: bootstrap suite via `init-verify [target_dir]` (e.g. `init-verify imp`, `init-verify verification`, or default `scripts/` — avoid dot directories like `.imp` which may be ignored by source control systems). Customize compile and test commands.
 - **ELIF new issue or feature**: expand coverage before editing product code:
   * Deterministic: add targeted regression or CLI contract in `verify.py`.
   * Agentic: add user-path specification in `features/<feature>.md`.
@@ -50,24 +50,27 @@ Maintain coverage across four continuous triggers:
 
 ## 4. The progressive verification stages
 
-Couples deterministic execution with agentic reasoning and expert peer review (stages and personas are exemplary and adapt to project needs):
+Couples programmatic deterministic execution (Stages 1–2) with agentic reasoning and expert peer review (Stages 3–5):
 
-0. **Tier 0: Targeted test (< 2s)**: `python3 <dir>/verify.py --tier 0 [target]` [Deterministic]
+0. **Tier 0: Targeted test (< 2s)**: `python3 <dir>/verify.py --tier 0 [target]` [Programmatic]
    Focused test for the specific function, module, or defect under active development (auto-detects modified tests if target omitted).
-1. **Stage 1: Compile code (< 2s)**: `python3 <dir>/verify.py --tier=1` [Deterministic]
+1. **Stage 1: Compile code (< 2s)**: `python3 <dir>/verify.py --tier 1` [Programmatic]
    Build and type check without running the application (`cargo check`, `tsc`).
-2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier=2` [Deterministic]
+2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier 2` [Programmatic]
    Hermetic unit and integration tests (CLI arguments, flag combinations, regressions, migrations).
-3. **Stage 3: Architecture & principles audit**: `python3 <dir>/verify.py --tier=3` [Agentic]
+3. **Stage 3: Architecture & principles audit**: `python3 <dir>/verify.py --tier 3` [Agentic]
    Self-audit against pre-review checklist and `references/principles-router.md` (`$(find-skills-root)/../references/principles/`).
-4. **Stage 4: Test user workflows (~1–3m)**: `python3 <dir>/verify.py --tier=4` [Dual]
+4. **Stage 4: Test user workflows (~1–3m)**: `python3 <dir>/verify.py --tier 4` [Agentic]
    Agent executes project agentic markdown test specs (`features/*.md`):
    - Preconditions: environment vars, test servers, daemon state.
    - Actions: CLI commands, API requests, user interactions.
    - Assertions: expected outputs, state transitions, layout sanity.
    - Qualitative review: typography, visual appeal, semantic sense.
-5. **Stage 5: Skeptical expert panel review** [Agentic Panel]
-   Dynamically convene 5–6 strongly skeptical expert reviewer personas tailored to the specific project and change (for example: application maintainers, related project owners, systems architects, security reviewers). Panel interrogates edge cases, latent failure modes, and API trade-offs.
+5. **Stage 5: Skeptical expert panel review**: `python3 <dir>/verify.py --tier 5` [Agentic Panel]
+   Dynamically convene strongly skeptical expert reviewer personas tailored to the specific project and change:
+   - Staff Architect: unnecessary complexity, abstraction leaks, future debt, API ergonomics.
+   - Principal SRE: failure modes, edge cases, silent regressions, crash handling, timeouts.
+   - Adversarial User / QA: unexpected inputs, broken user expectations, ergonomic traps.
 
 Output an **Actionable Verification Report** spanning concrete line fixes for Stage 1–2 failures up to architectural remedies for Stage 3–5 concerns.
 
