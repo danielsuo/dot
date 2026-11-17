@@ -49,7 +49,7 @@ Scaffold the standard directory structure:
 - `<skills-root>/verify-<app>/SKILL.md`: documentation for driving and verifying the app.
 - `<skills-root>/verify-<app>/features/`: Markdown specs for individual features.
 
-See `references/scaffolding-templates.md` for template code and file layouts.
+See `references/template.md` for template code and file layouts.
 
 ### Step 3: Run initial pass
 Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
