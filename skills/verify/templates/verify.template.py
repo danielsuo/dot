@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verification suite runner implementing five progressive stages."""
+"""Verification suite runner implementing progressive verification stages."""
 
 import argparse
 import json
@@ -15,26 +15,20 @@ def run_stage_1_compile(src_root: str) -> bool:
     print("  ✓ Compile and syntax checks passed")
     return True
 
-def run_stage_2_unit(src_root: str) -> bool:
-    print("\n[Stage 2: Run unit tests (< 10s)] Running in-memory unit tests...")
-    # TODO: Add project test command (e.g. cargo test, pytest, npm test)
-    print("  ✓ Unit tests passed")
+def run_stage_2_tests(port: int, src_root: str) -> bool:
+    print("\n[Stage 2: Run automated tests (< 10s)] Running unit & CLI tests...")
+    # TODO: Run unit tests, CLI flag matrix, and migrations
+    print("  ✓ Unit tests, CLI arguments, and regression tests passed")
     return True
 
-def run_stage_3_cli(port: int) -> bool:
-    print("\n[Stage 3: Run CLI and check flags (10–30s)] Validating binary and flags...")
-    # TODO: Run compiled binary with argument combinations, test flag errors, check migrations
-    print("  ✓ CLI flags, arguments, and migrations verified")
-    return True
-
-def run_stage_4_principles_audit(src_root: str) -> bool:
-    print("\n[Stage 4: Architecture and principles audit] Running principles checklist...")
+def run_stage_3_principles_audit(src_root: str) -> bool:
+    print("\n[Stage 3: Architecture and principles audit] Running principles checklist...")
     # Run pre-review audit per references/principles-router.md
     print("  ✓ Architecture and principles audit passed")
     return True
 
-def run_stage_5_e2e(port: int) -> bool:
-    print("\n[Stage 5: Test user workflows and features (1–3m)] Running automated user flows...")
+def run_stage_4_e2e(port: int) -> bool:
+    print("\n[Stage 4: Test user workflows and features (1–3m)] Running automated user flows...")
     # TODO: Run headless automation script (Playwright, Puppeteer, curl) capturing logs/screenshots
     print("  ✓ User workflows and feature assertions passed")
     return True
@@ -54,14 +48,14 @@ def log_receipt(app_name: str, stages: list[int], passed: bool, duration_ms: flo
         f.write(json.dumps(record) + "\n")
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Five-stage verification runner")
-    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4, 5], help="Run specific stage 1..5")
+    parser = argparse.ArgumentParser(description="Progressive verification runner")
+    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4], help="Run specific stage 1..4")
     parser.add_argument("--port", type=int, default=8080, help="Test port for ephemeral servers")
     parser.add_argument("--src-root", type=str, default=".", help="Source root path")
     args = parser.parse_args()
 
     start_time = time.time()
-    stages = [args.tier] if args.tier else [1, 2, 3, 4, 5]
+    stages = [args.tier] if args.tier else [1, 2, 3, 4]
     print(f"=== Starting verification suite (Stages: {stages}) ===")
 
     ok = True
@@ -71,16 +65,13 @@ def main() -> None:
         ok = run_stage_1_compile(args.src_root)
     if 2 in stages and ok:
         executed.append(2)
-        ok = run_stage_2_unit(args.src_root)
+        ok = run_stage_2_tests(args.port, args.src_root)
     if 3 in stages and ok:
         executed.append(3)
-        ok = run_stage_3_cli(args.port)
+        ok = run_stage_3_principles_audit(args.src_root)
     if 4 in stages and ok:
         executed.append(4)
-        ok = run_stage_4_principles_audit(args.src_root)
-    if 5 in stages and ok:
-        executed.append(5)
-        ok = run_stage_5_e2e(args.port)
+        ok = run_stage_4_e2e(args.port)
 
     duration_ms = round((time.time() - start_time) * 1000, 2)
     log_receipt("verify-app", executed, ok, duration_ms)
