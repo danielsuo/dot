@@ -5,7 +5,7 @@ description: "Universal verification skill that triggers on ANY project change (
 
 # Verify
 
-Universal verification runner and maintainer for any project. Triggers on every change to bootstrap missing harnesses, add feature checks, encode bug regressions, and run the 5-stage pipeline. Project specifics live directly in `scripts/verify.py` (or `.<app>/verify.py`), `doctor.sh`, and `features/*.md`.
+Universal verification runner and maintainer for any project. Couples deterministic execution in code (`verify.py`, `doctor.sh`) with agentic judgment on principles (`references/principles/`) and user workflows (`features/*.md`).
 
 ---
 
@@ -78,18 +78,18 @@ Execute verification and keep coverage up to date across four continuous trigger
 
 ## 4. The five verification stages
 
-The verification runner (`verify.py`) tests the application across five progressive stages:
+The verification suite couples deterministic code execution with agentic reasoning across five progressive stages:
 
-1. **Stage 1: Compile code (target < 2s)**: `python3 <dir>/verify.py --tier=1`
+1. **Stage 1: Compile code (target < 2s)**: `python3 <dir>/verify.py --tier=1` [Deterministic]
    Build and type check without running the application (`cargo check`, `tsc`).
-2. **Stage 2: Run unit tests (target < 10s)**: `python3 <dir>/verify.py --tier=2`
+2. **Stage 2: Run unit tests (target < 10s)**: `python3 <dir>/verify.py --tier=2` [Deterministic]
    Hermetic native unit tests in memory (`cargo test`, `pytest`, `npm test`).
-3. **Stage 3: Run CLI and check flags (target ~10–30s)**: `python3 <dir>/verify.py --tier=3`
+3. **Stage 3: Run CLI and check flags (target ~10–30s)**: `python3 <dir>/verify.py --tier=3` [Deterministic]
    Run compiled binaries with argument combinations, test flag errors, launch ephemeral server, scan for fake data.
-4. **Stage 4: Architecture and principles audit**: `python3 <dir>/verify.py --tier=4`
-   Run pre-review checklist and consult `references/principles-router.md` (which maps tasks to principles in `$(find-skills-root)/../references/principles/`).
-5. **Stage 5: Test user workflows and features (target ~1–3m)**: `python3 <dir>/verify.py --tier=5`
-   Automate user flows with headless scripts (capturing logs and screenshots); agent inspects layout, typography, and semantic correctness.
+4. **Stage 4: Architecture and principles audit**: `python3 <dir>/verify.py --tier=4` [Agentic]
+   Agent self-audits changes against pre-review principles checklist and `references/principles-router.md` (`$(find-skills-root)/../references/principles/`).
+5. **Stage 5: Test user workflows and features (target ~1–3m)**: `python3 <dir>/verify.py --tier=5` [Dual]
+   Headless scripts capture logs and screenshots (deterministic); agent inspects layout, typography, and semantic correctness (agentic).
 
 Running `python3 <dir>/verify.py` executes all five stages in sequence, appending a run record to `~/.config/skills/usage.jsonl`.
 
