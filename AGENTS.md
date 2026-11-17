@@ -18,6 +18,13 @@ Project verification operates on a strict **Two-Tier Lifecycle**: execution duri
     2. Exit code (e.g. `exit code 0`).
     3. Verbatim stdout/stderr output lines showing individual test cases passed, assertions checked, and metrics verified.
   - **Zero Assertion Without Proof**: Bare claims like "tests pass", "verified locally", or "builds green" without the accompanying command invocation and terminal output block are STRICTLY PROHIBITED and invalid.
+- **Mandatory Verifier Maintenance on User Feedback & Course Corrections**:
+  - Whenever the user provides corrective feedback, reports a flaw, or course-corrects agent behavior:
+    1. **Never Apply Silent Code Patches**: A user course-correction is definitive proof of an **escaped defect** that slipped past the existing verification harness.
+    2. **Mandatory Verifier Gap Audit**: The agent MUST explicitly ask: *"Why did our verifier fail to catch this? What check or assertion was missing?"*
+    3. **Maintain the Verifier**: Check whether to invoke `maintain-verification-skill` (or update `verify.py` / `features/` recipes directly) to add an explicit regression test reproducing the user's feedback.
+    4. **Prove It Works (Red-to-Green)**: Ensure the verifier reproduces the failure without the fix and passes green with it.
+    5. **Report Verifier Status**: The reply to the user MUST explicitly state whether the verification harness was updated with new assertions, or clearly explain why the verifier already possessed coverage.
 - **Inspect Metric Correctness**: The agent must not merely check for a green exit code; the agent MUST inspect the actual output metrics, card values, and UI state to verify they are plausible and correct (e.g. asserting that active fleet views display non-zero experiments, non-zero job counts, and valid dates). Never present a screen showing "0 Experiments" or unpopulated metrics on active fleet views.
 - **Reviewer Blocking Gate**: Reviewers (`@reviewer*`) MUST independently verify that the explicit execution output block is present, inspect the output logs and screenshots, and confirm metric correctness before casting `approve`. Any task lacking explicit verification execution proof or displaying anomalous metrics MUST be immediately rejected with `verdict='changes'`.
 
