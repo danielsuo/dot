@@ -9,50 +9,27 @@ Universal verification playbook orchestrator for any project. Coordinates determ
 
 ---
 
-## 1. Fast detection check
+## 1. Pre-flight bootstrap check
 
-Check if verification files exist in the repository:
-- `scripts/verify.py` or `.<app>/verify.py` (and `doctor.sh`)
+Check if verification files exist in the repository (`.<app>/verify.py`, `.verification/verify.py`, or `scripts/verify.py`).
 
-Pick one path:
-- **Case 1: Bootstrap new harness (verify.py missing)**: go to Section 2.
-- **Case 2: Run and maintain verification (verify.py present)**: go to Section 3.
-
----
-
-## 2. Case 1: Bootstrap new harness (verify.py missing)
-
-Follow these steps when the project has no verification files:
-
-### Step 1: Gather context
-Read conversation history, recent git commits (`git log -n 10 --oneline`), and open card criteria.
-
-### 🎯 Mandatory user confirmation gate
-Present findings to the user before writing files:
-> "Here is what I gathered from your recent activity:
-> - Recent commits and touched files: [summary]
-> - Discovered features and fixes: [summary]
-> Which specific features, bug fixes, or edge cases from your recent work should we verify?"
-
-Wait for user confirmation before proceeding.
-
-### Step 2: Bootstrap suite
-Run `init-verify`:
+If missing, bootstrap the harness:
 ```bash
-init-verify
+init-verify [target_dir]  # e.g. init-verify .imp, init-verify .verification, or default scripts/
 ```
-This copies `doctor.sh` and `verify.py` from `templates/`, creates `features/`, and sets execute permissions. Customize compile and test commands for the target project.
-
-### Step 3: Run initial pass
-Run preflight and runner to confirm all stages pass.
+Customize compile and test commands for the target project, then continue directly into the verification stages.
 
 ---
 
-## 3. Case 2: Run and maintain verification (verify.py present)
+## 2. Operational verification loops
 
 Execute verification across two operational loops:
 - **Inner loop (< 5s, development iteration)**: run targeted tests (`python3 <dir>/verify.py --tier 0 [target]`) or compile/tests (`--fast`) after every sub-step to catch regressions immediately.
 - **Outer loop (~1–3m, verification & review gate)**: run the full suite (`python3 <dir>/verify.py`), audit principles, and convene the expert panel. If issues arise, the agent diagnoses, fixes, and re-verifies in a convergence loop (up to 5 iterations) until green.
+
+---
+
+## 3. Maintenance triggers
 
 Maintain coverage across four continuous triggers:
 - **Trigger 1 (Bug reports)**: add automated test to `verify.py` (Stage 2) or inspection check to Stage 4.
@@ -63,7 +40,7 @@ Maintain coverage across four continuous triggers:
 ### ⚠️ Boundary rule: framework harness vs project specifics
 - **Framework harness**: runner flags (`--tier`, `--fast`), telemetry, principles checklist. Re-syncable from `templates/`.
 - **Project specifics**: build/test commands, CLI flags, feature specs in `features/`. Preserved across updates.
-- Only edit verification files (`features/`, `scripts/`). Never alter product code during maintenance.
+- Only edit verification files (`features/`, `scripts/`, `.<app>/`). Never alter product code during maintenance.
 
 ---
 
