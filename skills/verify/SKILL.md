@@ -1,11 +1,11 @@
 ---
 name: verify
-description: "Universal verification skill that triggers on ANY project change (new project, feature, bug fix, or refactor) to create, update, and run the 5-stage verification suite."
+description: "Universal verification playbook orchestrator that executes deterministic runners, agentic markdown test specs, principles audits, and skeptical expert reviews."
 ---
 
 # Verify
 
-Universal verification runner and maintainer for any project. Couples deterministic execution in code (`verify.py`, `doctor.sh`) with agentic judgment on principles (`references/principles/`) and user workflows (`features/*.md`).
+Universal verification playbook orchestrator for any project. Coordinates deterministic execution (`verify.py`, `doctor.sh`) with project-defined agentic markdown test specs (`features/*.md`), architectural principles, and expert panel reviews.
 
 ---
 
@@ -80,7 +80,11 @@ Couples deterministic execution with agentic reasoning and expert peer review (s
 3. **Stage 3: Architecture & principles audit**: `python3 <dir>/verify.py --tier=3` [Agentic]
    Self-audit against pre-review checklist and `references/principles-router.md` (`$(find-skills-root)/../references/principles/`).
 4. **Stage 4: Test user workflows (~1–3m)**: `python3 <dir>/verify.py --tier=4` [Dual]
-   Headless automation captures logs/screenshots; agent evaluates layout, typography, and correctness against `features/*.md`.
+   Agent executes project agentic markdown test specs (`features/*.md`):
+   - Preconditions: environment vars, test servers, daemon state.
+   - Actions: CLI commands, API requests, user interactions.
+   - Assertions: expected outputs, state transitions, layout sanity.
+   - Qualitative review: typography, visual appeal, semantic sense.
 5. **Stage 5: Skeptical expert panel review** [Agentic Panel]
    Dynamically convene 5–6 strongly skeptical expert reviewer personas tailored to the specific project and change (for example: application maintainers, related project owners, systems architects, security reviewers). Panel interrogates edge cases, latent failure modes, and API trade-offs.
 
