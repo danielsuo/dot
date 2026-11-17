@@ -62,7 +62,7 @@ Division of responsibilities: `verify.py` executes programmatic Stages 1–2 det
 
 ### Agentic reasoning in review (performed and written by agent)
 3. **Stage 3: Architecture & principles audit** [Agentic]
-   Agent self-audits unsubmitted diff against pre-review checklist and `references/principles-router.md` (`$(find-skills-root)/../references/principles/`).
+   Agent self-audits unsubmitted diff against `AGENTS.md` principles router and `references/principles/` (minimal changes, no premature abstractions, zero fake data, atomic units).
 4. **Stage 4: Test user workflows (~1–3m)** [Agentic]
    Agent executes and walks project agentic markdown test specs (`features/*.md`):
    - Preconditions: environment vars, test servers, daemon state.
