@@ -43,13 +43,11 @@ Present findings to the user before writing files:
 Wait for user confirmation before proceeding.
 
 ### Step 2: Generate files
-Scaffold the standard directory structure:
-- `scripts/doctor.sh`: fast preflight check verifying compiler, tools, and ports.
-- `scripts/verify.py`: 5-stage runner testing compile, unit tests, CLI flags, principles, and user workflows.
-- `<skills-root>/verify-<app>/SKILL.md`: documentation for driving and verifying the app.
-- `<skills-root>/verify-<app>/features/`: Markdown specs for individual features.
-
-See `references/template.md` for template code and file layouts.
+Scaffold directory structure per `references/template.md`:
+- `scripts/doctor.sh`
+- `scripts/verify.py`
+- `<skills-root>/verify-<app>/SKILL.md`
+- `<skills-root>/verify-<app>/features/`
 
 ### Step 3: Run initial pass
 Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
@@ -61,19 +59,17 @@ Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
 When verification scripts already exist, run `ensure-verification-skill` across three continuous triggers:
 
 ### Trigger 1: On every bug report (before touching product code)
-- If the bug is mechanical (crash, bad exit code, broken flag, wrong payload format, unhandled error): add an automated test to `scripts/verify.py` or native unit tests.
-- If the bug is visual or subjective (layout shift, misalignment, bad typography, confusing copy): add an inspection check to Stage 5.
-- Confirm the test fails (red), apply the product fix, and verify the test passes (green).
+- Mechanical bug (crash, error, bad flag): add automated test to `scripts/verify.py` or unit tests.
+- Visual or subjective bug: add inspection check to Stage 5.
+- Confirm test fails (red), apply fix, and verify test passes (green).
 
 ### Trigger 2: On every feature addition (alongside implementation)
-- A feature does not exist until its verification recipe exists.
-- Add programmatic checks (CLI flags, route responses, schema validation) to `scripts/verify.py` (Stages 1 through 3).
+- Add programmatic checks (CLI flags, route responses, schema validation) to Stages 1–3.
 - Add workflow and visual expectations to Stage 5.
 
 ### Trigger 3: Post-landing upkeep (every merged change)
-- Audit files in `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
-- Prune verification checks for deleted routes or obsolete configuration options.
-- Run `python3 scripts/verify.py` to ensure all five stages pass with zero false alarms.
+- Audit `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
+- Prune obsolete checks and run `python3 scripts/verify.py` to ensure all stages pass.
 
 ### ⚠️ Blocking rule: maintenance edit scope
 Only edit verification files (`SKILL.md`, `features/`, `scripts/`). Never weaken assertions or alter product code during maintenance. Genuine product bugs found during maintenance are defects, not doc drift.
@@ -84,40 +80,17 @@ Only edit verification files (`SKILL.md`, `features/`, `scripts/`). Never weaken
 
 The verification runner (`scripts/verify.py`) tests the application across five progressive stages:
 
-1. **Stage 1: Compile code (target < 2s)**
+1. **Stage 1: Compile code (target < 2s)**: `python3 scripts/verify.py --tier=1`
    Build and type check without running the application (`cargo check`, `tsc`).
-   Command: `python3 scripts/verify.py --tier=1`
-
-2. **Stage 2: Run unit tests (target < 10s)**
+2. **Stage 2: Run unit tests (target < 10s)**: `python3 scripts/verify.py --tier=2`
    Hermetic native unit tests in memory (`cargo test`, `pytest`, `npm test`).
-   Command: `python3 scripts/verify.py --tier=2`
+3. **Stage 3: Run CLI and check flags (target ~10–30s)**: `python3 scripts/verify.py --tier=3`
+   Run compiled binaries with argument combinations, test flag errors, launch ephemeral server, scan for fake data.
+4. **Stage 4: Architecture and principles audit**: `python3 scripts/verify.py --tier=4`
+   Run pre-review checklist and consult `references/principles-router.md` (which maps tasks to principles in `$(find-skills-root)/../references/principles/`).
+5. **Stage 5: Test user workflows and features (target ~1–3m)**: `python3 scripts/verify.py --tier=5`
+   Automate user flows with headless scripts (capturing logs and screenshots); agent inspects layout, typography, and semantic correctness.
 
-3. **Stage 3: Run CLI and check flags (target ~10–30s)**
-   Run compiled binaries with argument combinations (`--help`, required arguments, missing flag errors). Launch an ephemeral server on a test port, check migrations, and scan for fake data.
-   Command: `python3 scripts/verify.py --tier=3`
-
-4. **Stage 4: Architecture and principles audit**
-   Run the pre-review principles checklist and consult the situational router in `references/principles-router.md` (which maps tasks to principles in `$(find-skills-root)/../references/principles/`).
-   Command: `python3 scripts/verify.py --tier=4`
-
-5. **Stage 5: Test user workflows and features (target ~1–3m)**
-   Automate user workflows with headless scripts (Playwright, Puppeteer, Chrome DevTools Protocol, or CLI automation). The script clicks buttons, navigates views, triggers events, and saves screenshots and logs. The agent then inspects the captured output to verify visual layout, typography, and semantic correctness.
-   Command: `python3 scripts/verify.py --tier=5`
-
-Running `python3 scripts/verify.py` executes all five stages in sequence. On completion, the runner appends a run record to `~/.config/skills/usage.jsonl`.
-
----
-
-## 5. Push determinism into code, reserve agents for judgment
-
-Automate mechanical execution with deterministic code; reserve the agent for subjective evaluation and judgment:
-
-- **Mechanical testing belongs in code**:
-  Clicking buttons, checking button states, validating form fields, capturing screenshots, waiting for network responses, asserting DOM properties, and checking event feeds must be written into headless automation scripts (such as Playwright, Puppeteer, Chrome DevTools Protocol, curl, or test runners). Never ask an agent to manually click around when a script can do it deterministically.
-- **Agents exercise judgment on the output**:
-  The script executes deterministically; the agent inspects the resulting artifacts (screenshots, output text, network logs) to evaluate:
-  1. Visual layout and typography: does the interface look clean and well-proportioned? Is there text truncation, misalignment, or badge overlap?
-  2. Semantic plausibility: are the values, counts, and response texts correct and meaningful in domain context?
-  3. User flow: does the interaction feel intuitive, complete, and responsive?
+Running `python3 scripts/verify.py` executes all five stages in sequence, appending a run record to `~/.config/skills/usage.jsonl`.
 
 
