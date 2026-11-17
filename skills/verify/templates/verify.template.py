@@ -50,30 +50,6 @@ def run_stage_2_tests(port: int, src_root: str) -> bool:
     print("  ✓ Unit tests, CLI arguments, and regression tests passed")
     return True
 
-def run_stage_3_principles_audit(src_root: str) -> bool:
-    print("\n[Stage 3: Architecture and principles audit] Running principles checklist...")
-    # Run pre-review audit per references/principles-router.md
-    print("  ✓ Architecture and principles audit passed")
-    return True
-
-def run_stage_4_e2e(port: int) -> bool:
-    print("\n[Stage 4: Test user workflows and features (1–3m)] Running automated user flows...")
-    # TODO: Run headless automation script (Playwright, Puppeteer, curl) capturing logs/screenshots
-    print("  ✓ User workflows and feature assertions passed")
-    return True
-
-def run_stage_5_panel(src_root: str) -> bool:
-    print("\n[Stage 5: Skeptical expert panel review] Convening expert panel...")
-    personas = [
-        ("Staff Architect", "Unnecessary complexity, abstraction leaks, future debt"),
-        ("Principal SRE", "Failure modes, edge cases, silent regressions, telemetry"),
-        ("Adversarial User / QA", "Unexpected inputs, broken expectations, UX/CLI ergonomics"),
-    ]
-    for name, focus in personas:
-        print(f"  ✓ Persona '{name}': Auditing {focus}")
-    print("  ✓ Skeptical expert panel review complete")
-    return True
-
 def log_receipt(app_name: str, stages: list[int], passed: bool, duration_ms: float) -> None:
     receipt_dir = os.path.expanduser("~/.config/skills")
     os.makedirs(receipt_dir, exist_ok=True)
@@ -88,9 +64,15 @@ def log_receipt(app_name: str, stages: list[int], passed: bool, duration_ms: flo
     with open(receipt_path, "a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
 
+def print_agentic_stages_reminder() -> None:
+    print("\n[Agentic Review Stages — Performed by Agent in Review/Report]")
+    print("  → Stage 3: Architecture & principles audit (self-audit diff vs references/principles/)")
+    print("  → Stage 4: Test user workflows (execute & walk features/*.md specs)")
+    print("  → Stage 5: Skeptical expert panel review (Staff Architect, Principal SRE, Adversarial User)")
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Progressive verification runner")
-    parser.add_argument("--tier", type=int, choices=[0, 1, 2, 3, 4, 5], help="Run specific stage (0=targeted, 1=compile, 2=tests, 3=audit, 4=workflows, 5=panel)")
+    parser = argparse.ArgumentParser(description="Deterministic verification runner (Stages 1-2)")
+    parser.add_argument("--tier", type=int, choices=[0, 1, 2], help="Run specific programmatic stage (0=targeted, 1=compile, 2=tests)")
     parser.add_argument("target", nargs="?", default="", help="Optional targeted test name or path for Tier 0")
     parser.add_argument("--target", dest="target_flag", default="", help="Optional target specifier for Tier 0")
     parser.add_argument("--fast", action="store_true", help="Inner loop: run compile and tests (< 5s)")
@@ -100,12 +82,10 @@ def main() -> None:
 
     target = args.target_flag or args.target
     start_time = time.time()
-    if args.fast:
+    if args.fast or args.tier is None:
         stages = [1, 2]
-    elif args.tier is not None:
-        stages = [args.tier]
     else:
-        stages = [1, 2, 3, 4, 5]
+        stages = [args.tier]
 
     print(f"=== Starting verification suite (Stages: {stages}) ===")
 
@@ -120,23 +100,15 @@ def main() -> None:
     if 2 in stages and ok:
         executed.append(2)
         ok = run_stage_2_tests(args.port, args.src_root)
-    if 3 in stages and ok:
-        executed.append(3)
-        ok = run_stage_3_principles_audit(args.src_root)
-    if 4 in stages and ok:
-        executed.append(4)
-        ok = run_stage_4_e2e(args.port)
-    if 5 in stages and ok:
-        executed.append(5)
-        ok = run_stage_5_panel(args.src_root)
 
     duration_ms = round((time.time() - start_time) * 1000, 2)
     log_receipt("verify-app", executed, ok, duration_ms)
 
     if not ok:
-        print(f"\n❌ Verification failed in {duration_ms}ms")
+        print(f"\n❌ Programmatic verification failed in {duration_ms}ms")
         sys.exit(1)
-    print(f"\n✅ All stages {executed} passed in {duration_ms}ms")
+    print(f"\n✅ Programmatic stages {executed} passed in {duration_ms}ms")
+    print_agentic_stages_reminder()
 
 if __name__ == "__main__":
     main()

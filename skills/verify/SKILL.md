@@ -50,28 +50,31 @@ Maintain coverage across four continuous triggers:
 
 ## 4. The progressive verification stages
 
-Couples programmatic deterministic execution (Stages 1–2) with agentic reasoning and expert peer review (Stages 3–5):
+Division of responsibilities: `verify.py` executes programmatic Stages 1–2 deterministically in code; the agent performs and writes agentic Stages 3–5 in the verification report.
 
-0. **Tier 0: Targeted test (< 2s)**: `python3 <dir>/verify.py --tier 0 [target]` [Programmatic]
+### Programmatic execution in code (`verify.py`)
+0. **Tier 0: Targeted test (< 2s)**: `python3 <dir>/verify.py --tier 0 [target]`
    Focused test for the specific function, module, or defect under active development (auto-detects modified tests if target omitted).
-1. **Stage 1: Compile code (< 2s)**: `python3 <dir>/verify.py --tier 1` [Programmatic]
+1. **Stage 1: Compile code (< 2s)**: `python3 <dir>/verify.py --tier 1`
    Build and type check without running the application (`cargo check`, `tsc`).
-2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier 2` [Programmatic]
+2. **Stage 2: Run automated tests (< 10s)**: `python3 <dir>/verify.py --tier 2` (or `--fast` for Stages 1 & 2)
    Hermetic unit and integration tests (CLI arguments, flag combinations, regressions, migrations).
-3. **Stage 3: Architecture & principles audit**: `python3 <dir>/verify.py --tier 3` [Agentic]
-   Self-audit against pre-review checklist and `references/principles-router.md` (`$(find-skills-root)/../references/principles/`).
-4. **Stage 4: Test user workflows (~1–3m)**: `python3 <dir>/verify.py --tier 4` [Agentic]
-   Agent executes project agentic markdown test specs (`features/*.md`):
+
+### Agentic reasoning in review (performed and written by agent)
+3. **Stage 3: Architecture & principles audit** [Agentic]
+   Agent self-audits unsubmitted diff against pre-review checklist and `references/principles-router.md` (`$(find-skills-root)/../references/principles/`).
+4. **Stage 4: Test user workflows (~1–3m)** [Agentic]
+   Agent executes and walks project agentic markdown test specs (`features/*.md`):
    - Preconditions: environment vars, test servers, daemon state.
    - Actions: CLI commands, API requests, user interactions.
    - Assertions: expected outputs, state transitions, layout sanity.
    - Qualitative review: typography, visual appeal, semantic sense.
-5. **Stage 5: Skeptical expert panel review**: `python3 <dir>/verify.py --tier 5` [Agentic Panel]
-   Dynamically convene strongly skeptical expert reviewer personas tailored to the specific project and change:
+5. **Stage 5: Skeptical expert panel review** [Agentic Panel]
+   Agent dynamically convenes strongly skeptical expert reviewer personas tailored to the specific project and change:
    - Staff Architect: unnecessary complexity, abstraction leaks, future debt, API ergonomics.
    - Principal SRE: failure modes, edge cases, silent regressions, crash handling, timeouts.
    - Adversarial User / QA: unexpected inputs, broken user expectations, ergonomic traps.
 
-Output an **Actionable Verification Report** spanning concrete line fixes for Stage 1–2 failures up to architectural remedies for Stage 3–5 concerns.
+Output an **Actionable Verification Report** in chat spanning concrete line fixes for Stage 1–2 failures up to architectural remedies for Stage 3–5 concerns.
 
 
