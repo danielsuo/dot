@@ -9,15 +9,13 @@ Universal verification playbook orchestrator for any project. Coordinates determ
 
 ---
 
-## 1. Pre-flight bootstrap check
+## 1. Pre-flight lifecycle branching
 
-Check if verification files exist in the repository (`.<app>/verify.py`, `.verification/verify.py`, or `scripts/verify.py`).
-
-If missing, bootstrap the harness:
-```bash
-init-verify [target_dir]  # e.g. init-verify .imp, init-verify .verification, or default scripts/
-```
-Customize compile and test commands for the target project, then continue directly into the verification stages.
+- **IF nothing exists**: bootstrap suite via `init-verify [target_dir]` (e.g. `init-verify .imp`, `init-verify .verification`, or default `scripts/`). Customize compile and test commands.
+- **ELIF new issue or feature**: expand coverage before editing product code:
+  * Deterministic: add targeted regression or CLI contract in `verify.py`.
+  * Agentic: add user-path specification in `features/<feature>.md`.
+- **FINALLY**: execute through the progressive stages.
 
 ---
 
