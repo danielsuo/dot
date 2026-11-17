@@ -11,7 +11,7 @@ Universal verification playbook orchestrator for any project. Coordinates determ
 
 ## 1. Pre-flight lifecycle branching
 
-- **IF nothing exists**: bootstrap suite via `init-verify [target_dir]` (e.g. `init-verify .imp`, `init-verify .verification`, or default `scripts/`). Customize compile and test commands.
+- **IF nothing exists**: bootstrap suite via `init-verify [target_dir]` (e.g. `init-verify imp`, `init-verify verification`, or default `scripts/` — avoid dot directories like `.imp` which are ignored by Piper). Customize compile and test commands.
 - **ELIF new issue or feature**: expand coverage before editing product code:
   * Deterministic: add targeted regression or CLI contract in `verify.py`.
   * Agentic: add user-path specification in `features/<feature>.md`.

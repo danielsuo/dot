@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # init-verify: Bootstrap verification scripts and features directory for a project.
-# Usage: init-verify [target_dir] (e.g. init-verify .imp, init-verify scripts, default: scripts)
+# Usage: init-verify [target_dir] (e.g. init-verify imp, init-verify scripts, default: scripts)
 
 TARGET_DIR="${1:-scripts}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
