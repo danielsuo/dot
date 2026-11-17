@@ -67,3 +67,42 @@ To balance rapid developer velocity with absolute release correctness, verificat
 - **Show the Execution**: Always paste the exact command executed, exit code, and terminal output. Never state that a command, build, or test "succeeded" without showing the receipt.
 - **Concrete References**: Always cite concrete line numbers, file paths, and verifiable outputs.
 - **Grounded Answers**: Discover answers through codebase research rather than guessing.
+
+---
+
+## 5. Engineering Principles (`references/principles/`)
+
+Engineering principles are modular deep-dive reference manuals housed in `~/dot/references/principles/`. They codify architectural wisdom, debugging discipline, and design standards.
+
+### How to Use Principles (Mid-Flight Autonomous Discovery)
+- **Do Not Memorize or Inject Upfront**: Principles are intentionally stored as modular files rather than top-level skills to avoid burning tokens on turn 1.
+- **Read On-Demand When Triggered**: Consult the Situational Principles Router table below during task execution. When you hit a matching situation, friction point, or architectural fork, use `read_file` to inspect the relevant principle before writing code.
+
+### Situational Principles Router
+When you encounter any of the following situations, read the referenced principle before proceeding:
+
+1. **Questioning task premise or asked to implement a questionable workaround** → read `~/dot/references/principles/attack-the-premise.md`
+2. **Exposing cross-module contracts or passing untrusted inputs** → read `~/dot/references/principles/boundary-discipline.md`
+3. **Performing repetitive manual steps or debugging toil** → read `~/dot/references/principles/build-the-lever.md`
+4. **Fixing a bug and wanting to permanently prevent recurrence** → read `~/dot/references/principles/encode-lessons-in-structure.md`
+5. **Evaluating architectural designs or choosing between alternatives** → read `~/dot/references/principles/exhaust-the-design-space.md`
+6. **Designing APIs, CLI commands, or user-facing interactions** → read `~/dot/references/principles/experience-first.md`
+7. **Displaying metrics, benchmarks, or telemetry counts** → read `~/dot/references/principles/explain-the-number.md`
+8. **Tempted to patch a symptom or wrap an error in retry logic** → read `~/dot/references/principles/fix-root-causes.md`
+9. **Tackling complex legacy spaghetti or feeling blocked by tech debt** → read `~/dot/references/principles/foundational-thinking.md`
+10. **Handling large logs, sprawling diffs, or hitting context limits** → read `~/dot/references/principles/guard-the-context-window.md`
+11. **About to write new helper code / checking if prior art exists** → read `~/dot/references/principles/laziness-protocol.md`
+12. **Writing scripts, database migrations, or setup routines** → read `~/dot/references/principles/make-operations-idempotent.md`
+13. **Modifying, deprecating, or replacing a live API / function contract** → read `~/dot/references/principles/migrate-callers-then-delete-legacy-apis.md`
+14. **Writing documentation, comments, or PR descriptions** → read `~/dot/references/principles/minimize-reader-load.md`
+15. **Designing domain entities, state representations, or enum types** → read `~/dot/references/principles/model-the-domain.md`
+16. **Waiting for human reply when safe forward progress can be made** → read `~/dot/references/principles/never-block-on-the-human.md`
+17. **Refining task milestones or verifying customer outcome alignment** → read `~/dot/references/principles/outcome-oriented-execution.md`
+18. **About to claim code completion or move a task to review** → read `~/dot/references/principles/prove-it-works.md`
+19. **Realizing an existing architecture is fundamentally flawed** → read `~/dot/references/principles/redesign-from-first-principles.md`
+20. **Managing shared mutable state, concurrency, or DB locks** → read `~/dot/references/principles/separate-before-serializing-shared-state.md`
+21. **Scoping large multi-step changes into deliverable units** → read `~/dot/references/principles/sequence-verifiable-units.md`
+22. **Tempted to add flags, options, config keys, or extra parameters** → read `~/dot/references/principles/subtract-before-you-add.md`
+23. **Writing unit tests or mocking internal implementation methods** → read `~/dot/references/principles/test-behavior-not-implementation.md`
+24. **Using untyped primitives, loose strings, or permissive types** → read `~/dot/references/principles/type-system-discipline.md`
+
