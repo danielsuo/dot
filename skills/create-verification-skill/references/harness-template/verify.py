@@ -28,8 +28,8 @@ def run_tier_1_static(src_root: str) -> bool:
     return True
 
 def run_tier_2_unit(src_root: str) -> bool:
-    print("\n[Tier 2: Deterministic Logic & Unit (< 10s)] Running in-memory unit tests...")
-    # Example: pytest, cargo test, blaze test
+    print("\n[Stage 2: Deterministic Logic & Unit (< 10s)] Running in-memory unit tests...")
+    # Example: pytest, cargo test, npm test
     print("  ✓ All hermetic unit test suites passed")
     return True
 
