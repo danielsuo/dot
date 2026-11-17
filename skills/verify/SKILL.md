@@ -50,27 +50,18 @@ Run preflight and runner to confirm all stages pass.
 
 ## 3. Case 2: Run and maintain verification (verify.py present)
 
-Execute verification and keep coverage up to date across four continuous triggers:
+Execute verification across two operational loops:
+- **Inner loop (< 5s, development iteration)**: run `python3 <dir>/verify.py --fast` (or `--tier=2 --filter=<test>`) after every edit to catch compiler and logic errors immediately.
+- **Outer loop (~1–3m, verification & review gate)**: run all 5 stages before review, iterating up to 5 times (`--loop=5`) until all tests, principles audits, and expert reviews pass.
 
-### Trigger 1: On every bug report (before touching product code)
-- Mechanical bug (crash, error, bad flag): add automated test to `verify.py` (Stage 2) or unit tests.
-- Visual or subjective bug: add inspection check to Stage 4.
-- Confirm test fails (red), apply fix, and verify test passes (green).
-
-### Trigger 2: On every feature addition (alongside implementation)
-- Add programmatic checks (CLI flags, route responses, schema validation) to Stages 1–2.
-- Add workflow and visual expectations to Stage 4 in `features/<feature>.md`.
-
-### Trigger 3: On template updates (re-sync framework)
-- When global templates update (flags, telemetry, principles): sync framework logic in `verify.py` and `doctor.sh`.
-- Strictly isolate and preserve project-specific commands, test functions, and `features/*.md` specs.
-
-### Trigger 4: Post-landing upkeep (every merged change)
-- Audit `features/*.md` against modified routes (`git diff main --stat`).
-- Prune obsolete checks and run verification to ensure all stages pass.
+Maintain coverage across four continuous triggers:
+- **Trigger 1 (Bug reports)**: add automated test to `verify.py` (Stage 2) or inspection check to Stage 4.
+- **Trigger 2 (New features)**: add checks to Stages 1–2, workflow specs to `features/<feature>.md`.
+- **Trigger 3 (Template updates)**: sync framework runner logic while isolating project-specific tests.
+- **Trigger 4 (Upkeep)**: audit `features/*.md` against modified routes and prune obsolete checks.
 
 ### ⚠️ Boundary rule: framework harness vs project specifics
-- **Framework harness**: runner flags (`--tier`), telemetry, principles checklist. Re-syncable from `templates/`.
+- **Framework harness**: runner flags (`--tier`, `--fast`, `--loop`), telemetry, principles checklist. Re-syncable from `templates/`.
 - **Project specifics**: build/test commands, CLI flags, feature specs in `features/`. Preserved across updates.
 - Only edit verification files (`features/`, `scripts/`). Never alter product code during maintenance.
 

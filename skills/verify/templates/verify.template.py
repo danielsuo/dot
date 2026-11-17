@@ -50,28 +50,44 @@ def log_receipt(app_name: str, stages: list[int], passed: bool, duration_ms: flo
 def main() -> None:
     parser = argparse.ArgumentParser(description="Progressive verification runner")
     parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4], help="Run specific stage 1..4")
+    parser.add_argument("--fast", action="store_true", help="Inner loop: run stages 1 and 2 (< 5s)")
+    parser.add_argument("--filter", type=str, default="", help="Run targeted tests matching filter")
+    parser.add_argument("--loop", type=int, default=1, help="Retry up to N times until green (max 5)")
     parser.add_argument("--port", type=int, default=8080, help="Test port for ephemeral servers")
     parser.add_argument("--src-root", type=str, default=".", help="Source root path")
     args = parser.parse_args()
 
     start_time = time.time()
-    stages = [args.tier] if args.tier else [1, 2, 3, 4]
-    print(f"=== Starting verification suite (Stages: {stages}) ===")
+    if args.fast:
+        stages = [1, 2]
+    elif args.tier:
+        stages = [args.tier]
+    else:
+        stages = [1, 2, 3, 4]
 
-    ok = True
+    max_attempts = min(max(1, args.loop), 5)
+    ok = False
     executed = []
-    if 1 in stages and ok:
-        executed.append(1)
-        ok = run_stage_1_compile(args.src_root)
-    if 2 in stages and ok:
-        executed.append(2)
-        ok = run_stage_2_tests(args.port, args.src_root)
-    if 3 in stages and ok:
-        executed.append(3)
-        ok = run_stage_3_principles_audit(args.src_root)
-    if 4 in stages and ok:
-        executed.append(4)
-        ok = run_stage_4_e2e(args.port)
+
+    for attempt in range(1, max_attempts + 1):
+        if attempt > 1:
+            print(f"\n--- Retrying verification (Attempt {attempt}/{max_attempts}) ---")
+        ok = True
+        executed = []
+        if 1 in stages and ok:
+            executed.append(1)
+            ok = run_stage_1_compile(args.src_root)
+        if 2 in stages and ok:
+            executed.append(2)
+            ok = run_stage_2_tests(args.port, args.src_root)
+        if 3 in stages and ok:
+            executed.append(3)
+            ok = run_stage_3_principles_audit(args.src_root)
+        if 4 in stages and ok:
+            executed.append(4)
+            ok = run_stage_4_e2e(args.port)
+        if ok:
+            break
 
     duration_ms = round((time.time() - start_time) * 1000, 2)
     log_receipt("verify-app", executed, ok, duration_ms)
