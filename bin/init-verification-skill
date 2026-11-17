@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# init-verification-skill: Bootstrap a 5-stage verification suite for an application.
+# Usage: init-verification-skill [app-name]
+
+APP="${1:-$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMPLATES="${SCRIPT_DIR}/../skills/ensure-verification-skill/templates"
+
+if [[ ! -d "$TEMPLATES" ]]; then
+  echo "Error: Templates directory not found at $TEMPLATES" >&2
+  exit 1
+fi
+
+SKILLS_ROOT="$(find-skills-root --project 2>/dev/null || echo ".skills")"
+
+mkdir -p scripts "${SKILLS_ROOT}/verify-${APP}/features"
+
+cp "${TEMPLATES}/doctor.template.sh" scripts/doctor.sh
+cp "${TEMPLATES}/verify.template.py" scripts/verify.py
+sed "s/<app>/${APP}/g" "${TEMPLATES}/SKILL.template.md" > "${SKILLS_ROOT}/verify-${APP}/SKILL.md"
+
+chmod +x scripts/doctor.sh scripts/verify.py
+
+echo "✓ Initialized verification suite for '${APP}':"
+echo "  - scripts/doctor.sh"
+echo "  - scripts/verify.py"
+echo "  - ${SKILLS_ROOT}/verify-${APP}/SKILL.md"
+echo "  - ${SKILLS_ROOT}/verify-${APP}/features/"

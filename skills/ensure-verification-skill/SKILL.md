@@ -39,17 +39,12 @@ Present findings to the user before writing files:
 
 Wait for user confirmation before proceeding.
 
-### Step 2: Copy and customize templates
-1. Copy templates into place:
-   ```bash
-   TEMPLATES="$(find-skills-root)/ensure-verification-skill/templates"
-   cp "${TEMPLATES}/doctor.template.sh" scripts/doctor.sh
-   cp "${TEMPLATES}/verify.template.py" scripts/verify.py
-   mkdir -p "<skills-root>/verify-<app>/features"
-   cp "${TEMPLATES}/SKILL.template.md" "<skills-root>/verify-<app>/SKILL.md"
-   chmod +x scripts/doctor.sh scripts/verify.py
-   ```
-2. Customize `<app>`, `<build_cmd>`, and `<test_cmd>` placeholders for the target project.
+### Step 2: Bootstrap suite
+Run `init-verification-skill <app>`:
+```bash
+init-verification-skill <app>
+```
+This copies the doctor, verify, and verify skill templates from `templates/`, creates `<skills-root>/verify-<app>/features/`, and sets execute permissions. Customize `<build_cmd>` and `<test_cmd>` placeholders for the target project.
 
 ### Step 3: Run initial pass
 Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
