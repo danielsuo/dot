@@ -7,62 +7,79 @@ description: "Idempotently ensure a project has an up-to-date verification skill
 
 Every project needs an automated way to test application behavior. Running this skill ensures a working verification skill exists and stays aligned with the current codebase.
 
-This skill is idempotent:
-- **If the project has no verification skill**: it gathers context and scaffolds the verification suite.
-- **If the project already has a verification skill**: it audits feature coverage against modified routes, prunes dead scenarios, and runs the verification suite.
-
 Resolve `<skills-root>` by running `SKILLS_ROOT=$(find-skills-root)` (or `find-skills-root --project`).
 
 ---
 
-## 1. Idempotent workflow
+## 1. Quick start and detection
 
-### Check for existing verification files
-Check whether the project already has:
+Check whether verification files already exist in this repository:
 1. `scripts/doctor.sh` and `scripts/verify.py` in the repository root.
 2. `<skills-root>/verify-<app>/SKILL.md` (or `.skills/verify-<app>/SKILL.md`).
 
-### Path A: Project lacks a verification skill (create)
-1. **Gather context (Step 0A)**:
-   - Check conversation history for discussed bugs and recent features.
-   - Run `git log -n 10 --oneline` and `git diff HEAD~5 --stat` to find touched modules.
-   - Read the current task description for acceptance criteria.
-2. **User confirmation gate (Step 0B)**:
-   Present findings to the user before writing files:
-   > "Here is what I gathered from your recent activity:
-   > - Recent commits and touched files: [summary]
-   > - Discovered features and fixes: [summary]
-   > Which specific features, bug fixes, or edge cases from your recent work should we verify?"
-   Wait for user confirmation.
-3. **Scaffold files**:
-   - `scripts/doctor.sh`: fast preflight check verifying compiler, tools, and ports.
-   - `scripts/verify.py`: 5-stage runner testing compile, unit tests, CLI flags, principles, and user workflows.
-   - `<skills-root>/verify-<app>/SKILL.md`: documentation for driving and verifying the app.
-   - `<skills-root>/verify-<app>/features/`: Markdown specs for individual features.
-4. **Execute**:
-   Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
-
-### Path B: Project already has a verification skill (maintain)
-Run `ensure-verification-skill` across three continuous triggers:
-
-1. **On every bug report (before fixing product code)**:
-   - If the bug is mechanical (crash, bad exit code, broken flag, wrong payload format, unhandled error): add an automated test to `scripts/verify.py` or native unit tests.
-   - If the bug is visual or subjective (layout shift, misalignment, bad typography, confusing copy): add an inspection check to Stage 5.
-   - Confirm the test fails (red), apply the product fix, and verify the test passes (green).
-
-2. **On every feature addition (alongside implementation)**:
-   - A feature does not exist until its verification recipe exists.
-   - Add programmatic checks (CLI flags, route responses, schema validation) to `scripts/verify.py` (Stages 1 through 3).
-   - Add workflow and visual expectations to Stage 5.
-
-3. **Post-landing upkeep (every merged change)**:
-   - Audit files in `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
-   - Prune verification checks for deleted routes or obsolete configuration options.
-   - Run `python3 scripts/verify.py` to ensure all five stages pass with zero false alarms.
+- **If files exist**: follow **Section 2: Maintenance and continuous upkeep**. Do not read scaffolding templates.
+- **If files are missing**: follow **Section 3: Initial scaffolding**.
 
 ---
 
-## 2. The five verification stages
+## 2. Maintenance and continuous upkeep (Fast Path)
+
+When verification scripts already exist, run `ensure-verification-skill` across three continuous triggers:
+
+### Trigger 1: On every bug report (before touching product code)
+- If the bug is mechanical (crash, bad exit code, broken flag, wrong payload format, unhandled error): add an automated test to `scripts/verify.py` or native unit tests.
+- If the bug is visual or subjective (layout shift, misalignment, bad typography, confusing copy): add an inspection check to Stage 5.
+- Confirm the test fails (red), apply the product fix, and verify the test passes (green).
+
+### Trigger 2: On every feature addition (alongside implementation)
+- A feature does not exist until its verification recipe exists.
+- Add programmatic checks (CLI flags, route responses, schema validation) to `scripts/verify.py` (Stages 1 through 3).
+- Add workflow and visual expectations to Stage 5.
+
+### Trigger 3: Post-landing upkeep (every merged change)
+- Audit files in `<skills-root>/verify-<app>/features/` against modified routes (`git diff main --stat`).
+- Prune verification checks for deleted routes or obsolete configuration options.
+- Run `python3 scripts/verify.py` to ensure all five stages pass with zero false alarms.
+
+### ⚠️ Blocking rule: maintenance edit scope
+Only edit verification files (`SKILL.md`, `features/`, `scripts/`). Never weaken assertions or alter product code during maintenance. Genuine product bugs found during maintenance are defects, not doc drift.
+
+---
+
+## 3. Initial scaffolding (First-Time Setup)
+
+When the project has no verification skill, follow these steps to scaffold one:
+
+### Step 1: Gather context
+Read three sources:
+1. Conversation history: check recent error messages, feature requests, and discussed bugs.
+2. Git history: run `git log -n 10 --oneline` and `git diff HEAD~5 --stat` to find touched modules.
+3. Task board: check the card description and open tickets for acceptance criteria.
+
+### 🎯 Mandatory user confirmation gate
+Present findings to the user before writing files:
+> "Here is what I gathered from your recent activity:
+> - Recent commits and touched files: [summary]
+> - Discovered features and fixes: [summary]
+> Which specific features, bug fixes, or edge cases from your recent work should we verify?"
+
+Wait for user confirmation before proceeding.
+
+### Step 2: Generate files
+Scaffold the standard directory structure:
+- `scripts/doctor.sh`: fast preflight check verifying compiler, tools, and ports.
+- `scripts/verify.py`: 5-stage runner testing compile, unit tests, CLI flags, principles, and user workflows.
+- `<skills-root>/verify-<app>/SKILL.md`: documentation for driving and verifying the app.
+- `<skills-root>/verify-<app>/features/`: Markdown specs for individual features.
+
+See `references/scaffolding-templates.md` for template code and file layouts.
+
+### Step 3: Run and prove
+Run `scripts/doctor.sh` and `scripts/verify.py` to confirm all stages pass.
+
+---
+
+## 4. The five verification stages
 
 The verification runner (`scripts/verify.py`) tests the application across five progressive stages:
 
@@ -94,7 +111,7 @@ Running `python3 scripts/verify.py` executes all five stages in sequence. On com
 
 ---
 
-## 3. Push determinism into code, reserve agents for judgment
+## 5. Push determinism into code, reserve agents for judgment
 
 Automate mechanical execution with deterministic code; reserve the agent for subjective evaluation and judgment:
 
@@ -106,19 +123,3 @@ Automate mechanical execution with deterministic code; reserve the agent for sub
   2. Semantic plausibility: are the values, counts, and response texts correct and meaningful in domain context?
   3. User flow: does the interaction feel intuitive, complete, and responsive?
 
----
-
-## 4. File layout for the verification skill
-
-```
-${SKILLS_ROOT}/verify-<app>/
-├── SKILL.md
-├── features/
-│   ├── README.md
-│   └── <feature>.md
-└── scripts/
-    ├── doctor.sh         # Fast health check (< 3s): compiler, tools, port
-    ├── verify.py         # 5-stage runner (--tier=1|2|3|4|5)
-    ├── parity_check.py   # Upstream database vs API validator
-    └── lint_fake_data.py # Source scanner for fake data
-```

@@ -63,7 +63,7 @@ For each **detected** agent harness, ensure that `AGENTS.md` (the supreme behavi
 Ensure that each active harness knows where to discover personal and project skills:
 
 1. **Personal Skills Symlink**:
-   - Ensure `~/.config/skills/` contains symlinks to `~/dot/skills/*` (`setup-dsuo`, `create-verification-skill`, `maintain-verification-skill`).
+   - Ensure `~/.config/skills/` contains symlinks to `~/dot/skills/*` (`setup-dsuo`, `ensure-verification-skill`).
 2. **Cursor Integration**:
    - In Cursor workspaces, ensure `.cursor/rules/` references the active project skills or symlinks `skills/` if the project uses a custom directory.
 3. **Claude Code / Gemini CLI Integration**:
