@@ -1,0 +1,594 @@
+#!/usr/bin/env python3
+"""verify: Universal, fast verification runner with modular stages and execution telemetry."""
+
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+try:
+    import tomllib
+except ImportError:
+    try:
+        import tomli as tomllib  # type: ignore
+    except ImportError:
+        tomllib = None  # type: ignore
+
+
+TEMPLATES = {
+    "doctor.sh": """#!/usr/bin/env bash
+# Pre-flight environment check
+set -euo pipefail
+echo "=== [doctor] Checking dependencies and toolchain ==="
+# Add environment/dependency checks here
+echo "  ✓ Pre-flight checks passed"
+""",
+    "compile.sh": """#!/usr/bin/env bash
+# Stage 1: Fast compilation & syntax check (< 2s)
+set -euo pipefail
+echo "=== [Stage 1: Compile (< 2s)] Checking build & syntax ==="
+# Add compile command here (e.g., cargo check, npm run build, etc.)
+echo "  ✓ Compile passed"
+""",
+    "test.sh": """#!/usr/bin/env bash
+# Stage 2: Automated tests (< 10s)
+set -euo pipefail
+TARGET="${1:-}"
+if [[ -n "${TARGET}" ]]; then
+  echo "=== [Tier 0: Targeted test] Running focused check for '${TARGET}' ==="
+  # Add targeted test command here
+  echo "  ✓ Targeted test passed: ${TARGET}"
+  exit 0
+fi
+echo "=== [Stage 2: Automated tests (< 10s)] Running unit tests ==="
+# Add test command here
+echo "  ✓ All tests passed"
+""",
+    "mutants.sh": """#!/usr/bin/env bash
+# Stage 2b: Diff-scoped mutation testing
+set -euo pipefail
+echo "=== [Stage 2b: Mutation testing] Verifying test assertion strength ==="
+# Add mutation test command here
+echo "  ✓ Diff-scoped mutation checks verified (100% mutants killed)"
+""",
+    "instructions.md": """# Project Verification Instructions & Invariants
+
+## Architecture & Boundaries
+- Core invariants and architectural boundaries.
+
+## Testing & Verification
+- Stage 1 Compile: Build target and syntax validation.
+- Stage 2 Test: Unit and integration tests.
+- Stage 2b Mutants: Diff-scoped mutation checks.
+- Features: See `features/*.md` for user journey specifications.
+""",
+}
+
+
+def find_workspace_root(cwd: Path) -> Path:
+    """Find the root of the git or citc repository, or return cwd."""
+    curr = cwd.resolve()
+    for p in [curr, *curr.parents]:
+        if (p / ".git").exists() or (p / ".citc").exists():
+            return p
+        if p.name == "google3":
+            return p
+    return curr
+
+
+def find_projects_config(explicit_config: str | None = None, cwd: Path | None = None) -> Path | None:
+    """Find the projects.toml file according to discovery hierarchy."""
+    if explicit_config:
+        p = Path(explicit_config).expanduser().resolve()
+        if p.is_file():
+            return p
+        if p.is_dir() and (p / "projects.toml").is_file():
+            return p / "projects.toml"
+
+    env_config = os.environ.get("VERIFY_CONFIG")
+    if env_config:
+        p = Path(env_config).expanduser().resolve()
+        if p.is_file():
+            return p
+        if p.is_dir() and (p / "projects.toml").is_file():
+            return p / "projects.toml"
+
+    # 1. Standard configuration locations ($XDG_CONFIG_HOME or ~/.config)
+    xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
+    for cand in [
+        xdg_config / "impromptu" / "projects.toml",
+        xdg_config / "swarm" / "projects.toml",
+        xdg_config / "verify" / "projects.toml",
+        xdg_config / "projects.toml",
+    ]:
+        if cand.is_file():
+            return cand
+
+    # 2. Search upwards from cwd for verifiers/projects.toml or .verifiers/projects.toml
+    if cwd is None:
+        cwd = Path.cwd()
+    curr = cwd.resolve()
+    for p in [curr, *curr.parents]:
+        cand1 = p / "verifiers" / "projects.toml"
+        if cand1.is_file():
+            return cand1
+        cand2 = p / ".verifiers" / "projects.toml"
+        if cand2.is_file():
+            return cand2
+
+    return None
+
+
+def get_stats_file(config_path: Path | None) -> Path:
+    """Get path to the stats.jsonl telemetry file next to projects.toml."""
+    if config_path and config_path.is_file():
+        return config_path.parent / "stats.jsonl"
+    xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
+    target_dir = xdg_config / "impromptu"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    return target_dir / "stats.jsonl"
+
+
+def log_telemetry(config_path: Path | None, project: str, stage: str, duration_ms: int, exit_code: int):
+    """Safely append a telemetry record to stats.jsonl."""
+    try:
+        stats_file = get_stats_file(config_path)
+        record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "project": project,
+            "stage": stage,
+            "duration_ms": duration_ms,
+            "exit_code": exit_code,
+            "success": (exit_code == 0),
+        }
+        with open(stats_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record) + "\n")
+    except Exception:
+        # Telemetry logging is best-effort and never fails the command
+        pass
+
+
+def load_projects(config_path: Path | None) -> tuple[dict, Path | None]:
+    """Load projects dict from config if available."""
+    if not config_path or not config_path.is_file():
+        return {}, None
+    if tomllib is None:
+        sys.stderr.write("[verify] Warning: tomllib not available, cannot parse TOML\n")
+        return {}, config_path
+    try:
+        with open(config_path, "rb") as f:
+            data = tomllib.load(f)
+            return data.get("projects", {}), config_path
+    except Exception as e:
+        sys.stderr.write(f"[verify] Warning: Error reading {config_path}: {e}\n")
+        return {}, config_path
+
+
+def match_project(projects: dict, cwd: Path, workspace_root: Path) -> tuple[str | None, dict | None]:
+    """Match cwd against project roots in projects.toml."""
+    cwd_str = str(cwd.resolve())
+    best_name = None
+    best_conf = None
+    longest_match = 0
+
+    for name, conf in projects.items():
+        root = conf.get("root", "")
+        if not root:
+            continue
+        if root in cwd_str:
+            if len(root) > longest_match:
+                longest_match = len(root)
+                best_name = name
+                best_conf = conf
+
+    return best_name, best_conf
+
+
+def find_local_verifiers_dir(cwd: Path) -> Path | None:
+    """Find local ./verifiers or ./imp directory in cwd or its ancestors."""
+    curr = cwd.resolve()
+    for p in [curr, *curr.parents]:
+        for d in ["verifiers", "imp", ".verifiers", ".imp"]:
+            cand = p / d
+            if cand.is_dir() and (cand / "compile.sh").exists():
+                return cand
+        if (p / ".git").exists() or (p / ".citc").exists() or p.name == "google3":
+            for d in ["verifiers", "imp", ".verifiers", ".imp"]:
+                cand = p / d
+                if cand.is_dir() and (cand / "compile.sh").exists():
+                    return cand
+            break
+    return None
+
+
+def resolve_verifiers(
+    explicit_dir: str | None,
+    explicit_config: str | None,
+    cwd: Path,
+) -> tuple[Path | None, dict | None, str | None, Path | None]:
+    """Resolve the verifier directory or command configuration."""
+    if explicit_dir:
+        p = Path(explicit_dir).expanduser().resolve()
+        if p.is_dir():
+            return p, None, p.name, None
+
+    workspace_root = find_workspace_root(cwd)
+    config_path = find_projects_config(explicit_config, cwd)
+    projects, loaded_config = load_projects(config_path)
+
+    proj_name, proj_conf = match_project(projects, cwd, workspace_root)
+    if proj_name and proj_conf:
+        p_dir = proj_conf.get("dir")
+        if p_dir:
+            cand = Path(p_dir).expanduser()
+            if not cand.is_absolute():
+                if (workspace_root / cand).is_dir():
+                    return (workspace_root / cand).resolve(), proj_conf, proj_name, loaded_config
+                if loaded_config and (loaded_config.parent / cand).is_dir():
+                    return (loaded_config.parent / cand).resolve(), proj_conf, proj_name, loaded_config
+                cand = (workspace_root / cand).resolve()
+            return cand, proj_conf, proj_name, loaded_config
+        return None, proj_conf, proj_name, loaded_config
+
+    local_dir = find_local_verifiers_dir(cwd)
+    if local_dir:
+        return local_dir, None, local_dir.name, loaded_config
+
+    return None, None, None, loaded_config
+
+
+def cmd_path(args: argparse.Namespace) -> int:
+    cwd = Path.cwd()
+    v_dir, v_conf, name, _ = resolve_verifiers(args.dir, args.config, cwd)
+    if v_dir:
+        print(str(v_dir))
+        return 0
+    if v_conf:
+        print(f"[config-only project: {name}]")
+        return 0
+    sys.stderr.write("[verify] Error: No project verifiers directory or mapping found for current directory.\n")
+    return 1
+
+
+def cmd_edit(args: argparse.Namespace) -> int:
+    cwd = Path.cwd()
+    v_dir, v_conf, name, _ = resolve_verifiers(args.dir, args.config, cwd)
+    if not v_dir:
+        sys.stderr.write("[verify] Error: No project verifiers directory found for current directory.\n")
+        return 1
+    target = v_dir
+    if args.script:
+        target = v_dir / args.script
+        if not target.exists() and not args.script.endswith(".sh") and not args.script.endswith(".md"):
+            cand = v_dir / f"{args.script}.sh"
+            if cand.exists():
+                target = cand
+            else:
+                cand_md = v_dir / f"{args.script}.md"
+                if cand_md.exists():
+                    target = cand_md
+    print(str(target))
+    return 0
+
+
+def cmd_list(args: argparse.Namespace) -> int:
+    config_path = find_projects_config(args.config, Path.cwd())
+    if not config_path:
+        print("[verify] No projects.toml found.")
+        return 0
+    projects, _ = load_projects(config_path)
+    print(f"Registered Projects (from {config_path}):")
+    if not projects:
+        print("  (No projects registered)")
+        return 0
+    for name, conf in projects.items():
+        root = conf.get("root", "<none>")
+        v_dir = conf.get("dir", "<commands-only>")
+        print(f"  - {name}:")
+        print(f"      root: {root}")
+        print(f"      dir:  {v_dir}")
+        for stage in ["compile", "test", "doctor", "mutants"]:
+            if stage in conf:
+                print(f"      {stage}: {conf[stage]}")
+    return 0
+
+
+def cmd_stats(args: argparse.Namespace) -> int:
+    config_path = find_projects_config(args.config, Path.cwd())
+    stats_file = get_stats_file(config_path)
+
+    if not stats_file.is_file():
+        print(f"[verify stats] No telemetry records found yet ({stats_file}).")
+        return 0
+
+    records = []
+    with open(stats_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                records.append(json.loads(line))
+            except Exception:
+                pass
+
+    if not records:
+        print(f"[verify stats] Telemetry file is empty ({stats_file}).")
+        return 0
+
+    if getattr(args, "json", False):
+        print(json.dumps(records, indent=2))
+        return 0
+
+    # Aggregate stats by project and stage
+    projects_stats: dict[str, dict[str, dict[str, int]]] = {}
+    for r in records:
+        proj = r.get("project", "unknown")
+        stage = r.get("stage", "unknown")
+        dur = r.get("duration_ms", 0)
+        success = r.get("success", False)
+
+        if proj not in projects_stats:
+            projects_stats[proj] = {}
+        if stage not in projects_stats[proj]:
+            projects_stats[proj][stage] = {"calls": 0, "passed": 0, "failed": 0, "total_ms": 0}
+
+        st = projects_stats[proj][stage]
+        st["calls"] += 1
+        if success:
+            st["passed"] += 1
+        else:
+            st["failed"] += 1
+        st["total_ms"] += dur
+
+    print("╔══════════════════════════════════════════════════════════════════════╗")
+    print("║                       Verification Telemetry                         ║")
+    print("╚══════════════════════════════════════════════════════════════════════╝")
+    print(f"Source: {stats_file}\n")
+
+    for proj, stages in sorted(projects_stats.items()):
+        total_calls = sum(s["calls"] for s in stages.values())
+        print(f"Project: {proj} (Total executions: {total_calls})")
+        print("┌──────────┬───────┬────────┬────────┬──────────┬──────────┐")
+        print("│ Stage    │ Calls │ Passed │ Failed │ Pass %   │ Avg Time │")
+        print("├──────────┼───────┼────────┼────────┼──────────┼──────────┤")
+        for stage_name in ["doctor", "compile", "test", "mutants"]:
+            if stage_name in stages:
+                s = stages[stage_name]
+                calls = s["calls"]
+                passed = s["passed"]
+                failed = s["failed"]
+                rate = (passed / calls * 100.0) if calls > 0 else 0.0
+                avg_ms = (s["total_ms"] / calls) if calls > 0 else 0
+                avg_str = f"{avg_ms:.0f}ms" if avg_ms < 1000 else f"{avg_ms/1000.0:.2f}s"
+                print(f"│ {stage_name:<8} │ {calls:>5} │ {passed:>6} │ {failed:>6} │ {rate:>7.1f}% │ {avg_str:>8} │")
+        # Print any additional stages
+        for stage_name, s in sorted(stages.items()):
+            if stage_name in ["doctor", "compile", "test", "mutants"]:
+                continue
+            calls = s["calls"]
+            passed = s["passed"]
+            failed = s["failed"]
+            rate = (passed / calls * 100.0) if calls > 0 else 0.0
+            avg_ms = (s["total_ms"] / calls) if calls > 0 else 0
+            avg_str = f"{avg_ms:.0f}ms" if avg_ms < 1000 else f"{avg_ms/1000.0:.2f}s"
+            print(f"│ {stage_name:<8} │ {calls:>5} │ {passed:>6} │ {failed:>6} │ {rate:>7.1f}% │ {avg_str:>8} │")
+        print("└──────────┴───────┴────────┴────────┴──────────┴──────────┘\n")
+
+    return 0
+
+
+def cmd_init(args: argparse.Namespace) -> int:
+    cwd = Path.cwd()
+    workspace_root = find_workspace_root(cwd)
+    target = args.target_dir
+
+    if not target:
+        target = "verifiers"
+
+    target_path = Path(target).expanduser()
+    if not target_path.is_absolute():
+        target_path = (cwd / target_path).resolve()
+
+    target_path.mkdir(parents=True, exist_ok=True)
+    features_dir = target_path / "features"
+    features_dir.mkdir(parents=True, exist_ok=True)
+
+    for fname, content in TEMPLATES.items():
+        fpath = target_path / fname
+        if not fpath.exists():
+            fpath.write_text(content)
+            if fname.endswith(".sh"):
+                fpath.chmod(0o755)
+            print(f"  Created: {fpath}")
+        else:
+            print(f"  Exists:  {fpath}")
+
+    readme = features_dir / "README.md"
+    if not readme.exists():
+        readme.write_text("# Feature Specifications\n\nAdd markdown specifications for agentic verification here.\n")
+        print(f"  Created: {readme}")
+
+    print(f"[verify] Verification stage scripts initialized at: {target_path}")
+
+    config_path = find_projects_config(args.config, cwd)
+    if not config_path:
+        xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
+        config_path = xdg_config / "impromptu" / "projects.toml"
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        if not config_path.exists():
+            config_path.write_text("# Central Project Verifiers Registry\n")
+
+    if config_path and config_path.is_file():
+        proj_name = args.name or cwd.name
+        rel_root = str(cwd.resolve())
+        if str(workspace_root) in rel_root:
+            rel_root = str(cwd.resolve().relative_to(workspace_root))
+        rel_dir = str(target_path)
+        if str(workspace_root) in rel_dir:
+            rel_dir = str(target_path.relative_to(workspace_root))
+
+        entry = f'\n[projects.{proj_name}]\nroot = "{rel_root}"\ndir = "{rel_dir}"\n'
+        with open(config_path, "a") as f:
+            f.write(entry)
+        print(f"[verify] Registered project '{proj_name}' in {config_path}")
+
+    return 0
+
+
+def cmd_run_stage(stage: str, extra_args: list[str], args: argparse.Namespace) -> int:
+    cwd = Path.cwd()
+    workspace_root = find_workspace_root(cwd)
+    v_dir, v_conf, name, config_path = resolve_verifiers(args.dir, args.config, cwd)
+
+    # Check if --path flag was requested
+    if getattr(args, "show_path", False):
+        if v_dir:
+            script = v_dir / f"{stage}.sh"
+            print(str(script))
+            return 0
+        elif v_conf and stage in v_conf:
+            print(f"[inline-command: {v_conf[stage]}]")
+            return 0
+        sys.stderr.write(f"[verify] Error: Could not resolve path for stage '{stage}'.\n")
+        return 1
+
+    env = dict(os.environ)
+    env["WORKSPACE_ROOT"] = str(workspace_root)
+    proj_label = name or cwd.name
+
+    start_time = time.perf_counter()
+    exit_code = 1
+
+    if v_dir:
+        script = v_dir / f"{stage}.sh"
+        if script.is_file():
+            cmd = [str(script), *extra_args]
+            try:
+                res = subprocess.run(cmd, cwd=cwd, env=env)
+                exit_code = res.returncode
+            except Exception as e:
+                sys.stderr.write(f"[verify] Error running {script}: {e}\n")
+                exit_code = 1
+            duration_ms = int((time.perf_counter() - start_time) * 1000)
+            log_telemetry(config_path, proj_label, stage, duration_ms, exit_code)
+            return exit_code
+        sys.stderr.write(f"[verify] Error: Stage script '{stage}.sh' not found in {v_dir}\n")
+        return 1
+
+    if v_conf and stage in v_conf:
+        cmd_str = v_conf[stage]
+        if extra_args:
+            cmd_str = f"{cmd_str} {' '.join(extra_args)}"
+        try:
+            res = subprocess.run(cmd_str, shell=True, cwd=cwd, env=env)
+            exit_code = res.returncode
+        except Exception as e:
+            sys.stderr.write(f"[verify] Error executing command: {e}\n")
+            exit_code = 1
+        duration_ms = int((time.perf_counter() - start_time) * 1000)
+        log_telemetry(config_path, proj_label, stage, duration_ms, exit_code)
+        return exit_code
+
+    sys.stderr.write(
+        f"[verify] Error: Could not resolve verifiers for stage '{stage}'.\n"
+        f"  Current directory: {cwd}\n"
+        "  No matching project found in projects.toml, and no local verifiers/ or imp/ directory found.\n"
+        "  Run 'verify init [path]' to initialize, or pass '--dir <path>'.\n"
+    )
+    return 1
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="verify",
+        description="Fast, modular verification runner dispatching project verification stages.",
+    )
+    parser.add_argument(
+        "--config",
+        "-c",
+        help="Path to projects.toml registry (or set VERIFY_CONFIG env var).",
+    )
+    parser.add_argument(
+        "--dir",
+        "-d",
+        help="Direct path to verifiers directory containing stage scripts.",
+    )
+    parser.add_argument(
+        "--path",
+        dest="global_path",
+        action="store_true",
+        help="Print path to target script instead of running.",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Verification stage or command")
+
+    p_doc = subparsers.add_parser("doctor", help="Run pre-flight environment and dependency checks")
+    p_doc.add_argument("--path", dest="show_path", action="store_true", help="Print script path")
+
+    p_comp = subparsers.add_parser("compile", help="Run Stage 1 fast compile check (< 2s)")
+    p_comp.add_argument("--path", dest="show_path", action="store_true", help="Print script path")
+
+    p_test = subparsers.add_parser("test", help="Run Stage 2 automated unit / integration tests (< 10s)")
+    p_test.add_argument("--path", dest="show_path", action="store_true", help="Print script path")
+    p_test.add_argument("test_args", nargs="*", help="Optional targeted test target or arguments")
+
+    p_mut = subparsers.add_parser("mutants", help="Run Stage 2b diff-scoped mutation testing")
+    p_mut.add_argument("--path", dest="show_path", action="store_true", help="Print script path")
+    p_mut.add_argument("mutant_args", nargs="*", help="Optional mutation testing arguments")
+
+    subparsers.add_parser("path", help="Print the verifiers directory path for the current project")
+    p_edit = subparsers.add_parser("edit", help="Print path to a verifier script")
+    p_edit.add_argument("script", nargs="?", help="Optional script name (compile, test, doctor, mutants, instructions)")
+
+    p_stats = subparsers.add_parser("stats", help="Display verification telemetry statistics")
+    p_stats.add_argument("--json", action="store_true", help="Output raw telemetry JSON records")
+
+    subparsers.add_parser("list", help="List registered projects from projects.toml")
+
+    p_init = subparsers.add_parser("init", help="Initialize stage scripts and register in projects.toml")
+    p_init.add_argument("target_dir", nargs="?", help="Target directory for stage scripts (default: ./verifiers)")
+    p_init.add_argument("--name", "-n", help="Project name in projects.toml")
+
+    args, unknown = parser.parse_known_args()
+
+    if not args.command:
+        if args.global_path:
+            return cmd_path(args)
+        parser.print_help()
+        return 1
+
+    if getattr(args, "global_path", False):
+        setattr(args, "show_path", True)
+
+    if args.command == "path":
+        return cmd_path(args)
+    elif args.command == "edit":
+        return cmd_edit(args)
+    elif args.command == "list":
+        return cmd_list(args)
+    elif args.command == "stats":
+        return cmd_stats(args)
+    elif args.command == "init":
+        return cmd_init(args)
+    elif args.command == "doctor":
+        return cmd_run_stage("doctor", unknown, args)
+    elif args.command == "compile":
+        return cmd_run_stage("compile", unknown, args)
+    elif args.command == "test":
+        test_args = getattr(args, "test_args", []) + unknown
+        return cmd_run_stage("test", test_args, args)
+    elif args.command == "mutants":
+        mutant_args = getattr(args, "mutant_args", []) + unknown
+        return cmd_run_stage("mutants", mutant_args, args)
+    else:
+        sys.stderr.write(f"[verify] Unknown command: {args.command}\n")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

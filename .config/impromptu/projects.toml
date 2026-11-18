@@ -1,0 +1,13 @@
+# Central Project Verifiers Registry (Config-only and local verifiers)
+
+[projects.impromptu]
+root = "prototypes/gdm/users/dsuo/impromptu"
+dir = "verifiers/impromptu"
+
+[projects.jax_observatory]
+root = "experimental/users/dsuo/jax/observatory"
+dir = "verifiers/jax_observatory"
+
+[projects.shape_poly]
+root = "prototypes/gdm/users/dsuo/jax/aot"
+dir = "verifiers/shape_poly"

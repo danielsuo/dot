@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "theme": "system",
+  "port": 8080,
+  "max_workspaces": 5
+}

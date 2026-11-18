@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# find-skills-root: Detect the skills root directory for the current repo/environment.
+# Usage:
+#   find-skills-root              # Checks local project candidates; falls back to global or .skills
+#   find-skills-root --project    # Only project-local (prioritizes _agents/skills in google3, .skills elsewhere)
+#   find-skills-root --global     # User global skills root (~/dot/skills or ~/.gemini/config/skills)
+
+MODE="auto"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -p|--project|--local)
+      MODE="project"
+      shift
+      ;;
+    -g|--global)
+      MODE="global"
+      shift
+      ;;
+    -h|--help)
+      echo "Usage: find-skills-root [--project | --global]"
+      exit 0
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+# Detect Google3 / CitC environment
+IS_GOOGLE3=false
+if [[ "$PWD" == *"/google3"* ]] || [[ "$REPO_ROOT" == *"/google3"* ]] || [[ "$PWD" == *"/google/src/"* ]]; then
+  IS_GOOGLE3=true
+fi
+
+if [[ "$MODE" != "global" ]]; then
+  # Check local project root candidates in environment-appropriate priority order
+  if [[ "$IS_GOOGLE3" == "true" ]]; then
+    CANDIDATES=("_agents/skills" ".skills" "skills" ".cursor/skills")
+  else
+    CANDIDATES=(".skills" "_agents/skills" ".cursor/skills" "skills")
+  fi
+
+  for candidate in "${CANDIDATES[@]}"; do
+    if [[ -d "${REPO_ROOT}/${candidate}" ]]; then
+      echo "${REPO_ROOT}/${candidate}"
+      exit 0
+    fi
+    if [[ -d "./${candidate}" ]]; then
+      echo "$(pwd)/${candidate}"
+      exit 0
+    fi
+  done
+fi
+
+if [[ "$MODE" == "project" ]]; then
+  if [[ "$IS_GOOGLE3" == "true" ]]; then
+    echo "${REPO_ROOT}/_agents/skills"
+  elif [[ -d "${REPO_ROOT}/.cursor" ]]; then
+    echo "${REPO_ROOT}/.cursor/skills"
+  else
+    echo "${REPO_ROOT}/.skills"
+  fi
+  exit 0
+fi
+
+# Fall back to user global skills root
+if [[ -d "${HOME}/.config/impromptu/skills" ]]; then
+  echo "${HOME}/.config/impromptu/skills"
+  exit 0
+elif [[ -d "${HOME}/dot/skills" ]]; then
+  echo "${HOME}/dot/skills"
+  exit 0
+elif [[ -d "${HOME}/.gemini/config/skills" ]]; then
+  echo "${HOME}/.gemini/config/skills"
+  exit 0
+fi
+
+# Final default
+if [[ "$IS_GOOGLE3" == "true" ]]; then
+  echo "${REPO_ROOT}/_agents/skills"
+else
+  echo "${REPO_ROOT}/.skills"
+fi
+
