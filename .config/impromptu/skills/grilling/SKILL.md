@@ -1,5 +1,5 @@
 ---
-name: grill-with-docs
+name: grilling
 description: A relentless interview to sharpen a plan or design, which also creates docs (ADRs and ubiquitous language glossary) as you go.
 disable-model-invocation: true
 user-invoked: true
@@ -10,7 +10,7 @@ tags:
   - adr
 ---
 
-# Grill with Docs
+# Grilling (with Docs)
 
 A relentless interview to stress-test and sharpen a plan, architecture, or design, while actively capturing domain terminology (`GLOSSARY.md`) and architectural decision records (`docs/adr/`) as decisions crystallize.
 
