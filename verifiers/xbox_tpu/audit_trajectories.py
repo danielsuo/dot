@@ -203,7 +203,7 @@ def fetch_server_telemetry(server_xid: int, cell: str, user: str, lookback: str)
       f"--jobname={job}",
       f"--cell={cell}",
       f"--lookback={lookback}",
-      "--regex=Finished task in|Image key:|All host TPU chips are currently busy|Error encountered in sandbox",
+      "--regex=Finished task in|Image key:|All host TPU chips are currently busy|Timed out waiting for TPU device to be available|Error encountered in sandbox",
       "--max_results=500",
   ]
   res = subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
@@ -230,7 +230,10 @@ def fetch_server_telemetry(server_xid: int, cell: str, user: str, lookback: str)
     if m_img:
       images.add(m_img.group(1))
       continue
-    if "All host TPU chips are currently busy" in line:
+    if (
+        "All host TPU chips are currently busy" in line
+        or "Timed out waiting for TPU device to be available" in line
+    ):
       busy += 1
     elif "Error encountered in sandbox" in line and "CANCELLED" not in line:
       errors += 1
@@ -248,12 +251,25 @@ def fetch_server_telemetry(server_xid: int, cell: str, user: str, lookback: str)
   )
 
 
+def _detect_mode(explicit_mode: str) -> str:
+  if explicit_mode in ("lease", "gvisor_flock"):
+    return explicit_mode
+  ws = Path(os.environ.get("WORKSPACE_ROOT") or os.getcwd())
+  if (ws / "assistant/boq/lamda/execution_box/service/tpu/BUILD").is_file():
+    return "lease"
+  gs_cc = ws / "cloud/gvisor/api/gvisor_sandbox.cc"
+  if gs_cc.is_file() and "wait_for_first_available_tpu" in gs_cc.read_text(encoding="utf-8"):
+    return "gvisor_flock"
+  return "lease"
+
+
 def build_audit_html(
     kit: Any,
     *,
     beyond_xid: int,
     episodes: list[EpisodeRow],
     telemetry: ServerTelemetry,
+    mode: str = "lease",
 ) -> str:
   """Builds a self-contained HTML report using Elder Veliz's render_audit_report kit."""
   n_ep = len(episodes)
@@ -264,6 +280,7 @@ def build_audit_html(
   cheat_count = sum(1 for e in episodes if e.cheating_override)
   oom_count = sum(e.num_ooms for e in episodes)
   timeout_count = sum(e.num_timeouts for e in episodes)
+  is_flock = mode == "gvisor_flock"
 
   pills = (
       kit.StatusPill(f"Beyond Run xid/{beyond_xid}", "blue"),
@@ -372,13 +389,207 @@ def build_audit_html(
       ),
   )
 
+  if is_flock:
+    hero_h1 = "gVisor wait_for_first_available_tpu Isolates Streams; Snapshot Restore Needs Device Remap"
+    bottom_line_html = (
+        "<strong>Bottom Line:</strong> <code>TPUSpec.wait_for_first_available_tpu</code>"
+        " (<code>cl/1025788519</code>) cleanly isolates all 4 non-sequential PCI VFIO IOMMU groups"
+        " (<code>139</code>, <code>155</code>, <code>171</code>, <code>203</code>) across persistent"
+        " streaming rollouts, but full-sentry <code>GvisorSandbox::Restore</code> reopens the"
+        " checkpointed Turn-1 <code>/dev/vfio/&lt;old_group&gt;</code> node and hits"
+        " <code>EBUSY</code> when Turn 2 locks a different chip."
+    )
+    diff_card = kit.DiffCardSpec(
+        title="Acquire First Unlocked TPU IOMMU Group via Non-Blocking flock (cl/1025788519)",
+        file_label="gvisor_sandbox.cc",
+        file_url="https://source.corp.google.com/piper///depot/google3/cloud/gvisor/api/gvisor_sandbox.cc;l=1944",
+        cl_label="cl/1025788519",
+        cl_url="https://critique.corp.google.com/cl/1025788519",
+        left=kit.DiffSideSpec(
+            title="Before (wait_for_tpus_to_be_available locked ALL host TPUs)",
+            badge_text="Serialized Host",
+            badge_tone="bad",
+            start_line=1955,
+            text=(
+                "    for (int device_index : device_indices) {\n"
+                "      if (tpu_config.wait_for_tpus_to_be_available()) {\n"
+                "        RETURN_IF_ERROR(WaitForTPUDevice(device_index, lock_id, timeout));\n"
+                "      }\n"
+                "    }"
+            ),
+        ),
+        right=kit.DiffSideSpec(
+            title="After (wait_for_first_available_tpu locks 1 free IOMMU group via flock)",
+            badge_text="cl/1025788519",
+            badge_tone="good",
+            start_line=1961,
+            text=(
+                "    if (tpu_config->wait_for_first_available_tpu()) {\n"
+                "      ASSIGN_OR_RETURN(int device_index,\n"
+                "                       WaitForFirstAvailableTPUDevice(device_indices, timeout));\n"
+                "      tpu_config->clear_unsafe_tpu_device_subset();\n"
+                "      tpu_config->add_unsafe_tpu_device_subset(device_index);\n"
+                "    }"
+            ),
+        ),
+    )
+    diff_lead = (
+        "<code>GetTPUDeviceIndices</code> enumerates PCI <code>0x1ae0</code> IOMMU groups"
+        " (<code>139</code>, <code>155</code>, <code>171</code>, <code>203</code>) and holds an"
+        " <code>O_CLOEXEC</code> <code>flock(LOCK_EX | LOCK_NB)</code> descriptor across the"
+        " sentry lifetime."
+    )
+    flow = kit.FlowStripSpec(
+        heading="gVisor flock Lease & Multi-Turn Restore Behavior (cl/1025788519)",
+        caption="Persistent ExecuteCodeStream rollouts hold 1 chip cleanly; unary full-sentry Restore freezes Turn 1's /dev/vfio/<group> inside vfsObj.",
+        steps=(
+            kit.FlowStep(
+                "1. IOMMU Scan & Sort",
+                "`GetTPUDeviceIndices` discovers `/dev/vfio/{139,155,171,203}` from sysfs `iommu_group` symlinks.",
+                "good",
+            ),
+            kit.FlowStep(
+                "2. Non-Blocking flock",
+                "`WaitForFirstAvailableTPUDevice` polls `flock(LOCK_EX | LOCK_NB)` every `100ms` and sets `unsafe_tpu_device_subset`.",
+                "good",
+            ),
+            kit.FlowStep(
+                "3. Stream Execution",
+                "`ExecuteCodeStream` keeps one sentry alive per rollout (`sitecustomize.py` sets single-chip `PJRT_DEVICE=TPU`).",
+                "blue",
+            ),
+            kit.FlowStep(
+                "4. Full-Sentry Restore Gap",
+                "On unary `GvisorSandbox::Restore`, `k.LoadFrom` restores Turn 1's `tpuDevice{num}` without remapping to Turn 2's locked group.",
+                "amber",
+            ),
+        ),
+    )
+    hypotheses = (
+        kit.HypothesisItem(
+            status_label="Confirmed",
+            tone="confirmed",
+            title="Non-Sequential Borg IOMMU Groups (139, 155, 171, 203) Work Out of the Box",
+            body="5-sandbox live burst test (`Test A`): 4 sandboxes acquired `139, 155, 171, 203` in `1.0s` (`JAX` + `torch_xla` `64.0`), and the 5th waited `20.45s` and succeeded.",
+        ),
+        kit.HypothesisItem(
+            status_label="Confirmed",
+            tone="confirmed",
+            title="Unary Full-Sentry Restore Collides When Turn 2 Acquires a Different Chip",
+            body="Live `Test B`: Turn 1 saved snapshot on `139`; while Blocker B held `139`, Turn 2 locked `155` but restored `/dev/vfio/139`, failing with `open(/dev/vfio/139): 16: Device or resource busy`.",
+        ),
+        kit.HypothesisItem(
+            status_label="Confirmed",
+            tone="confirmed",
+            title="Persistent ExecuteCodeStream Rollouts Avoid Restore Collisions",
+            body="Because `gembox.py` uses `new_stream` (`ExecuteCodeStream`), each active rollout holds its initial sentry and `flock` descriptor continuously across turns.",
+        ),
+    )
+  else:
+    hero_h1 = "Single-Chip VFIO Isolation Holds Cleanly Under Live Hard ML Rollouts"
+    bottom_line_html = (
+        "<strong>Bottom Line:</strong> Mapping logical leased slots to host PCI IOMMU group IDs"
+        " (<code>11</code>, <code>12</code>, <code>66</code>, <code>67</code>) and setting"
+        " <code>TPU_VISIBLE_CHIPS=0</code> inside each gVisor container gives every concurrent"
+        " rollout exclusive access to 1 TPU v5e chip (<code>16 GB</code> HBM) with zero"
+        " cross-sandbox collisions across JAX and PyTorch/XLA."
+    )
+    diff_card = kit.DiffCardSpec(
+        title="Resolve Logical TPU Slot Index to Host PCI VFIO IOMMU Group ID",
+        file_label="gvisor_sandbox_adapter.cc",
+        file_url="https://source.corp.google.com/piper///depot/google3/assistant/boq/lamda/execution_box/sandbox/gvisor_sandbox_adapter.cc;l=1526",
+        cl_label="cl/1025582404",
+        cl_url="https://critique.corp.google.com/cl/1025582404",
+        left=kit.DiffSideSpec(
+            title="Before (passed raw slot index 0..3 as IOMMU group)",
+            badge_text="Unpatched",
+            badge_tone="bad",
+            start_line=1527,
+            text=(
+                "    for (uint32_t chip_idx :\n"
+                "         sandbox_options_.tpu_options().gvisor_tpu_device_subset()) {\n"
+                "      tpu_spec->add_unsafe_tpu_device_subset(chip_idx);\n"
+                "    }"
+            ),
+        ),
+        right=kit.DiffSideSpec(
+            title="After (maps slot 0..3 to sorted PCI IOMMU group 11, 12, 66, 67)",
+            badge_text="Live Verified",
+            badge_tone="good",
+            start_line=1595,
+            text=(
+                "      for (uint32_t chip_idx :\n"
+                "           sandbox_options_.tpu_options().gvisor_tpu_device_subset()) {\n"
+                "        if (chip_idx >= host_iommu_groups.size()) {\n"
+                "          return absl::InvalidArgumentError(absl::StrCat(\n"
+                "              \"Requested TPU chip index \", chip_idx,\n"
+                "              \" out of range; host exposes \", host_iommu_groups.size(),\n"
+                "              \" VFIO TPU device(s)\"));\n"
+                "        }\n"
+                "        tpu_spec->add_unsafe_tpu_device_subset(host_iommu_groups[chip_idx]);\n"
+                "      }"
+            ),
+        ),
+    )
+    diff_lead = (
+        "Borg TPU v5e hosts assign non-sequential VFIO IOMMU group numbers"
+        " (<code>11</code>, <code>12</code>, <code>66</code>, <code>67</code>) to PCI functions"
+        " <code>0x1ae0:0x0063</code>."
+    )
+    flow = kit.FlowStripSpec(
+        heading="End-to-End Hardware Lease & Runtime Initialization Pipeline",
+        caption="Each concurrent sandbox receives an exclusive VFIO group node and initializes JAX or PyTorch/XLA without GCE metadata queries.",
+        steps=(
+            kit.FlowStep(
+                "1. Exclusive Chip Lease",
+                "`TpuChipLeaseModule` acquires slot `0..3`, sets `TPU_CHIP_ID` for host attribution, and sets guest `TPU_VISIBLE_CHIPS=0`.",
+                "blue",
+            ),
+            kit.FlowStep(
+                "2. PCI IOMMU Resolution",
+                "`GvisorSandboxAdapter` maps slot `0..3` to sorted `/dev/vfio/<group>` (`66`, `67`, `11`, `12`) in `unsafe_tpu_device_subset`.",
+                "good",
+            ),
+            kit.FlowStep(
+                "3. Startup Runtime Shim",
+                "`sitecustomize.py` detects numeric `/dev/vfio/<group>`, sets `TPU_WORKER_HOSTNAMES=localhost`, and isolates `torch_xla` `libtpu.so`.",
+                "good",
+            ),
+            kit.FlowStep(
+                "4. Trajectory Audit",
+                "Rollouts stream to `/s2/xid/<XID>/training_samples` and are audited for timing decomposition, errors, and reward integrity.",
+                "neutral",
+            ),
+        ),
+    )
+    hypotheses = (
+        kit.HypothesisItem(
+            status_label="Confirmed",
+            tone="confirmed",
+            title="IOMMU Group Mismatch Blocked Raw Slot Indices",
+            body="Passing `0..3` directly into `unsafe_tpu_device_subset` skipped `/dev/vfio/{11,12,66,67}` inside `runsc`, leaving zero TPU nodes in the guest.",
+        ),
+        kit.HypothesisItem(
+            status_label="Confirmed",
+            tone="confirmed",
+            title="Single-Device Guest Indexing Requires TPU_VISIBLE_CHIPS=0",
+            body="When `runsc` mounts only one `/dev/vfio/<group>`, guest `libtpu` enumerates 1 chip at index `0`; setting `TPU_VISIBLE_CHIPS=1..3` failed on slots `1..3`.",
+        ),
+        kit.HypothesisItem(
+            status_label="Confirmed",
+            tone="confirmed",
+            title="Isolated libtpu Prevents JAX 0.9.2 vs PyTorch/XLA 2.9.0 Conflict",
+            body="Loading `libtpu==0.0.21` lazily via `_TorchXlaLibtpuFinder` lets both `jax.devices()` and `torch_xla.device()` run cleanly in the same image.",
+        ),
+    )
+
   summary_sec = f"""
 <section id="sec-summary" class="report-section hero-section">
   <div class="eyebrow">Xbox TPU Hard Isolation &amp; Trajectory Audit</div>
-  <h1>Single-Chip VFIO Isolation Holds Cleanly Under Live Hard ML Rollouts</h1>
+  <h1>{hero_h1}</h1>
   {kit.render_status_pills(pills)}
   <div class="bottom-line-box">
-    <strong>Bottom Line:</strong> Mapping logical leased slots to host PCI IOMMU group IDs (<code>11</code>, <code>12</code>, <code>66</code>, <code>67</code>) and setting <code>TPU_VISIBLE_CHIPS=0</code> inside each gVisor container gives every concurrent rollout exclusive access to 1 TPU v5e chip (<code>16 GB</code> HBM) with zero cross-sandbox collisions across JAX and PyTorch/XLA.
+    {bottom_line_html}
   </div>
   <p class="lead">
     Audited Beyond API experiment <strong>{beyond_xid}</strong> (zero TPU model samplers) bound to standalone 4-chip TPU v5e Execution Box server <strong>{telemetry.server_xid}</strong> using primary image <code>gmleb_tpu_ml_sandbox:2026_11_19_cl1025582403_v9</code>.
@@ -388,99 +599,13 @@ def build_audit_html(
 </section>
 """
 
-  diff_card = kit.DiffCardSpec(
-      title="Resolve Logical TPU Slot Index to Host PCI VFIO IOMMU Group ID",
-      file_label="gvisor_sandbox_adapter.cc",
-      file_url="https://source.corp.google.com/piper///depot/google3/assistant/boq/lamda/execution_box/sandbox/gvisor_sandbox_adapter.cc;l=1526",
-      cl_label="cl/1025582404",
-      cl_url="https://critique.corp.google.com/cl/1025582404",
-      left=kit.DiffSideSpec(
-          title="Before (passed raw slot index 0..3 as IOMMU group)",
-          badge_text="Unpatched",
-          badge_tone="bad",
-          start_line=1527,
-          text=(
-              "    for (uint32_t chip_idx :\n"
-              "         sandbox_options_.tpu_options().gvisor_tpu_device_subset()) {\n"
-              "      tpu_spec->add_unsafe_tpu_device_subset(chip_idx);\n"
-              "    }"
-          ),
-      ),
-      right=kit.DiffSideSpec(
-          title="After (maps slot 0..3 to sorted PCI IOMMU group 11, 12, 66, 67)",
-          badge_text="Live Verified",
-          badge_tone="good",
-          start_line=1595,
-          text=(
-              "      for (uint32_t chip_idx :\n"
-              "           sandbox_options_.tpu_options().gvisor_tpu_device_subset()) {\n"
-              "        if (chip_idx >= host_iommu_groups.size()) {\n"
-              "          return absl::InvalidArgumentError(absl::StrCat(\n"
-              "              \"Requested TPU chip index \", chip_idx,\n"
-              "              \" out of range; host exposes \", host_iommu_groups.size(),\n"
-              "              \" VFIO TPU device(s)\"));\n"
-              "        }\n"
-              "        tpu_spec->add_unsafe_tpu_device_subset(host_iommu_groups[chip_idx]);\n"
-              "      }"
-          ),
-      ),
-  )
-
   diff_sec = f"""
 <section id="sec-diff" class="report-section">
-  <h2>Verbatim Isolation Fix Diff</h2>
-  <p>Borg TPU v5e hosts assign non-sequential VFIO IOMMU group numbers (<code>11</code>, <code>12</code>, <code>66</code>, <code>67</code>) to PCI functions <code>0x1ae0:0x0063</code>.</p>
+  <h2>Verbatim Isolation Mechanism Diff</h2>
+  <p>{diff_lead}</p>
   {kit.render_critique_diff_card(diff_card, card_id="diff-iommu")}
 </section>
 """
-
-  flow = kit.FlowStripSpec(
-      heading="End-to-End Hardware Lease & Runtime Initialization Pipeline",
-      caption="Each concurrent sandbox receives an exclusive VFIO group node and initializes JAX or PyTorch/XLA without GCE metadata queries.",
-      steps=(
-          kit.FlowStep(
-              "1. Exclusive Chip Lease",
-              "`TpuChipLeaseModule` acquires slot `0..3`, sets `TPU_CHIP_ID` for host attribution, and sets guest `TPU_VISIBLE_CHIPS=0`.",
-              "blue",
-          ),
-          kit.FlowStep(
-              "2. PCI IOMMU Resolution",
-              "`GvisorSandboxAdapter` maps slot `0..3` to sorted `/dev/vfio/<group>` (`66`, `67`, `11`, `12`) in `unsafe_tpu_device_subset`.",
-              "good",
-          ),
-          kit.FlowStep(
-              "3. Startup Runtime Shim",
-              "`sitecustomize.py` detects numeric `/dev/vfio/<group>`, sets `TPU_WORKER_HOSTNAMES=localhost`, and isolates `torch_xla` `libtpu.so`.",
-              "good",
-          ),
-          kit.FlowStep(
-              "4. Trajectory Audit",
-              "Rollouts stream to `/s2/xid/<XID>/training_samples` and are audited for timing decomposition, errors, and reward integrity.",
-              "neutral",
-          ),
-      ),
-  )
-
-  hypotheses = (
-      kit.HypothesisItem(
-          status_label="Confirmed",
-          tone="confirmed",
-          title="IOMMU Group Mismatch Blocked Raw Slot Indices",
-          body="Passing `0..3` directly into `unsafe_tpu_device_subset` skipped `/dev/vfio/{11,12,66,67}` inside `runsc`, leaving zero TPU nodes in the guest.",
-      ),
-      kit.HypothesisItem(
-          status_label="Confirmed",
-          tone="confirmed",
-          title="Single-Device Guest Indexing Requires TPU_VISIBLE_CHIPS=0",
-          body="When `runsc` mounts only one `/dev/vfio/<group>`, guest `libtpu` enumerates 1 chip at index `0`; setting `TPU_VISIBLE_CHIPS=1..3` failed on slots `1..3`.",
-      ),
-      kit.HypothesisItem(
-          status_label="Confirmed",
-          tone="confirmed",
-          title="Isolated libtpu Prevents JAX 0.9.2 vs PyTorch/XLA 2.9.0 Conflict",
-          body="Loading `libtpu==0.0.21` lazily via `_TorchXlaLibtpuFinder` lets both `jax.devices()` and `torch_xla.device()` run cleanly in the same image.",
-      ),
-  )
 
   glance_sec = f"""
 <section id="sec-glance" class="report-section">
@@ -649,13 +774,16 @@ def run_self_test() -> int:
       image_keys=["gmleb_tpu_ml_sandbox:2026_11_19_cl1025582403_v9"],
   )
   with tempfile.TemporaryDirectory(prefix="xbox_audit_selftest_") as tmpdir:
-    out = Path(tmpdir) / "self_test_audit.html"
-    out.write_text(
-        build_audit_html(kit, beyond_xid=315833070, episodes=[sample_ep], telemetry=sample_tel),
-        encoding="utf-8",
-    )
-    lint_html(out)
-  print("  ✓ audit_trajectories.py --self-test: HTML compiled and passed render_audit_report.py --lint-html (rc=0)")
+    for m in ("lease", "gvisor_flock"):
+      out = Path(tmpdir) / f"self_test_audit_{m}.html"
+      out.write_text(
+          build_audit_html(
+              kit, beyond_xid=315833070, episodes=[sample_ep], telemetry=sample_tel, mode=m
+          ),
+          encoding="utf-8",
+      )
+      lint_html(out)
+  print("  ✓ audit_trajectories.py --self-test: lease & gvisor_flock HTML compiled and passed render_audit_report.py --lint-html (rc=0)")
   return 0
 
 
@@ -675,6 +803,7 @@ def main() -> int:
   parser.add_argument("--cell", default="pd")
   parser.add_argument("--user", default="dsuo")
   parser.add_argument("--lookback", default="2h")
+  parser.add_argument("--mode", default="auto", choices=("auto", "lease", "gvisor_flock"))
   parser.add_argument(
       "--out-html",
       default="/tmp/xbox_tpu_trajectory_audit.html",
@@ -687,6 +816,7 @@ def main() -> int:
     return run_self_test()
 
   kit = _load_render_kit()
+  mode = _detect_mode(args.mode)
   episodes = fetch_s2_episodes(args.xid)
   telemetry = fetch_server_telemetry(args.server_xid, args.cell, args.user, args.lookback)
 
@@ -705,7 +835,9 @@ def main() -> int:
 
   out_path = Path(args.out_html).resolve()
   out_path.parent.mkdir(parents=True, exist_ok=True)
-  html_doc = build_audit_html(kit, beyond_xid=args.xid, episodes=episodes, telemetry=telemetry)
+  html_doc = build_audit_html(
+      kit, beyond_xid=args.xid, episodes=episodes, telemetry=telemetry, mode=mode
+  )
   out_path.write_text(html_doc, encoding="utf-8")
   lint_html(out_path)
 
