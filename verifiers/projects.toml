@@ -7,3 +7,15 @@ dir = "verifiers/jax_observatory"
 [projects.shape_poly]
 root = "prototypes/gdm/users/dsuo/jax/aot"
 dir = "verifiers/shape_poly"
+
+[projects.xbox_tpu]
+root = "/google/src/cloud/dsuo/xbox"
+dir = "verifiers/xbox_tpu"
+
+[projects.xbox_execution_box]
+root = "assistant/boq/lamda/execution_box"
+dir = "verifiers/xbox_tpu"
+
+[projects.xbox_mlebench_image]
+root = "learning/gemini/rex/projects/code/jetski_agent/contrib/mlebench/xbox_image"
+dir = "verifiers/xbox_tpu"
