@@ -1,6 +1,10 @@
 ---
 name: specify
-description: "Turn the current conversation and codebase understanding into a structured, production-ready specification (SPEC.md or docs/specs/): no interview, just synthesis of what you've already discussed."
+description: >-
+  Synthesizes the current conversation, design decisions, and codebase exploration
+  into a structured, production-ready specification (SPEC.md or docs/specs/)
+  without interviewing. Use when the user says "specify", "/specify", "to-spec",
+  "write a spec", or "turn this into a spec".
 disable-model-invocation: true
 user-invoked: true
 tags:
@@ -10,7 +14,7 @@ tags:
   - design
 ---
 
-# Specify (to-spec)
+# Specify
 
 This skill takes the current conversation context, design decisions, and codebase understanding to produce a comprehensive specification document (e.g. `SPEC.md` or `docs/specs/<feature>.md`).
 

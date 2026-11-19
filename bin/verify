@@ -233,6 +233,8 @@ def resolve_verifiers(
                     return (workspace_root / cand).resolve(), proj_conf, proj_name, loaded_config
                 if loaded_config and (loaded_config.parent / cand).is_dir():
                     return (loaded_config.parent / cand).resolve(), proj_conf, proj_name, loaded_config
+                if loaded_config and (loaded_config.parent.parent / cand).is_dir():
+                    return (loaded_config.parent.parent / cand).resolve(), proj_conf, proj_name, loaded_config
                 cand = (workspace_root / cand).resolve()
             return cand, proj_conf, proj_name, loaded_config
         return None, proj_conf, proj_name, loaded_config

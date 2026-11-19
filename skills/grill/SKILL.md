@@ -1,6 +1,10 @@
 ---
-name: grilling
-description: A relentless interview to sharpen a plan or design, which also creates docs (ADRs and ubiquitous language glossary) as you go.
+name: grill
+description: >-
+  Relentless design-tree interview to stress-test and sharpen a plan, architecture,
+  or design while actively maintaining GLOSSARY.md and lightweight ADRs (docs/adr/).
+  Use when the user says "grill", "grill me", "grilling", "grill with doc",
+  "grill with docs", or "/grill".
 disable-model-invocation: true
 user-invoked: true
 tags:
@@ -10,7 +14,7 @@ tags:
   - adr
 ---
 
-# Grilling (with Docs)
+# Grill
 
 A relentless interview to stress-test and sharpen a plan, architecture, or design, while actively capturing domain terminology (`GLOSSARY.md`) and architectural decision records (`docs/adr/`) as decisions crystallize.
 

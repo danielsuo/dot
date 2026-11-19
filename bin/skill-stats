@@ -25,13 +25,19 @@ from datetime import datetime, timezone
 
 # Canonical alias mapping (merging variants into single canonical name)
 CANONICAL_ALIASES = {
-    "verify-jax-dashboard": "verify-jax-observatory",
-    "verify-jax-observ": "verify-jax-observatory",
-    "verify-jax-observato": "verify-jax-observatory",
-    "verify-jax-ob": "verify-jax-observatory",
-    "verify-jax": "verify-jax-observatory",
-    "verify-jax-dashbo": "verify-jax-observatory",
-    "verify-j": "verify-jax-observatory",
+    "grilling": "grill",
+    "grill-with-doc": "grill",
+    "grill-with-docs": "grill",
+    "to-spec": "specify",
+    "teach": "explain",
+    "verify-jax-observatory": "verify",
+    "verify-jax-dashboard": "verify",
+    "verify-jax-observ": "verify",
+    "verify-jax-observato": "verify",
+    "verify-jax-ob": "verify",
+    "verify-jax": "verify",
+    "verify-jax-dashbo": "verify",
+    "verify-j": "verify",
 }
 
 SKILL_NAME_RE = re.compile(
