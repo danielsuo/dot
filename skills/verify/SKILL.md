@@ -71,9 +71,10 @@ remain sub-15s, 100% reproducible, and zero-hallucination.
 
 After `verify` passes 100% green:
 1. **Handoff**: The workspace diff is provided to the dedicated **Reviewer
-   Agent** (or `@reviewer`).
+   Agent** (or `@reviewer`) running the `review` skill (`skills/review/SKILL.md`).
 2. **Principle Audit**: The Reviewer Agent audits changes against `AGENTS.md`
-   and `references/principles/` (subtract before adding, laziness protocol,
-   boundary discipline, zero fake data, minimal blast radius).
+   and all 24 poteto principles in `skills/review/references/principles.md`
+   (and `references/principles/*.md`).
 3. **Adversarial Critique**: The Reviewer Agent evaluates API ergonomics, edge
-   cases, and failure modes, emitting structured findings (`P0`–`P3`).
+   cases, behavioral test oracle strength, and failure modes, emitting
+   structured findings (`P0`–`P3`) with `[Principle: <slug>]` citations.

@@ -3,8 +3,8 @@ name: grill
 description: >-
   Relentless design-tree interview to stress-test and sharpen a plan, architecture,
   or design while actively maintaining GLOSSARY.md and lightweight ADRs (docs/adr/).
-  Use when the user says "grill", "grill me", "grilling", "grill with doc",
-  "grill with docs", or "/grill".
+  Use when the user says "grill", "grill me", "grill with doc", "grill with docs",
+  or "/grill".
 disable-model-invocation: true
 user-invoked: true
 tags:
@@ -20,7 +20,7 @@ A relentless interview to stress-test and sharpen a plan, architecture, or desig
 
 ---
 
-## 1. The Grilling Protocol (Relentless Interrogation)
+## 1. The Grill Protocol (Relentless Interrogation)
 
 Interview the user relentlessly until you reach a crystal-clear shared understanding. Model the problem space as a **design tree**: every foundational decision branches into subsequent technical decisions that hang off it.
 
@@ -50,7 +50,7 @@ Format each round strictly as:
 
 ## 2. Active Domain Modeling & Glossary Maintenance
 
-Actively build and sharpen the project's domain model throughout the grilling session. Challenge ambiguous terms, invent edge-case scenarios, and record terms immediately when they crystallize.
+Actively build and sharpen the project's domain model throughout the grill session. Challenge ambiguous terms, invent edge-case scenarios, and record terms immediately when they crystallize.
 
 ### In-Flight Modeling Disciplines
 1. **Challenge against the glossary**: When the user uses a term that conflicts with existing definitions in `GLOSSARY.md`, call it out immediately:

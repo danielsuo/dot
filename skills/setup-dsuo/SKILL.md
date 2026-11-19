@@ -62,12 +62,12 @@ For each **detected** agent harness, ensure that `AGENTS.md` (the supreme behavi
 
 Ensure that each active harness knows where to discover personal and project skills:
 
-1. **Personal Skills Symlink**:
-   - Ensure `~/.config/skills/` contains symlinks to `~/dot/skills/*` (`setup-dsuo`, `ensure-verification-skill`).
+1. **Personal Skills Symlink (`~/.config/skills/`)**:
+   - Prune any stale or alias symlinks (`find ~/.config/skills -maxdepth 1 -type l -delete`, preserving `usage.jsonl` and `execution_ledger.json`), then create 1:1 symlinks for every canonical imperative skill directory in `~/dot/skills/*` (`explain`, `grill`, `research`, `review`, `setup-dsuo`, `specify`, `verify`, `wayfinder`). Never create alias symlinks.
 2. **Cursor Integration**:
    - In Cursor workspaces, ensure `.cursor/rules/` references the active project skills or symlinks `skills/` if the project uses a custom directory.
 3. **Claude Code / Gemini CLI Integration**:
-   - Ensure `~/.claude/skills/` or `~/.gemini/skills/` includes symlinks to personal skills so slash commands and tool lookups resolve instantly.
+   - Ensure `~/.claude/skills/` or `~/.gemini/skills/` (when those harnesses are active) exposes the exact canonical imperative skill directories from `~/dot/skills/*` with zero stale directories or broken symlinks.
 
 ---
 
