@@ -97,13 +97,13 @@ def find_projects_config(explicit_config: str | None = None, cwd: Path | None = 
         if p.is_dir() and (p / "projects.toml").is_file():
             return p / "projects.toml"
 
-    # 1. Standard configuration locations ($XDG_CONFIG_HOME or ~/.config)
+    # 1. Standard configuration locations ($XDG_CONFIG_HOME, ~/dot/verifiers)
     xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
     for cand in [
-        xdg_config / "impromptu" / "projects.toml",
-        xdg_config / "swarm" / "projects.toml",
         xdg_config / "verify" / "projects.toml",
+        xdg_config / "swarm" / "projects.toml",
         xdg_config / "projects.toml",
+        Path.home() / "dot" / "verifiers" / "projects.toml",
     ]:
         if cand.is_file():
             return cand
@@ -124,11 +124,9 @@ def find_projects_config(explicit_config: str | None = None, cwd: Path | None = 
 
 
 def get_stats_file(config_path: Path | None) -> Path:
-    """Get path to the stats.jsonl telemetry file next to projects.toml."""
-    if config_path and config_path.is_file():
-        return config_path.parent / "stats.jsonl"
-    xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
-    target_dir = xdg_config / "impromptu"
+    """Get path to the stats.jsonl telemetry file under $XDG_STATE_HOME/verify."""
+    xdg_state = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state")).expanduser()
+    target_dir = xdg_state / "verify"
     target_dir.mkdir(parents=True, exist_ok=True)
     return target_dir / "stats.jsonl"
 
@@ -189,15 +187,15 @@ def match_project(projects: dict, cwd: Path, workspace_root: Path) -> tuple[str 
 
 
 def find_local_verifiers_dir(cwd: Path) -> Path | None:
-    """Find local ./verifiers or ./imp directory in cwd or its ancestors."""
+    """Find local ./imp or ./verifiers directory in cwd or its ancestors."""
     curr = cwd.resolve()
     for p in [curr, *curr.parents]:
-        for d in ["verifiers", "imp", ".verifiers", ".imp"]:
+        for d in ["imp", "verifiers", ".imp", ".verifiers"]:
             cand = p / d
             if cand.is_dir() and (cand / "compile.sh").exists():
                 return cand
         if (p / ".git").exists() or (p / ".citc").exists() or p.name == "google3":
-            for d in ["verifiers", "imp", ".verifiers", ".imp"]:
+            for d in ["imp", "verifiers", ".imp", ".verifiers"]:
                 cand = p / d
                 if cand.is_dir() and (cand / "compile.sh").exists():
                     return cand
@@ -210,7 +208,7 @@ def resolve_verifiers(
     explicit_config: str | None,
     cwd: Path,
 ) -> tuple[Path | None, dict | None, str | None, Path | None]:
-    """Resolve the verifier directory or command configuration."""
+    """Resolve the verifier directory (preferring in-repo ./imp/ or ./verifiers/)."""
     if explicit_dir:
         p = Path(explicit_dir).expanduser().resolve()
         if p.is_dir():
@@ -218,8 +216,13 @@ def resolve_verifiers(
 
     workspace_root = find_workspace_root(cwd)
     config_path = find_projects_config(explicit_config, cwd)
-    projects, loaded_config = load_projects(config_path)
 
+    local_dir = find_local_verifiers_dir(cwd)
+    if local_dir:
+        proj_label = local_dir.parent.name if local_dir.name in ("imp", "verifiers", ".imp", ".verifiers") else local_dir.name
+        return local_dir, None, proj_label, config_path
+
+    projects, loaded_config = load_projects(config_path)
     proj_name, proj_conf = match_project(projects, cwd, workspace_root)
     if proj_name and proj_conf:
         p_dir = proj_conf.get("dir")
@@ -233,10 +236,6 @@ def resolve_verifiers(
                 cand = (workspace_root / cand).resolve()
             return cand, proj_conf, proj_name, loaded_config
         return None, proj_conf, proj_name, loaded_config
-
-    local_dir = find_local_verifiers_dir(cwd)
-    if local_dir:
-        return local_dir, None, local_dir.name, loaded_config
 
     return None, None, None, loaded_config
 
@@ -388,7 +387,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     target = args.target_dir
 
     if not target:
-        target = "verifiers"
+        target = "imp"
 
     target_path = Path(target).expanduser()
     if not target_path.is_absolute():
@@ -414,29 +413,6 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"  Created: {readme}")
 
     print(f"[verify] Verification stage scripts initialized at: {target_path}")
-
-    config_path = find_projects_config(args.config, cwd)
-    if not config_path:
-        xdg_config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")).expanduser()
-        config_path = xdg_config / "impromptu" / "projects.toml"
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        if not config_path.exists():
-            config_path.write_text("# Central Project Verifiers Registry\n")
-
-    if config_path and config_path.is_file():
-        proj_name = args.name or cwd.name
-        rel_root = str(cwd.resolve())
-        if str(workspace_root) in rel_root:
-            rel_root = str(cwd.resolve().relative_to(workspace_root))
-        rel_dir = str(target_path)
-        if str(workspace_root) in rel_dir:
-            rel_dir = str(target_path.relative_to(workspace_root))
-
-        entry = f'\n[projects.{proj_name}]\nroot = "{rel_root}"\ndir = "{rel_dir}"\n'
-        with open(config_path, "a") as f:
-            f.write(entry)
-        print(f"[verify] Registered project '{proj_name}' in {config_path}")
-
     return 0
 
 
@@ -541,18 +517,25 @@ def main() -> int:
     p_mut.add_argument("--path", dest="show_path", action="store_true", help="Print script path")
     p_mut.add_argument("mutant_args", nargs="*", help="Optional mutation testing arguments")
 
+    p_live = subparsers.add_parser("live", help="Run live end-to-end verification stage (live.sh)")
+    p_live.add_argument("--path", dest="show_path", action="store_true", help="Print script path")
+    p_live.add_argument("live_args", nargs="*", help="Optional live verification arguments")
+
+    p_final = subparsers.add_parser("final", help="Run uninterrupted final verification sweep (doctor -> compile -> test -> mutants -> live)")
+    p_final.add_argument("final_args", nargs="*", help="Optional arguments forwarded to live verification")
+
     subparsers.add_parser("path", help="Print the verifiers directory path for the current project")
     p_edit = subparsers.add_parser("edit", help="Print path to a verifier script")
-    p_edit.add_argument("script", nargs="?", help="Optional script name (compile, test, doctor, mutants, instructions)")
+    p_edit.add_argument("script", nargs="?", help="Optional script name (compile, test, doctor, mutants, live, instructions)")
 
     p_stats = subparsers.add_parser("stats", help="Display verification telemetry statistics")
     p_stats.add_argument("--json", action="store_true", help="Output raw telemetry JSON records")
 
     subparsers.add_parser("list", help="List registered projects from projects.toml")
 
-    p_init = subparsers.add_parser("init", help="Initialize stage scripts and register in projects.toml")
-    p_init.add_argument("target_dir", nargs="?", help="Target directory for stage scripts (default: ./verifiers)")
-    p_init.add_argument("--name", "-n", help="Project name in projects.toml")
+    p_init = subparsers.add_parser("init", help="Initialize stage scripts in ./imp (or target_dir)")
+    p_init.add_argument("target_dir", nargs="?", help="Target directory for stage scripts (default: ./imp)")
+    p_init.add_argument("--name", "-n", help="Project name")
 
     args, unknown = parser.parse_known_args()
 
@@ -585,6 +568,19 @@ def main() -> int:
     elif args.command == "mutants":
         mutant_args = getattr(args, "mutant_args", []) + unknown
         return cmd_run_stage("mutants", mutant_args, args)
+    elif args.command == "live":
+        live_args = getattr(args, "live_args", []) + unknown
+        return cmd_run_stage("live", live_args, args)
+    elif args.command == "final":
+        final_args = getattr(args, "final_args", []) + unknown
+        for st in ("doctor", "compile", "test", "mutants"):
+            rc = cmd_run_stage(st, [], args)
+            if rc != 0:
+                return rc
+        v_dir, v_conf, _, _ = resolve_verifiers(args.dir, args.config, Path.cwd())
+        if (v_dir and (v_dir / "live.sh").is_file()) or (v_conf and "live" in v_conf):
+            return cmd_run_stage("live", final_args, args)
+        return 0
     else:
         sys.stderr.write(f"[verify] Unknown command: {args.command}\n")
         return 1

@@ -1,6 +1,6 @@
 # Engineering principles router
 
-Engineering principles are modular reference manuals located in `$(find-skills-root)/../references/principles/` (or `~/.config/impromptu/references/principles/`). Use this router during Stage 4 verification and mid-flight development.
+Engineering principles are modular reference manuals located in `$(find-skills-root)/../references/principles/` (or `~/dot/references/principles/`). Use this router during Stage 4 verification and mid-flight development.
 
 ---
 
@@ -18,4 +18,4 @@ Before declaring a task complete or moving code to review, run this 30-second au
 
 ## 2. Situational principles router
 
-For mid-flight situational routing during planning and coding, consult the active router table in `AGENTS.md` Section 3. Individual principle definition manuals are located in `$(find-skills-root)/../references/principles/` (or `~/.config/impromptu/references/principles/`).
+For mid-flight situational routing during planning and coding, consult the active router table in `AGENTS.md` Section 3. Individual principle definition manuals are located in `$(find-skills-root)/../references/principles/` (or `~/dot/references/principles/`).

@@ -1,1 +1,0 @@
-/google/src/cloud/dsuo/task_1484_observatory_verify/google3/experimental/users/dsuo/verifiers/jax_observatory/instructions.md

@@ -68,11 +68,11 @@ if [[ "$MODE" == "project" ]]; then
 fi
 
 # Fall back to user global skills root
-if [[ -d "${HOME}/.config/impromptu/skills" ]]; then
-  echo "${HOME}/.config/impromptu/skills"
-  exit 0
-elif [[ -d "${HOME}/dot/skills" ]]; then
+if [[ -d "${HOME}/dot/skills" ]]; then
   echo "${HOME}/dot/skills"
+  exit 0
+elif [[ -d "${HOME}/.config/skills" ]]; then
+  echo "${HOME}/.config/skills"
   exit 0
 elif [[ -d "${HOME}/.gemini/config/skills" ]]; then
   echo "${HOME}/.gemini/config/skills"

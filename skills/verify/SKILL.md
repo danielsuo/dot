@@ -7,9 +7,8 @@ description: "Universal deterministic verification orchestrator running machine-
 
 Universal deterministic verification orchestrator for any project. Dispatches
 machine-executable stages via `verify` (`doctor`, `compile`, `test`, `mutants`,
-`stats`) with zero repository clutter. Verifier suites live centrally or
-out-of-tree (configured in `~/.config/impromptu/projects.toml` and resolved via
-`verify path` or `verify <stage> --path`).
+`live`, `final`, `stats`). Verifier suites live in `./imp/` (or `./verifiers/`)
+inside the target project, resolved via `verify path` or `verify <stage> --path`.
 
 Once deterministic verification passes (100% green exit code), the unsubmitted
 diff is handed off to a dedicated **Reviewer Agent** (or review skill) to audit
@@ -22,8 +21,7 @@ against `AGENTS.md` and engineering principles before review or mailing.
 - **Locate verifier suite**: run `verify path` (or `verify <stage> --path` /
   `verify edit [script]`) to inspect or edit verifier scripts.
 - **IF unconfigured**: run `verify init [path]` to scaffold `doctor.sh`,
-  `compile.sh`, `test.sh`, and `mutants.sh` into a verifiers directory and
-  register in `~/.config/impromptu/projects.toml`.
+  `compile.sh`, `test.sh`, and `mutants.sh` into `./imp/`.
 - **ELIF new issue or feature**: MANDATORY PRE-CODE UPKEEP before editing code:
   * Locate suite: run `verify path` to find the verifier root.
   * Update `compile.sh` (new build targets/flags) and `test.sh` (add regression
@@ -47,9 +45,9 @@ Execute verification across two loops with strict step-gating and scaling:
     verify test`).
   * *Features, architectural changes, public APIs*: Full deterministic
     pipeline (`verify doctor`, `compile`, `test`, `mutants`).
-- **Final green sweep mandate**: after addressing all fixes, execute one final
-  uninterrupted run of the deterministic suite from top to bottom before
-  presenting work or requesting review.
+- **Final green sweep mandate**: after addressing all fixes, execute `verify final`
+  (one final uninterrupted run of `doctor`, `compile`, `test`, `mutants`, and
+  `live` when `live.sh` is present) before presenting work or requesting review.
 
 ---
 
@@ -61,6 +59,8 @@ All stages are pure, machine-executable contracts (exit 0 on success):
 2. **Stage 2: Run automated tests (< 10s)**: `verify test` (and
    `verify test [target]`). Inspect paths with `verify <stage> --path`.
 3. **Stage 3: Mutation tests**: `verify mutants` (diff-scoped mutation checks).
+4. **Stage 4: Live E2E gate**: `verify live` (optional `live.sh` in `./imp/`,
+   automatically included by `verify final`).
 
 ---
 

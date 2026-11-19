@@ -1,8 +1,4 @@
-# Central Project Verifiers Registry (Config-only and local verifiers)
-
-[projects.impromptu]
-root = "prototypes/gdm/users/dsuo/impromptu"
-dir = "verifiers/impromptu"
+# Project Verifiers Registry (out-of-tree verifiers only)
 
 [projects.jax_observatory]
 root = "experimental/users/dsuo/jax/observatory"
