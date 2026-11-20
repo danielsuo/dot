@@ -109,15 +109,7 @@ SELECT
     FROM UNNEST(t.reward_all) AS x WITH OFFSET AS ord
     ORDER BY ord
   ) AS reward_all_safe,
-  ARRAY(
-    SELECT REGEXP_REPLACE(
-      SAFE_CONVERT_BYTES_TO_STRING(m),
-      r'(:\\s*|,\\s*|\\[\\s*)(NaN|-?Infinity)\\b',
-      r'\\1null'
-    )
-    FROM UNNEST(t.reward_all_metrics) AS m WITH OFFSET AS ord
-    ORDER BY ord
-  ) AS metrics_json_safe
+ARRAY(SELECT SAFE_CONVERT_BYTES_TO_STRING(m) FROM UNNEST(t.reward_all_metrics) AS m WITH OFFSET AS ord ORDER BY ord) AS metrics_json_safe
 FROM sequence_storage.collection('/s2/xid/{xid}/training_samples') AS t
 ORDER BY t.s2.record_number ASC
 LIMIT 200;
@@ -147,12 +139,15 @@ LIMIT 200;
     for line in ofile.read_text(encoding="utf-8").splitlines():
       if not line.strip():
         continue
-      raw = json.loads(line)
+      try:
+        raw = json.loads(line.replace("NaN", "null").replace("-Infinity", "null").replace("Infinity", "null").replace("\x00", ""))
+      except json.JSONDecodeError:
+        continue
       metrics_arr = raw.get("metrics_json_safe") or []
       parsed_m: dict[str, Any] = {}
       if metrics_arr and metrics_arr[0]:
         try:
-          parsed_m = json.loads(metrics_arr[0])
+          parsed_m = json.loads(metrics_arr[0].replace("NaN", "null").replace("-Infinity", "null").replace("Infinity", "null").replace("\x00", ""))
         except json.JSONDecodeError:
           parsed_m = {}
       rewards = raw.get("reward_all_safe") or []
