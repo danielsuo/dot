@@ -22,7 +22,8 @@ Validate the end-to-end shape polymorphism pipeline:
 - **Prototype AOT Symbolic Poly**: [HEAD vs Symbolic Shape Poly StableHLO](http://go/mdiff?s=o5DaffpK2L)
 
 ## Commands
-- `verify doctor`: check environment dependencies (`laze`).
-- `verify compile`: build `//prototypes/gdm/users/dsuo/jax/aot/...`.
-- `verify test`: execute `//prototypes/gdm/users/dsuo/jax/aot:poly_refine_compile_test`.
+- `verify doctor`: check environment dependencies (`laze`) and shape-poly / PartIR-Shardy workspace files.
+- `verify compile`: build `//prototypes/gdm/users/dsuo/jax/aot/...` and `//prototypes/gdm/deployment/poly_config_export:{poly_prefill_test,mpmd_refine_main,fragment_compile_main}`.
+- `verify test`: execute `poly_refine_compile_test`, `poly_prefill_test`, and `partir_shardy_poly_transformer_test` (2-stage × 2D `(data, model)` Shardy + PartIR 4-layer Transformer with RoPE, SwiGLU, donated KV cache, cross-mesh transfers, single symbolic partition -> per-bucket `mpmd_refine` + `realias` across `64, 128, 256` -> 0 `?` dims -> XLA HLO & 8-device PJRT numerical parity).
+- `verify mutants`: run injected shape-refinement, aliasing, and HLO/numerical oracle sensitivity checks.
 - `verify compare`: execute `./compare.sh` for full StableHLO equivalence & static shape verification.

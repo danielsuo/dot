@@ -19,3 +19,7 @@ dir = "verifiers/xbox_tpu"
 [projects.xbox_mlebench_image]
 root = "learning/gemini/rex/projects/code/jetski_agent/contrib/mlebench/xbox_image"
 dir = "verifiers/xbox_tpu"
+
+[projects.impromptu]
+root = "prototypes/gdm/users/dsuo/impromptu"
+dir = "/usr/local/google/home/dsuo/.config/impromptu/verifiers"
